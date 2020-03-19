@@ -1,45 +1,6 @@
 {template 'common/header'}
 <div id="js-user-edit-account" ng-controller="UserEditAccount" ng-cloak>
 	{template 'user/edit-header'}
-
-	<div class="edit-account-num hidden">
-		<div class="item">
-			<div class="title">公众号</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxaccount']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['account_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['account_limit']}</span></div>
-		</div>
-		<div class="item">
-			<div class="title">微信小程序</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxwxapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['wxapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['wxapp_limit']}</span></div>
-		</div>
-		<div class="item">
-			<div class="title">PC</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxwebapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['webapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['webapp_limit']}</span></div>
-		</div>
-		<div class="item">
-			<div class="title">APP</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxphoneapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['phoneapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['phoneapp_limit']}</span></div>
-		</div>
-		<div class="item">
-			<div class="title">熊掌号</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxxzapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['xzapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['xzapp_limit']}</span></div>
-		</div>
-		<div class="item">
-			<div class="title">支付宝小程序</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxaliapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['aliapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['aliapp_limit']}</span></div>
-		</div>
-	</div>
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>所属用户组：<span >{$user_permission_account['group_name']}</span></span>
@@ -63,9 +24,6 @@
 						<i class="wi wi-wxapp" ></i> {$user_permission_account['user_group_maxwxapp']}个
 					</span>
 					{/if}
-					<!-- <span class="account-num-item">
-						<i class="wi wi-welcome" ></i> 6个
-					</span> -->
 					{if $user_permission_account['user_group_maxwebapp']}
 					<span class="account-num-item">
 						<i class="wi wi-pc" ></i> {$user_permission_account['user_group_maxwebapp']}个
@@ -173,7 +131,7 @@
 		</div>
 		{/if}
 	</div>
-	{if user_is_founder($_W['uid']) || user_is_vice_founder($_W['uid'])}
+	{if user_is_founder($_W['uid'])}
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>附加权限</span>
@@ -280,61 +238,6 @@
 						<!--<p class="date">有效期：1个月	</p>-->
 					</div>
 				</div>
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-pc"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-app"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-xzapp"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-aliapp"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-account"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
 			</div>
 		</div>
 		{else}
@@ -383,7 +286,7 @@
 			user_groups: {php echo json_encode($user_groups)},
 			links: {
 				recycleUser: "{php echo url('user/display/operate', array('type' => 'recycle'))}",
-				editGroup: "{php echo url('user/edit/edit_modules_tpl')}",
+				editGroup: "{php echo url('user/edit/edit_user_group')}",
 				editCreateAccountList: "{php echo url('user/edit/edit_create_account_list', array('uid' => $uid))}",
 				deleteUserGroupUrl: "{php echo url('user/edit/delete_user_group')}",
 				extra_create_account_url: "{php echo url('user/edit/edit_user_extra_group', array('uid' => $uid))}",

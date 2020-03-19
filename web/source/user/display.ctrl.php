@@ -49,7 +49,7 @@ if ('display' == $do) {
 
 		$search = safe_gpc_string($_GPC['search']);
 		if (!empty($search)) {
-			$search_uids = table('users_profile')->where('mobile like', "%{$search}%")->getall('uid');
+			$search_uids = table('users_profile')->where('mobile like ', "%{$search}%")->getall('uid');
 			$users_table->searchWithNameOrMobile($search, false, is_array($search_uids) ? array_keys($search_uids) : array());
 		}
 
@@ -65,6 +65,14 @@ if ('display' == $do) {
 		$users = $users_table->getUsersList(false);
 		$total = $users_table->getLastQueryTotal();
 		if (!empty($users)) {
+			foreach ($users as $user_key => $user) {
+				if ($user['type'] == 1) {
+					$users[$user_key]['typename'] = '普通用户';
+				}
+				if ($user['type'] == 3) {
+					$users[$user_key]['typename'] = '应用操作员';
+				}
+			}
 			$profiles = table('users_profile')->searchWithUid(array_keys($users))->getAll('uid');
 			foreach ($profiles as $profile) {
 				$users[$profile['uid']]['avatar'] = $profile['avatar'];
@@ -74,13 +82,18 @@ if ('display' == $do) {
 		$users = array_values($users);
 		$pager = pagination($total, $pindex, $psize);
 	}
+	if ($_W['isajax']) {
+		iajax(0, array(
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize,
+			'list' => $users,
+		));
+	}
 	template('user/display');
 }
 
 if ('operate' == $do) {
-	if (!$_W['isajax'] || !$_W['ispost']) {
-		iajax(-1, '非法操作！', referer());
-	}
 	$type = safe_gpc_string($_GPC['type']);
 	$types = array('recycle', 'recycle_delete', 'recycle_restore', 'check_pass');
 	if (!in_array($type, $types)) {

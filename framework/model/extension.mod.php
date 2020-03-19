@@ -83,6 +83,7 @@ function ext_module_convert($manifest) {
 		'function' => $manifest['bindings']['function'],
 		'permissions' => $manifest['permissions'],
 		'issystem' => 0,
+		'application_type' => 1
 	);
 }
 

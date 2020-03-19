@@ -469,7 +469,7 @@ function user_group() {
  * @return Ambigous
  */
 function user_founder_group() {
-	$groups = pdo_getall('users_founder_group', array(), array('id', 'name', 'package', 'timelimit'), 'id', 'id ASC');
+	$groups = pdo_getall('users_founder_group', array(), '*', 'id', 'id ASC');
 	return $groups;
 }
 
@@ -663,6 +663,9 @@ function user_modules($uid = 0) {
 									case 'toutiaoapp':
 										$module_list[$name][] = MODULE_SUPPORT_TOUTIAOAPP_NAME;
 										break;
+									case 'welcome':
+										$module_list[$name][] = MODULE_SUPPORT_SYSTEMWELCOME_NAME;
+										break;
 								}
 							}
 						}
@@ -702,7 +705,6 @@ function user_modules($uid = 0) {
 				}
 			}
 		}
-
 		cache_write(cache_system_key('user_modules', array('uid' => $uid)), $modules);
 	}
 
@@ -751,10 +753,6 @@ function user_modules($uid = 0) {
 
 			$is_continue = true;
 			foreach ($support_type as $support_name => $value) {
-				//欢迎模块只能创始人操作，如果当前非创始人，忽略欢迎模块
-				if (!$is_main_founder && $support_name == MODULE_SUPPORT_SYSTEMWELCOME_NAME) {
-					continue;
-				}
 				if ($module_info[$support_name] == $value['support']) {
 					$is_continue = false;
 				}
@@ -1293,7 +1291,7 @@ function user_founder_templates($founder_groupid) {
 	}
 
 	if (in_array(-1, $group_detail_info['package'])) {
-		$template_list = table('site_templates')->getAllTemplates();
+		$template_list = table('modules')->getAllTemplates();
 		return $template_list;
 	}
 

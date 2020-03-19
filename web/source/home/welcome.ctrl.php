@@ -7,11 +7,9 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('welcome');
 load()->model('module');
-load()->model('system');
 load()->model('miniapp');
 load()->model('message');
 load()->model('visit');
-load()->model('cloud');
 
 $dos = array('platform', 'system', 'ext', 'account_ext', 'get_fans_kpi', 'get_system_upgrade', 'get_upgrade_modules', 'get_module_statistics', 'get_ads', 'get_not_installed_modules', 'system_home', 'set_top', 'set_default', 'add_welcome', 'ignore_update_module', 'get_workerorder', 'add_welcome_shortcut', 'remove_welcome_shortcut', 'build_account_modules');
 $do = in_array($do, $dos) ? $do : 'platform';
@@ -45,10 +43,10 @@ if ('ext' == $do && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
 
 if ('platform' == $do) {
 	if (empty($_W['account'])) {
-		itoast('账号信息有误!', url('account/manage'), 'info');
+		itoast('', $_W['siteroot'] . 'web/home.php');
 	}
 	if (!empty($_W['account']['endtime']) && $_W['account']['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $_W['account']['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE && $_W['account']['endtime'] < time() && !user_is_founder($_W['uid'], true)) {
-		itoast('平台账号已到服务期限，请联系管理员并续费', url('account/manage'), 'info');
+		itoast('平台账号已到服务期限，请联系管理员并续费', $_W['siteroot'] . 'web/home.php', 'info');
 	}
 	//公告
 	$notices = welcome_notices_get();
@@ -60,13 +58,13 @@ if ('system' == $do) {
 		header('Location: ' . $_W['siteroot'] . 'web/home.php');
 		exit;
 	}
-	$reductions = system_database_backup();
-	if (!empty($reductions)) {
-		$last_backup = array_shift($reductions);
-		$last_backup_time = $last_backup['time'];
-		$backup_days = welcome_database_backup_days($last_backup_time);
+	$backup_days = welcome_database_backup_days();
+	if ($backup_days < 0) {
+		$backup_days = '从未';
+	} elseif ($backup_days < 1) {
+		$backup_days = '今天已';
 	} else {
-		$backup_days = 0;
+		$backup_days .= '天前';
 	}
 	$today_start = strtotime(date('Y-m-d', time()));
 	$yestoday_start = strtotime(date('Y-m-d', strtotime('-1 days')));
@@ -113,7 +111,7 @@ if ('ext' == $do) {
 	}
 
 	define('IN_MODULE', $modulename);
-	if ($_GPC['system_welcome'] && $_W['isfounder']) {
+	if ($_GPC['system_welcome']) {
 		define('SYSTEM_WELCOME_MODULE', true);
 		$frames = buildframes('system_welcome');
 	} else {
@@ -134,7 +132,6 @@ if ('ext' == $do) {
 		}
 		$frames = buildframes('account');
 	}
-
 	foreach ($frames['section'] as $secion) {
 		foreach ($secion['menu'] as $menu) {
 			if (!empty($menu['url'])) {
@@ -197,9 +194,8 @@ if ('get_fans_kpi' == $do) {
 }
 
 if ('get_system_upgrade' == $do) {
-	//系统更新信息
-	$upgrade = welcome_get_cloud_upgrade();
-	iajax(0, $upgrade, '');
+	$upgrade = cloud_build();
+	iajax(0, $upgrade['upgrade']);
 }
 
 if ('get_upgrade_modules' == $do) {

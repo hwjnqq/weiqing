@@ -9,7 +9,7 @@ load()->model('module');
 load()->model('switch');
 load()->model('miniapp');
 
-$dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules', 'own');
+$dos = array('display', 'switch', 'have_permission_uniacids', 'accounts_dropdown_menu', 'rank', 'set_default_account', 'switch_last_module', 'init_uni_modules', 'own', 'system_welcome', 'set_system_welcome_domain');
 $do = in_array($do, $dos) ? $do : 'display';
 
 if ('switch_last_module' == $do) {
@@ -215,7 +215,7 @@ if ('init_uni_modules' == $do) {
 	$pageindex = $pageindex + 1;
 	iajax(0, array('pageindex' => $pageindex, 'total' => $total));
 }
-
+//客户端所有应用
 if ('own' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 24;
@@ -284,4 +284,82 @@ if ('own' == $do) {
 		$result[] = $module_info;
 	}
 	iajax(0,$result);
+}
+//首页应用
+if ('system_welcome' == $do) {
+	$pageindex = max(1, intval($_GPC['page']));
+	$pagesize = 24;
+	$result = array();
+	$user_modules = user_modules();
+	if (empty($user_modules)) {
+		iajax(0, $result);
+	}
+	foreach ($user_modules as $module) {
+		if ($module[MODULE_SUPPORT_SYSTEMWELCOME_NAME] == MODULE_SUPPORT_SYSTEMWELCOME) {
+			$system_welcome_modules[] = $module['name'];
+		}
+	}
+	if (empty($system_welcome_modules)) {
+		iajax(0, $result);
+	}
+	$bind_domain = table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $system_welcome_modules))->getall('module_name');
+	foreach ($system_welcome_modules as $module) {
+		$list[] = array(
+			"mid"=> $user_modules[$module]['mid'],
+			"name"=> $user_modules[$module]['name'],
+			"type"=> $user_modules[$module]['type'],
+			"title"=> $user_modules[$module]['title'],
+			"title_initial"=> $user_modules[$module]['title_initial'],
+			"version"=> $user_modules[$module]['version'],
+			"logo"=> $user_modules[$module]['logo'],
+			"list_type"=> "system_welcome_module",
+			"is_star"=> 0,
+			"manageurl" => url('home/welcome/ext', array('system_welcome' => 1, 'm' => $module), true),
+			"bind_domain"=> $bind_domain[$module]['domain'],
+		);
+	}
+	$result = array_slice($list, ($pageindex - 1) * $pagesize, $pagesize);
+	if (empty($result)) {
+		iajax(0, array());
+	}
+	iajax(0, $result);
+}
+//设置域名
+if ('set_system_welcome_domain' == $do) {
+	$bind_domain = safe_gpc_string($_GPC['domain']);
+	$module_name = safe_gpc_string($_GPC['module_name']);
+	if (!empty($bind_domain) && !starts_with($bind_domain, 'http')) {
+		iajax(-1, '要绑定的域名请以http://或以https://开头');
+	}
+	$user_modules = user_modules();
+	if (!in_array($module_name, array_keys($user_modules))) {
+		iajax(-1, '该用户无此模块权限！');
+	}
+	if (empty($bind_domain)) {
+		table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $module_name))->delete();
+		iajax(0, '设置成功！');
+	}
+	$special_domain = array('.com.cn', '.net.cn', '.gov.cn', '.org.cn', '.com.hk', '.com.tw');
+	$domain = str_replace($special_domain, '.com', parse_url($bind_domain, PHP_URL_HOST));
+	$domain_array = explode('.', $domain);
+	if (count($domain_array) > 3 || count($domain_array) < 2) {
+		iajax(-1, '只支持一级域名和二级域名！');
+	}
+	$user_modules = user_modules();
+	if (!in_array($module_name, array_keys($user_modules))) {
+		iajax(-1, '该用户无此模块权限！');
+	}
+	$nohttp_domain = preg_replace('/^https?/', '', $bind_domain);
+	$bind_exist = table('system_welcome_binddomain')
+		->where(array('domain' => array('http' . $nohttp_domain, 'https' . $nohttp_domain)))
+		->getcolumn('module_name');
+	if (empty($bind_exist)) {
+		table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $module_name))->delete();
+		$data = array('uid' => $_W['uid'], 'domain' => $bind_domain, 'module_name' => $module_name, 'createtime' => TIMESTAMP);
+		table('system_welcome_binddomain')->fill($data)->save();
+		iajax(0, '设置成功！');
+	} else {
+		$module_info = module_fetch($bind_exist);
+		iajax(-1, "绑定失败, 该域名已绑定模块： {$module_info['title']} ！");
+	}
 }

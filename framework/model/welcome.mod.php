@@ -11,7 +11,6 @@ defined('IN_IA') or exit('Access Denied');
  */
 function welcome_get_ads() {
 	load()->classs('cloudapi');
-	$result = array();
 	$api = new CloudApi();
 	$result = $api->get('store', 'we7_index_a');
 	return $result;
@@ -48,60 +47,27 @@ function welcome_notices_get() {
  * @param mixed 时间戳数组 /时间戳
  * @return integer 天数;
  */
-function welcome_database_backup_days($time) {
-	global $_W;
+function welcome_database_backup_days() {
 	$cachekey = cache_system_key('back_days');
 	$cache = cache_load($cachekey);
-	if (!empty($cache)) {
-		return $cache;
+	if (!empty($cache) && $cache['expire'] > TIMESTAMP) {
+		return $cache['data'];
 	}
-	$backup_days = 0;
-	if (is_array($time)) {
-		$max_backup_time = $time[0];
-		foreach ($time as $key => $backup_time) {
-			if ($backup_time <= $max_backup_time) {
+	$reductions = system_database_backup();
+	if (!empty($reductions)) {
+		$last_backup_time = 0;
+		foreach ($reductions as $key => $reduction) {
+			if ($reduction['time'] <= $last_backup_time) {
 				continue;
 			}
-			$max_backup_time = $backup_time;
+			$last_backup_time = $reduction['time'];
 		}
-		$backup_days = ceil((time() - $max_backup_time) / (3600 * 24));
-	}
-	if (is_numeric($time)) {
-		$backup_days = ceil((time() - $time) / (3600 * 24));
-	}
-	cache_write($cachekey, $backup_days, 24 * 3600);
-	return $backup_days;
-}
-/**
- * 获取云服务系统更新数据
- * @return array() ;
- */
-function welcome_get_cloud_upgrade() {
-	load()->model('cloud');
-	$upgrade_cache = cache_load(cache_system_key('upgrade'));
-	if (empty($upgrade_cache) || TIMESTAMP - $upgrade_cache['lastupdate'] >= 3600 * 24 || empty($upgrade_cache['data'])) {
-		$upgrade = cloud_build();
+		$backup_days = floor((time() - $last_backup_time) / (3600 * 24));
 	} else {
-		$upgrade = $upgrade_cache['data'];
+		$backup_days = -1;
 	}
-	cache_delete(cache_system_key('cloud_transtoken'));
-	if (is_error($upgrade) || empty($upgrade['upgrade'])) {
-		$upgrade = array();
-	}
-	if (!empty($upgrade['schemas'])) {
-		$upgrade['database'] = cloud_build_schemas($upgrade['schemas']);
-	}
-	if (!empty($upgrade['files'])) {
-		$file_nums = count($upgrade['files']);
-	}
-	if (!empty($upgrade['database'])) {
-		$database_nums = count($upgrade['database']);
-	}
-	if (!empty($upgrade['scripts'])) {
-		$script_nums = count($upgrade['scripts']);
-	}
-	$upgrade['file_nums'] = $file_nums;
-	$upgrade['database_nums'] = $database_nums;
-	$upgrade['script_nums'] = $script_nums;
-	return $upgrade;
+
+	cache_write($cachekey, $backup_days, 12 * 3600);
+
+	return $backup_days;
 }

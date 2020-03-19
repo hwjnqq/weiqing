@@ -29,7 +29,9 @@
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-primary" data-dismiss="modal" ng-click="httpChange('groupid')">确定</button>
+						<button type="button" class="btn btn-primary" data-dismiss="modal"
+								ng-click="editUserGroup('groupid')">确定
+						</button>
 						<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
 					</div>
 				</div>
@@ -170,12 +172,11 @@
     	user_modules: {php echo !empty($user_modules) ? json_encode($user_modules) : 'null'},
 		/* 应用权限 - 应用权限组*/
 		modules_group_list: {php echo !empty($modules_group_list) ? json_encode($modules_group_list) : 'null'},
-    	source_templates: {php echo !empty($templates) ? json_encode($templates) : 'null'},
     	extend_modules: {php echo !empty($extend_permission['modules']) ? json_encode($extend_permission['modules']) : 'null'},
 		uni_groups: {php echo !empty($uni_groups) ? json_encode($uni_groups) : 'null'},
 		user_extra_groups: {php echo !empty($user_extra_groups) ? json_encode($user_extra_groups) : 'null'},
 		links: {
-			editGroup: "{php echo url('user/edit/edit_modules_tpl')}",
+			editUserGroup: "{php echo url('user/edit/edit_user_group')}",
 			editUniGroupsUrl: "{php echo url('user/edit/edit_uni_groups')}",
 			editExtraModulesUrl: "{php echo url('user/edit/edit_extra_modules')}",
 			editUsersPermission: "{php echo url('user/edit/edit_users_permission')}",

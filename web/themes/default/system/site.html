@@ -2,6 +2,7 @@
 <div id="system-site-setting" ng-controller="systemSiteSettingCtrl" ng-cloak>
 	<ul class="we7-page-tab">
 		<li{if $do == 'basic'} class="active"{/if}><a href="{php echo url('system/site/basic');}">基本信息</a></li>
+		<li{if $do == 'icps'} class="active"{/if}><a href="{php echo url('system/site/icps');}">ICP备案</a></li>
 		
 	</ul>
 	<div class="clearfix">
@@ -82,13 +83,6 @@
 					<!-- 自动退出 end -->
 
 					<!-- 备案号 start -->
-					<div class="form-file">
-						<div class="form-label">备案号</div>
-						<div class="form-value">{$settings['icp']}<span class="we7-margin-left">直接填写备案号即可,系统已添加工信部链接</span></div>
-						<div class="form-edit">
-							<we7-modal-form label="'备案号'" on-confirm="saveSetting(formValue, 'icp', 'string')" value="settings['icp']"></we7-modal-form>
-						</div>
-					</div>
 					<div class="form-file">
 						<div class="form-label">联网备案信息</div>
 						<div class="form-value">{$settings['policeicp']['policeicp_location']} {$settings['policeicp']['policeicp_code']}<span class="we7-margin-left">直接填写联网备案信息即可,系统已添加工信部链接</span></div>
@@ -186,7 +180,141 @@
 				<!-- 站点风格 end -->
 			</div>
 			{/if}
+			{if $do == 'icps'}
+			<div class="search-box we7-margin-bottom">
+				<form action="" method="get" class="search-form" role="form">
+					<input type="hidden" name="c" value="system">
+					<input type="hidden" name="a" value="site">
+					<input type="hidden" name="do" value="icps">
+					<div class="input-group col-sm-4 pull-left">
+						<input class="form-control" name="keyword" placeholder="" id="" type="text" value="{$_GPC['keyword']}">
+						<div class="input-group-btn">
+							<button class="btn btn-default"><i class="fa fa-search"></i></button>
+						</div>
+					</div>
+				</form>
+				<a class="btn btn-primary we7-margin-left" ng-click="addIcps()">+添加</a>
+			</div>
+			<table class="table we7-table table-hover">
+				<tr>
+					<th style="width:150px;">域名地址</th>
+					<th style="width:150px;">icp备案号</th>
+					<th style="width:150px;">操作</th>
+				</tr>
+				<tr ng-repeat="(key, icp) in icps" ng-if="icps">
+					<td ng-bind="icp.domain"></td>
+					<td ng-bind="icp.icp"></td>
+					<td>
+						<div class="link-group">
+							<a href="javascript:;" ng-click="editIcp(key)">修改</a>
+							<we7-modal-tip on-confirm="deleteIcp(icp.id)" content="'确认删除当前选择的域名备案?'"><a href="javascript:;" >删除</a></we7-modal-tip>
+						</div>
+					</td>
+				</tr>
+			</table>
+			<div class="we7-empty-block we7-margin-top" style="line-height: 20px;" ng-if="icps | we7IsEmpty" >
+				<p  class="color-dark"><i class="wi wi-info color-default font-lg vertical-middle"></i>暂无添加的域名ICP备案号</p>
+				<p>目前针对网站备案问题严查，需要根据域名显示不同的备案号，建议暂无备案的请及时完善信息。</p>
+				<a class="color-default" href="javascript:;" ng-click="addIcps()">立即添加></a>
+			</div>
+			<div class="text-right">
+				{$pager}
+			</div>
+			<div class="modal fade bs-example-modal-sm" id="add-icps" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog we7-modal-dialog ">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+							<h4 class="modal-title">ICP/域名备案信息</h4>
+						</div>
+						<div class="modal-body overflow-auto">
+							<form action="" method="post" name="icps_form" enctype="multipart/form-data" class="we7-form form" >
+								<div class="icp-list ">
+									<div class="icp-item" ng-repeat="(key, item) in domains_data track by $index" >
+										<div class="form-box">
+											<div class="form-group ">
+												<label class="col-sm-2 control-label">域名</label>
+												<div class="col-sm-10 ">
+													<input type="text" name="{{'domains_data_' + $index}}" required min="0" ng-model="domains_data[$index]" class="form-control">
+													<span class="help-block">
+														请填写域名
+													</span>
+												</div>
+											</div>
+											<div class="form-group">
+												<label class="col-sm-2 control-label">备案号</label>
+												<div class="col-sm-10">
+													<input type="text" name="{{'icps_data' + $index}}" required  min="0" ng-model="icps_data[$index]" class="form-control">
+													<span class="help-block">
+														请填写备案号
+													</span>
+												</div>
+											</div>
+										</div>
+										<a href="javascript:;" class="color-default delete" ng-if="$index != 0" ng-click="delIcps($index)">删除</a>
+									</div>
+								</div>
+								<div class="row we7-margin-top">
+									<div class="col-sm-2"></div>
+									<div class="col-sm-10">
+										<a href="javascript:;" class="color-default" ng-click="pulsIcps()">
+											<i class="wi wi-plus"></i>添加
+										</a>
+									</div>
+								</div>
+							</form>
+						</div>
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" name="submit" value="保存" ng-disabled="icps_form.$pristine&&icps_form.$invalid " ng-click="saveIcps()">保存</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="modal fade bs-example-modal-sm" id="edit-icp" tabindex="-1" style="z-index:1039" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+				<div class="modal-dialog we7-modal-dialog ">
+					<div class="modal-content">
+						<div class="modal-header">
+							<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+							<h4 class="modal-title">修改</h4>
+						</div>
+						<div class="modal-body">
+							<form action="" method="post" name="icps_edit" enctype="multipart/form-data" class="we7-form form" >
+								<div class="icp-list ">
+									<div class="icp-item">
+										<div class="form-box">
+											<div class="form-group">
+												<label class="col-sm-2 control-label">域名</label>
+												<div class="col-sm-10">
+													<input type="text" name="domain" required min="0" ng-model="currentIcp.domain" class="form-control">
+													<span class="help-block">
+														请填写域名
+													</span>
+												</div>
+											</div>
+											<div class="form-group">
+												<label class="col-sm-2 control-label">备案号</label>
+												<div class="col-sm-10">
+													<input type="text"  min="0" name="icp" required ng-model="currentIcp.icp" class="form-control">
+													<span class="help-block">
+														请填写备案号
+													</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</form>
+						</div>
 
+						<div class="modal-footer">
+							<button type="button" class="btn btn-primary" name="submit" value="保存" ng-click="updateIcp()">保存</button>
+							<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			{/if}
 			{if $do == 'copyright'}
 				
 			{/if}
@@ -226,16 +354,14 @@
 		'template' : {php echo json_encode($template)},
 		'template_ch_name' : {php echo json_encode($template_ch_name)},
 		'login_ch_name' : {php echo json_encode($login_ch_name)},
-		'saveSettingUrl' : "{php echo url('system/site/save_setting')}",
-	});
-	angular.module('systemApp').filter('mobile', function() {
-		return function(mobile) {
-			if(!mobile) {
-				return '还未绑定手机号'
-			} else {
-				return mobile.substr(0, 3) + '****' + mobile.substr(7, 11)
-			}
+		'icps': {php echo json_encode($icps)},
+		links: {
+			'saveSettingUrl' : "{php echo url('system/site/save_setting')}",
+			'saveIcpsUrl': "{php echo url('system/site/save_icps')}",
+			'editIcpUrl': "{php echo url('system/site/edit_icp')}",
+			'delIcpUrl': "{php echo url('system/site/del_icp')}",
 		}
+
 	});
 	angular.bootstrap($('#system-site-setting'), ['systemApp']);
 </script>

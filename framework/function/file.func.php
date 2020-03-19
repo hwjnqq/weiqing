@@ -492,7 +492,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
  *
  * @return true|error
  */
-function file_dir_remote_upload($dir_path, $limit = 50) {
+function file_dir_remote_upload($dir_path, $limit = 200) {
 	global $_W;
 	if (empty($_W['setting']['remote']['type'])) {
 		return error(1, '未开启远程附件');

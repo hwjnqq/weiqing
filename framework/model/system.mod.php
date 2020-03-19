@@ -510,6 +510,13 @@ function system_star_menu() {
 			'one_page' => 0,
 			'hide_sort' => 1,
 		),
+		'system_welcome_modules' => array(
+			'title' => '首页应用',
+			'icon' => 'wi wi-apply',
+			'apiurl' => url('module/display/system_welcome'),
+			'one_page' => 0,
+			'hide_sort' => 1,
+		),
 		'account_recycle' => array(
 			'title' => '回收站',
 			'icon' => 'wi wi-delete2',
@@ -522,9 +529,14 @@ function system_star_menu() {
 			'menu' => array(),
 		),
 	);
-
+	if (!in_array(IMS_FAMILY, array('s', 'x'))) {
+		unset($result['system_welcome_modules']);
+	}
 	$account_all = table('account')->searchAccountList();
 	$result['platform']['num'] = max(0, count($account_all));
+	if ($result['platform']['num'] == 0) {
+		unset($result['platform']['num']);
+	}
 
 	foreach (uni_account_type_sign() as $type_sign => $type_sign_info) {
 		$account_num = uni_user_accounts($_W['uid'], $type_sign);

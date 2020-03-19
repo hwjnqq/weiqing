@@ -60,10 +60,10 @@ if ('forward' == $do) {
 		itoast('授权登录新建公众号失败，请重试', url('account/manage'), 'error');
 	}
 	$uniacid = pdo_insertid();
-	$template = pdo_fetch('SELECT id,title FROM ' . tablename('site_templates') . " WHERE name = 'default'");
+	$template = table('modules')->getTemplateByName('default');
 	$style_insert = array(
 		'uniacid' => $uniacid,
-		'templateid' => $template['id'],
+		'templateid' => $template['mid'],
 		'name' => $template['title'] . '_' . random(4),
 	);
 	pdo_insert('site_styles', $style_insert);

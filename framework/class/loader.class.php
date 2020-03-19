@@ -132,6 +132,7 @@ function table($name) {
 		'stat_visit',
 		'stat_visit_ip',
 		'system_stat_visit',
+		'system_welcome_binddomain',
 		'uni_account',
 		'uni_account_menus',
 		'uni_account_modules',

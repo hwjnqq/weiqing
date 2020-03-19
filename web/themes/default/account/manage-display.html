@@ -107,11 +107,8 @@
 		<tr style="height: 52px;"></tr>
 	</table>
 	<!-- 列表数据 end -->
-
-	<div class="text-right">
-		{$pager}
+	<div class="text-right" id="pager">
 	</div>
-
 	<!-- 添加帐号弹窗 start -->
 	<div class="modal fade modal-type" tabindex="-1" role="dialog" id="owner-modal">
 		<div class="modal-dialog" role="document">
@@ -142,7 +139,12 @@
 		$('[data-toggle="tooltip"]').tooltip();
 	});
 	angular.module('accountApp').value('config', {
-		lists: {php echo !empty($list) ? json_encode($list) : 'null'},
+		searchParams: {
+			account_type: "{$_GPC['account_type']}",
+					order: "{$_GPC['order']}",
+					type: "{$_GPC['type']}",
+					keyword: "{$_GPC['keyword']}"
+		},
 		links: {
 			switch: "{php echo url('account/display/switch')}",
 			getAccountDetailInfo: "{php echo url('account/manage/account_detailinfo')}",
@@ -150,6 +152,7 @@
 			postUser: "{php echo url('account/post-user')}",
 			del: "{php echo url('account/manage/delete')}",
 			accountCreateInfo: "{php echo url('account/manage/account_create_info')}",
+			getAccountList: "{php echo url('account/manage/account_list')}"
 		},
 	});
 	angular.bootstrap($('#js-system-account-display'), ['accountApp']);

@@ -239,7 +239,7 @@ function uni_account_type($type = 0) {
  */
 function uni_need_account_info() {
 	global $controller, $action, $do, $_GPC;
-	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
+	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store' && !$_GPC['system_welcome']) {
 		return true;
 	}
 	if ($controller == 'miniapp') {
@@ -250,18 +250,65 @@ function uni_need_account_info() {
 	return false;
 }
 
+/**
+ * 判断是否可以创建平台账号
+ * @return int
+ */
+function uni_account_can_create($type_sign) {
+	$result = 1;
+	return $result;
+	$type_sign_info = uni_account_type_sign($type_sign);
+	if (empty($type_sign_info)) {
+		return 0;
+	}
+	$all_accounts = table('account')->getall();
+	if (empty($all_accounts)) {
+		return $result;
+	}
+	$account_nums = array();
+	$account_total = 0;
+
+	//统计各账号类型分别创建的数量
+	$uni_account_type = uni_account_type();
+	foreach ($all_accounts as $account) {
+		if (!empty($uni_account_type[$account['type']])) {
+			$account_nums[$uni_account_type[$account['type']]['type_sign']] += 1;
+		}
+	}
+	if (empty($account_nums[$type_sign])) {
+		return $result;
+	}
+	//各账号类型数量第一个为体验，第二个开始算数量
+	foreach ($account_nums as $account_num) {
+		if ($account_num > 1) {
+			$account_total += ($account_num - 1);
+		}
+	}
+
+	$cloud_total = cloud_account_info();
+	if ($account_total >= $cloud_total) {
+		$result = 0;
+	}
+
+	return $result;
+}
+
 function uni_account_create_info() {
 	global $_W;
 	load()->model('permission');
 	$account_create_info = permission_user_account_num();
 	$account_all_type_sign = uni_account_type_sign();
 	foreach ($account_all_type_sign as $sign => &$sign_info) {
-		$sign_limit = $sign . '_limit';
-		$founder_sign_limit = 'founder_' . $sign . '_limit';
-		if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || !empty($account_create_info['store_' . $sign . '_limit']) || $_W['isfounder'] && !user_is_vice_founder()) {
+		if (user_is_founder($_W['uid'], true)) {
 			$sign_info['can_create'] = true;
 		} else {
-			$sign_info['can_create'] = false;
+			$sign_limit = $sign . '_limit';
+			$founder_sign_limit = 'founder_' . $sign . '_limit';
+			if (!empty($account_create_info[$sign_limit]) && (!empty($account_create_info[$founder_sign_limit]) && $_W['user']['owner_uid'] || empty($_W['user']['owner_uid'])) || !empty($account_create_info['store_' . $sign . '_limit'])) {
+				$sign_info['can_create'] = true;
+			} else {
+				$sign_info['can_create'] = false;
+			}
 		}
 	}
 	return $account_all_type_sign;
@@ -405,8 +452,8 @@ function uni_fetch($uniacid = 0) {
 		return $account_api;
 	}
 	$account_api->__toArray();
-	$account_api['accessurl'] = $account_api['manageurl'] = wurl('account/post', array('uniacid' => $uniacid, 'account_type' => $account_api['type']));
-	$account_api['roleurl'] = wurl('account/post-user/edit', array('uniacid' => $uniacid, 'account_type' => $account_api['type']));
+	$account_api['accessurl'] = $account_api['manageurl'] = wurl('account/post', array('uniacid' => $uniacid, 'account_type' => $account_api['type']), true);
+	$account_api['roleurl'] = wurl('account/post-user/edit', array('uniacid' => $uniacid, 'account_type' => $account_api['type']), true);
 	return $account_api;
 }
 
@@ -660,7 +707,7 @@ function uni_groups($groupids = array(), $show_all = false) {
 				if (!empty($row['templates'])) {
 					$row['templates'] = (array)iunserializer($row['templates']);
 					if (!empty($row['templates'])) {
-						$row['templates'] = pdo_getall('site_templates', array('id' => $row['templates']), array('id', 'name', 'title'), 'name');
+						$row['templates'] = table('modules')->getAllTemplateByIds($row['templates'], 'name');
 					}
 				}
 			}
@@ -807,16 +854,18 @@ function uni_templates() {
 		$groupid = $owner['groupid'];
 	}
 	if ($groupid == '-1') {
-		$templates = pdo_fetchall("SELECT * FROM " . tablename('site_templates') . " ORDER BY id ASC", array(), 'id');
+		$templates = table('modules')->getAllTemplates('mid');
 		return $templates;
 	}
 
 	$extend = pdo_getall('uni_account_group', array('uniacid' => $_W['uniacid']), array(), 'groupid');//附加权限组
 	$uni_extend = pdo_get('uni_group', array('uniacid' => $_W['uniacid']));//附加应用
 	$owner_extend_groups = table('users_extra_group')->getUniGroupsByUid($owneruid);
-	$owner_extend_templates = table('users_extra_templates')->getExtraTemplatesIdsByUid($owneruid);
+	$owner_extend_templates = table('users_extra_modules')->getExtraModulesByUid($owneruid);
 	//为了统一返回数据格式,故用pdo_fetchall,实际只有一条
-	$template_default = pdo_fetchall("SELECT * FROM " . tablename('site_templates') . " WHERE name = 'default'", array(), 'id');
+	$modules_table = table('modules');
+	$modules_table->searchTemplateWithName('default');
+	$template_default = $modules_table->getAllTemplates('mid');
 
 	if (empty($groupid) && empty($extend) && empty($uni_extend) && empty($owner_extend_groups) && empty($owner_extend_templates)) {
 		return $template_default;
@@ -844,30 +893,29 @@ function uni_templates() {
 		return $template_default;
 	}
 	if (in_array('-1', $packageids)) {
-		return pdo_getall('site_templates', array(), array(), 'id', 'id DESC');
+		return table('modules')->getAllTemplates();
 	}
 
-	$template_ids = array();
+	$template_modules = array();
 	$wechatgroup = pdo_getall('uni_group', array('id' => $packageids));
 	if (!empty($wechatgroup)) {
 		foreach ($wechatgroup as $row) {
-			$row['templates'] = iunserializer($row['templates']);
-			if (!is_array($row['templates']) || empty($row['templates'])) {
+			$account_modules = iunserializer($row['modules']);
+			if (!is_array($account_modules['modules']) || empty($account_modules['modules'])) {
 				continue;
 			}
-			foreach ($row['templates'] as $templateid) {
-				if (!is_numeric($templateid)) {
-					continue;
-				}
-				$template_ids[$templateid] = $templateid;
+			foreach ($account_modules['modules'] as $module_name) {
+				$template_modules[] = $module_name;
 			}
 		}
 	}
-	$template_ids[] = 1;
+	$template_modules = array_unique($template_modules);
+	$template_modules[] = 'default';
 	if (is_array($owner_extend_templates)) {
-		$template_ids = array_merge($template_ids, array_keys($owner_extend_templates));
+		$template_modules = array_merge($template_modules, array_column($owner_extend_templates, 'module_name'));
 	}
-	return pdo_getall('site_templates', array('id' => $template_ids), array(), 'id', 'id DESC');
+	$result = table('modules')->getTemplateByNames($template_modules, 'mid');
+	return $result;
 }
 
 /**
@@ -1085,23 +1133,6 @@ function uni_update_week_stat() {
 		}
 	}
 	cache_write($cachekey, array('expire' => TIMESTAMP + 7200));
-	return true;
-}
-
-/**
- * 将公众号置顶
- * @param int $uniacid
- * @param int $rank
- */
-function uni_account_rank_top($uniacid) {
-	global $_W;
-	if (!empty($_W['isfounder'])) {
-		$max_rank = pdo_getcolumn('uni_account', array(), 'max(rank)');
-		pdo_update('uni_account', array('rank' => ($max_rank + 1)), array('uniacid' => $uniacid));
-	}else {
-		$max_rank = pdo_getcolumn('uni_account_users', array('uid' => $_W['uid']), 'max(rank)');
-		pdo_update('uni_account_users', array('rank' => ($max_rank + 1)), array('uniacid' => $uniacid, 'uid' => $_W['uid']));
-	}
 	return true;
 }
 

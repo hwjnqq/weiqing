@@ -29,6 +29,7 @@ $we7_file_permission = array(
 		'vice_founder' => array('account*'),
 		'owner' => array('account*'),
 		'manager' => array(
+			'common-info',
 			'display',
 			'manage',
 			'post-step',
@@ -37,6 +38,7 @@ $we7_file_permission = array(
 			'create',
 		),
 		'operator' => array(
+			'common-info',
 			'display',
 			'manage',
 			'post-step',
@@ -328,9 +330,7 @@ $we7_file_permission = array(
 		'default' => '',
 		'direct' => array(),
 		'vice_founder' => array(
-			'template',
 			'updatecache',
-			'attachment',
 		),
 		'owner' => array(
 			'updatecache',
@@ -339,10 +339,11 @@ $we7_file_permission = array(
 			'updatecache',
 		),
 		'operator' => array(
-			'account',
 			'updatecache',
 		),
-		'clerk' => array(),
+		'clerk' => array(
+			'updatecache',
+		),
 		'unbind_user' => array(
 			'updatecache',
 		),
@@ -543,7 +544,6 @@ $we7_file_permission = array(
 			'see_permission_user_group',
 			'see_permission_founder_group',
 			'see_system_upgrade',
-			'see_system_updatecache',
 			'see_system_manage_clerk',
 			'see_system_manage_vice_founder',
 			'see_system_add_vice_founder',
@@ -553,8 +553,10 @@ $we7_file_permission = array(
 			'see_message_register',
 			'see_message_worker',
 			'see_module_manage_system_newversion',
+			'see_user_add_welcome_account',
 			'see_user_edit_base_founder_name',
 			'see_user_create_own_vice_founder',
+			'see_user_profile_account_num',
 			'see_user_profile_edit_username',
 			'see_user_manage_display',
 			'see_user_manage_founder',
@@ -585,7 +587,6 @@ $we7_file_permission = array(
 			'see_user_manage_display',
 			'see_user_manage_check',
 			'see_user_manage_recycle',
-			'see_system_updatecache',
 			'see_controller',
 		),
 		'owner' => array(

@@ -401,10 +401,12 @@ function module_fetch($name, $enabled = true) {
 		$module_info['isdisplay'] = 1;
 
 		$module_info['logo'] = tomedia($module_info['logo']);
+		$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview.jpg', '', true);
 		if (file_exists(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg')) {
 			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg', '', true);
-		} else {
-			$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview.jpg', '', true);
+		}
+		if (APPLICATION_TYPE_TEMPLATES == $module_info['application_type']) {
+			$module_info['preview'] = tomedia(IA_ROOT . '/app/themes/' . $module_info['name'] . '/preview-custom.jpg', '', true);
 		}
 		$module_info['main_module'] = pdo_getcolumn ('modules_plugin', array ('name' => $module_info['name']), 'main_module');
 		if (!empty($module_info['main_module'])) {
@@ -984,7 +986,42 @@ function module_upgrade_info($modulelist = array()) {
 	}
 	$pirate_apps = $cloud_m_query_module['pirate_apps'];
 	unset($cloud_m_query_module['pirate_apps']);
-
+	//模板的处理
+	$cloud_t_query_module = cloud_t_query();
+	foreach ($cloud_t_query_module as $template_name => $template_manifest_cloud) {
+		if (empty($template_manifest_cloud)) {
+			continue;
+		}
+		$template_manifest = array(
+			'application' => array(
+				'name' => $template_name,
+				'title' => $template_manifest_cloud['title'],
+				'version' => $template_manifest_cloud['version'],
+				'logo' => $template_manifest_cloud['logo'],
+				'last_upgrade_time' => $template_manifest_cloud['last_upgrade_time'],
+			),
+			'platform' => array(
+				'supports' => array('account')
+			),
+		);
+		$template_manifest['branches'] = $template_manifest_cloud['branches'];
+		$template_manifest['site_branch'] =	array(
+			'id' => $template_manifest_cloud['branch'],
+			'name' => $template_manifest_cloud['title'],
+			'version' => $template_manifest_cloud['version'],
+			'app_support' => MODULE_SUPPORT_ACCOUNT,
+			'bought' => array('app'),
+		);
+		$template_manifest['cloud_id'] = $template_manifest_cloud['id'];
+		$template_manifest['buytime'] = $template_manifest_cloud['buytime'];
+		$template_manifest['system_shutdown'] = $template_manifest_cloud['system_shutdown'];
+		$template_manifest['system_shutdown_delay_time'] = $template_manifest_cloud['system_shutdown_delay_time'];
+		$template_manifest['can_update'] = $template_manifest_cloud['can_update'];
+		$template_manifest['service_expiretime'] = empty($template_manifest_cloud['service_expiretime']) ? 0 : $template_manifest_cloud['service_expiretime'];
+		$template_manifest['application_type'] = APPLICATION_TYPE_TEMPLATES;
+		$manifest_cloud_list[$template_name] = $template_manifest;
+	}
+	//模块的处理
 	foreach ($cloud_m_query_module as $modulename => $manifest_cloud) {
 		if (empty($manifest_cloud) || empty($manifest_cloud['site_branch'])) {
 			continue;
@@ -1030,6 +1067,7 @@ function module_upgrade_info($modulelist = array()) {
 		$manifest['system_shutdown_delay_time'] = $manifest_cloud['system_shutdown_delay_time'];
 		$manifest['can_update'] = $manifest_cloud['can_update'];
 		$manifest['service_expiretime'] = empty($manifest_cloud['service_expiretime']) ? 0 : $manifest_cloud['service_expiretime'];
+		$manifest['application_type'] = APPLICATION_TYPE_MODULE;
 		$manifest_cloud_list[$modulename] = $manifest;
 	}
 
@@ -1052,7 +1090,13 @@ function module_upgrade_info($modulelist = array()) {
 		if (!empty($pirate_apps) && in_array($modulename, $pirate_apps)) {
 			$module_upgrade_data['is_ban'] = 1;
 		}
-		$manifest = ext_module_manifest($modulename);
+		if (APPLICATION_TYPE_TEMPLATES == $module['application_type']) {
+			$module_upgrade_data['application_type'] = APPLICATION_TYPE_TEMPLATES;
+			$manifest = ext_template_manifest($modulename, false);
+		} else {
+			$module_upgrade_data['application_type'] = APPLICATION_TYPE_MODULE;
+			$manifest = ext_module_manifest($modulename);
+		}
 
 		if (!empty($manifest)) {
 			$module_upgrade_data['install_status'] = MODULE_LOCAL_INSTALL;
@@ -1131,6 +1175,7 @@ function module_upgrade_info($modulelist = array()) {
 		foreach ($manifest_cloud_list as $modulename => $manifest) {
 			$module_upgrade_data = array(
 				'name' => $modulename,
+				'application_type' => $manifest['application_type'],
 				'has_new_version' => 0,
 				'has_new_branch' => 0,
 				'install_status' => MODULE_CLOUD_UNINSTALL,

@@ -12,7 +12,6 @@
 		</div>
 	{/if}
 	{if !in_array($owner['uid'], $founders)}
-
 		<!--主管理员会员权限-->
 		<div class="panel we7-panel user-permission">
 			<div class="panel-heading">
@@ -197,10 +196,9 @@
 		extend: {php echo !empty($extend) ? json_encode($extend) : 'null'},
 		uni_groups: {php echo !empty($uni_groups) ? json_encode($uni_groups) : 'null'},
 		links: {
-			postModulesTpl: "{php echo url('account/post/modules_tpl', array('uniacid' => $uniacid))}",
+			postModulesTpl: "{php echo url('account/post/edit_modules_tpl', array('uniacid' => $uniacid))}",
 		},
 		modules: {php echo !empty($modules) ? json_encode($modules) : 'null'},
-		templates: {php echo !empty($templates) ? json_encode($templates) : 'null'},
 		account_type_sign: '{php echo $account->typeSign}',
 	});
 	angular.bootstrap($('#js-account-manage-modules-tpl'), ['accountApp']);

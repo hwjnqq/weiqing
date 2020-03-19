@@ -9,8 +9,9 @@ load()->model('module');
 load()->model('miniapp');
 load()->model('phoneapp');
 load()->model('user');
+load()->classs('wxapp.platform');
 
-$dos = array('display', 'save_account', 'check_params', 'get_user_info', 'load_groups');
+$dos = array('display', 'save_account', 'check_params', 'get_user_info', 'load_groups', 'get_authurl');
 $do = in_array($do, $dos) ? $do : 'display';
 
 $sign = safe_gpc_string($_GPC['sign']);
@@ -18,6 +19,7 @@ if (empty($account_all_type_sign[$sign])) {
 	$error_msg = '所需创建的账号类型不存在, 请重试.';
 	empty($_W['isajax']) ? message($error_msg, '', 'error') : iajax(-1, $error_msg);
 }
+
 if ('load_groups' == $do) {
 	$group_keys = array();
 	if (user_is_vice_founder($_W['uid'])) {
@@ -34,15 +36,13 @@ if ('load_groups' == $do) {
 	}
 	iajax(0, $unigroups);
 }
+
 if ('get_user_info' == $do) {
 	if (!user_is_founder($_W['uid'])) {
 		iajax(-1, '非法请求数据！');
 	}
+
 	$uid = intval($_GPC['uid'][0]);
-	$sign = trim($_GPC['sign']);
-	if (empty($account_all_type_sign[$sign])) {
-		iajax(-1, '参数有误');
-	}
 	$user = user_single(array('uid' => $uid));
 	if (empty($user)) {
 		iajax(-1, '用户不存在或是已经被删除', '');
@@ -86,7 +86,35 @@ if ('display' == $do) {
 		}
 	}
 	if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
-		$templates = pdo_fetchall('SELECT * FROM ' . tablename('site_templates'));
+		$templates = table('modules')->getAllTemplates();
+	}
+	if ($_W['isajax']) {
+		$data = array(
+			'modules' => $modules,
+			'templates' => $templates,
+		);
+		iajax(0, $data);
+	}
+
+}
+
+if ('get_authurl' == $do) {
+	if (empty($_W['setting']['platform']['authstate'])) {
+		iajax(-1, '请先开启微信开放平台');
+	} else {
+		if ('account' == $sign) {
+			$account_platform = new WeixinPlatform();
+		}
+		if ('wxapp' == $sign) {
+			$account_platform = new WxappPlatform();
+		}
+		$preauthcode = $account_platform->getPreauthCode();
+		if (is_error($preauthcode)) {
+			iajax(-1, $preauthcode['message']);
+		}
+		$authurl = sprintf(ACCOUNT_PLATFORM_API_LOGIN, $this->appid,
+				$preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'), ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT);
+		iajax(0, $authurl);
 	}
 }
 
@@ -104,7 +132,7 @@ if ('save_account' == $do || 'check_params' == $do) {
 		}
 		$check_uniacname = table('account')->searchWithTitle($post['name'])->searchWithType($create_account_type)->searchAccountList();
 		if (!empty($check_uniacname)) {
-			iajax(-1, "该名称'{$sign_title}'已经存在");
+			iajax(-1, "该名称'{$post['name']}'已经存在");
 		}
 		//验证appid唯一性
 		if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
@@ -129,6 +157,10 @@ if ('save_account' == $do || 'check_params' == $do) {
 			}
 		}
 	}
+	if ('check_params' == $do) {
+		iajax(0);
+	}
+	
 	if (empty($post['step'])) {
 		if (in_array($sign, array(PHONEAPP_TYPE_SIGN, WXAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
 			if (!preg_match('/^[0-9]{1,2}\.[0-9]{1,2}(\.[0-9]{1,2})?$/', $post['version'])) {
@@ -136,12 +168,12 @@ if ('save_account' == $do || 'check_params' == $do) {
 			}
 		}
 	}
-	if ('check_params' == $do) {
-		iajax(0);
-	}
 }
 
 if ('save_account' == $do) {
+	if (!uni_account_can_create($sign)) {
+		iajax(-1, '平台账号数量超过限制，请删除无用的平台账号或联系网站创始人购买！');
+	}
 	// step1 基础信息数据处理
 	if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN))) {
 		pdo_insert('uni_account', array(
@@ -220,10 +252,10 @@ if ('save_account' == $do) {
 				);
 			}
 			//获取默认模板的id
-			$template = pdo_fetch('SELECT id,title FROM ' . tablename('site_templates') . " WHERE name = 'default'");
+			$template = table('modules')->getTemplateByName('default');
 			pdo_insert('site_styles', array(
 				'uniacid' => $uniacid,
-				'templateid' => $template['id'],
+				'templateid' => $template['mid'],
 				'name' => $template['title'] . '_' . random(4),
 			));
 			$styleid = pdo_insertid();
@@ -296,10 +328,9 @@ if ('save_account' == $do) {
 					$account_end_time = $user_end_time;
 				}
 			}
-		} else {
-			$account_end_time = 0;
+			pdo_update('account', array('endtime' => $account_end_time), array('uniacid' => $uniacid));
 		}
-		pdo_update('account', array('endtime' => $account_end_time), array('uniacid' => $uniacid));
+
 
 		//附加套餐组
 		if (!empty($_GPC['groups'])) {
@@ -347,10 +378,16 @@ if ('save_account' == $do) {
 		$next_url = '';
 	} else {
 		$next_url = url('account/display/switch', array('uniacid' => $uniacid, 'type' => $create_account_type));
-		iajax(0, '创建成功', $next_url);
 	}
+	if ($_W['isw7_request']) {
+		if (in_array($sign, array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN))) {
+			$next_url = url('account/display/switch', array('uniacid' => $uniacid, 'type' => $create_account_type), true);
+		}
+	}
+
 	if (!empty($next_url)) {
-		iajax(0, '', $next_url);
+		$result = array('next_url' => $next_url, 'uniacid' => $uniacid);
+		iajax(0, $result, $next_url);
 	}
 
 	//step3 新建版本
@@ -387,7 +424,12 @@ if ('save_account' == $do) {
 			iajax(-1, '版本创建失败');
 		} else {
 			cache_delete(cache_system_key('user_accounts', array('type' => $sign, 'uid' => $_W['uid'])));
-			iajax(0, '创建成功', url('account/display/switch', array('uniacid' => $uniacid, 'version_id' => $version_id, 'type' => $create_account_type)));
+			$next_url = url('account/display/switch', array('uniacid' => $uniacid, 'version_id' => $version_id, 'type' => $create_account_type), true);
+			if ($_W['isw7_request']) {
+				$result = array('next_url' => $next_url, 'uniacid' => $uniacid);
+				iajax(0, $result);
+			}
+			iajax(0, '创建成功', $next_url);
 		}
 	}
 }

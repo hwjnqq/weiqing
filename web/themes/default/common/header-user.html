@@ -2,10 +2,10 @@
     {if $other['is_system']}{php continue;}{/if}
     <li ><a href="{$other['url']}" target="_blank"><i class="{$other['icon']}"></i><span>{$other['title']}</span></a></li>
     {/loop}
-    {if $_W['iscontroller']}
+    {if $_W['iscontroller'] && user_is_founder($_W['uid'], true)}
         <li><a href="{php echo $_W['siteroot'] . 'web/home.php'}" ><i class="wi wi-caozuotai"></i><span>客户端</span></a></li>
     {else}
-    {if $_W['isfounder']}
+    {if user_is_founder($_W['uid'], true)}
         <li ><a href="{php echo url('account/manage', array('iscontroller' => 1))}"><i class="wi wi-kongzhitai"></i><span>控制台</span></a></li>
     {/if}
     {/if}
@@ -36,11 +36,11 @@
             {if permission_check_account_user('see_system_upgrade') && $_W['iscontroller']}
             <li><a href="{url 'cloud/upgrade'}" target="_blank"><i class="wi wi-update color-gray"></i> 自动更新</a></li>
             {/if}
-
-            {if permission_check_account_user('see_system_updatecache') && $_W['iscontroller']}
-            <li><a href="{url 'system/updatecache'}" target="_blank"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
-            <li class="divider"></li>
+            {if user_is_vice_founder($_W['uid'])}
+            <li><a href="{php echo url('account/manage', array('iscontroller' => 1))}" ><i class="wi wi-user color-gray"></i> 副站长控制台</a></li>
             {/if}
+            <li><a href="#" id="updateCache"><i class="wi wi-cache color-gray"></i> 更新缓存</a></li>
+            <li class="divider"></li>
 
             <li>
                 <a href="{url 'user/logout'}"><i class="fa fa-sign-out color-gray"></i> 退出系统</a>
@@ -91,7 +91,13 @@
                     $('.dropdown-star').removeClass('active')
                 }
             });
-
+            $('#updateCache').on('click', function(){
+                $('.loader').show();
+                $.post('./index.php?c=system&a=updatecache&do=updatecache', {}, function(data) {
+                    $('.loader').hide();
+                        util.message('更新缓存成功！', '', 'success');
+                })
+            });
             test = function(e) {
                 console.log(e)
                 return true;

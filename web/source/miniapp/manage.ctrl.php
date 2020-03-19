@@ -13,17 +13,26 @@ $do = in_array($do, $dos) ? $do : 'display';
 
 $uniacid = intval($_GPC['uniacid']);
 if (empty($uniacid)) {
+	if ($_W['isajax']) {
+		iajax(-1, '请选择要编辑的小程序');
+	}
 	itoast('请选择要编辑的小程序', referer(), 'error');
 }
 
 $state = permission_account_user_role($_W['uid'], $uniacid);
 $role_permission = in_array($state, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER));
 if (!$role_permission) {
+	if ($_W['isajax']) {
+		iajax(-1, '无权限操作！');
+	}
 	itoast('无权限操作！', referer(), 'error');
 }
 
 $account = uni_fetch($uniacid);
 if (is_error($account) || empty($account['type'])) {
+	if ($_W['isajax']) {
+		iajax(-1, $account['message']);
+	}
 	itoast($account['message'], url('account/manage'), 'error');
 }
 
@@ -36,6 +45,7 @@ if ('display' == $do) {
 		$version_lists = miniapp_version_all($uniacid);
 		if (!empty($version_lists)) {
 			foreach ($version_lists as &$row) {
+				$row['enter_account_url'] = url('account/display/switch', array('uniacid' => $uniacid, 'version_id' => $row['version_id']), true);
 				if (!empty($row['modules'])) {
 					$row['module']['module_info'] = current($row['modules']);
 				}
@@ -64,6 +74,14 @@ if ('display' == $do) {
 		}
 	}
 	$_W['breadcrumb'] = $account['name'];
+	if ($_W['isajax']) {
+		$message = array(
+			'add_version_url' => url('miniapp/post', array('uniacid' => $uniacid, 'type' => $account['type']), true),
+			'list' => $version_lists,
+			'version_exist' => $version_exist ? 1 : 0,
+		);
+		iajax(0, $message);
+	}
 	template('miniapp/manage');
 }
 

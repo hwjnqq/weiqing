@@ -218,7 +218,7 @@ $we7_system_menu['system'] = array(
 	'title' => '系统功能',
 	'icon' => 'wi wi-setting',
 	'dimension' => 3,
-	'url' => user_is_founder($_W['uid'], true) ? url('article/notice') : url('system/updatecache'),
+	'url' => url('article/notice'),
 	'section' => array(
 		'article' => array(
 			'title' => '站内公告',
@@ -238,18 +238,6 @@ $we7_system_menu['system'] = array(
 							'permission_name' => 'system_article_notice_category',
 						),
 					),
-				),
-			),
-			'founder' => true,
-		),
-		'system_template' => array(
-			'title' => '模板',
-			'menu' => array(
-				'system_template' => array(
-					'title' => '微官网模板',
-					'url' => url('system/template'),
-					'icon' => 'wi wi-wx-template',
-					'permission_name' => 'system_template',
 				),
 			),
 			'founder' => true,
@@ -300,17 +288,6 @@ $we7_system_menu['system'] = array(
 		
 
 		
-		'cache' => array(
-			'title' => '缓存',
-			'menu' => array(
-				'system_setting_updatecache' => array(
-					'title' => '更新缓存',
-					'url' => url('system/updatecache'),
-					'icon' => 'wi wi-update',
-					'permission_name' => 'system_setting_updatecache',
-				),
-			),
-		),
 	),
 );
 
@@ -775,7 +752,7 @@ $we7_system_menu['account'] = array(
 				),
 				'mc_member' => array(
 					'title' => '会员管理',
-					'url' => url('mc/member', array('version_id' => $_GPC['version_id'])),
+					'url' => url('mc/member'),
 					'icon' => 'wi wi-fans',
 					'permission_name' => 'mc_member',
 					'is_display' => array(
@@ -1188,7 +1165,7 @@ $we7_system_menu['wxapp'] = array(
 				),
 				'wxapp_profile_domainset' => array(
 					'title' => '域名设置',
-					'url' => url('wxapp/domainset', array('version_id' => $_GPC['version_id'])),
+					'url' => url('wxapp/domainset'),
 					'is_display' => array(
 						ACCOUNT_TYPE_APP_NORMAL,
 						ACCOUNT_TYPE_APP_AUTH,

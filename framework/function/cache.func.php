@@ -475,6 +475,10 @@ function cache_key_all() {
 				'key' => 'cloud_transtoken',
 				'group' => '',
 			),
+			'cloud_w7_request_token' => array(
+				'key' => 'cloud_w7_request_token',
+				'group' => '',
+			),
 
 			'upgrade' => array(
 				'key' => 'upgrade',
@@ -541,6 +545,10 @@ function cache_key_all() {
 
 			'cloud_ad_store_notice' => array(
 				'key' => 'cloud_ad_store_notice',
+				'group' => '',
+			),
+			'cloud_file_permission_pass' => array(
+				'key' => 'cloud_file_permission_pass',
 				'group' => '',
 			),
 

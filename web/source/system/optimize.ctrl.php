@@ -17,7 +17,7 @@ if ('opcache' == $do) {
 	itoast('清空缓存成功', url('system/optimize'), 'success');
 } else {
 	$cache_type = cache_type();
-	$clear = array('url' => url('system/updatecache'), 'title' => '更新缓存');
+	$clear = array('url' => url('system/updatecache', array('do' => 'updatecache')), 'title' => '更新缓存');
 	$extensions = array(
 		'memcache' => array(
 			'support' => extension_loaded('memcache'),

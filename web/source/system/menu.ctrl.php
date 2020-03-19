@@ -22,6 +22,11 @@ if (!empty($system_menu)) {
 		if (in_array($menu_name, $system_top_menu)) {
 			$system_menu_permission[] = $menu_name;
 		}
+		if (in_array($menu_name, $not_operate_menu)) {
+			$system_menu[$menu_name]['is_operate'] = 0;
+		} else {
+			$system_menu[$menu_name]['is_operate'] = 1;
+		}
 		if (!empty($menu['section'])) {
 			foreach ($menu['section'] as $section_name => $section) {
 				if (!empty($section['menu'])) {
@@ -36,6 +41,12 @@ if (!empty($system_menu)) {
 	}
 }
 if ('display' == $do) {
+	if ($_W['isajax']) {
+		$message = array(
+			'system_menu' => $system_menu,
+		);
+		iajax(0, $message);
+	}
 	template('system/menu');
 } elseif ('post' == $do) {
 	$id = intval($_GPC['id']);

@@ -154,6 +154,9 @@ define('CACHE_EXPIRE_MIDDLE', 300);
 define('CACHE_EXPIRE_LONG', 3600);
 define('CACHE_KEY_LENGTH', 100); //缓存键的最大长度
 
+//模块类型:模块，模板
+define('APPLICATION_TYPE_MODULE', 1);
+define('APPLICATION_TYPE_TEMPLATES', 2);
 //系统模块
 define('MODULE_SYSTEM', 1);
 define('MODULE_NONSYSTEM', 0);

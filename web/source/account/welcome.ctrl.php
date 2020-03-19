@@ -4,7 +4,9 @@
  * $sn$.
  */
 defined('IN_IA') or exit('Access Denied');
+load()->model('article');
 load()->model('module');
+
 if (!empty($_W['uid'])) {
 	header('Location: ' . url('account/display', array('type' => ACCOUNT_TYPE_SIGN)));
 	exit;
@@ -19,7 +21,7 @@ if (isset($copyright['showhomepage']) && empty($copyright['showhomepage'])) {
 	header('Location: ' . url('user/login'));
 	exit;
 }
-load()->model('article');
+
 $notices = article_notice_home();
 $news = article_news_home();
 template('account/welcome');

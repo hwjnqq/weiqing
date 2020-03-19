@@ -147,19 +147,20 @@ class Account extends \We7Table {
 			$this->query->where('ISNULL(c.uid)', true);
 		} else {
 			if (user_is_founder($_W['uid'], true) || user_is_vice_founder($_W['uid'])){
-				$users = table('uni_account_users')
+				$user = table('uni_account_users')
 					->searchWithUsers()
 					->where('a.role', 'owner')
 					->where('b.username', $title);
 				if (user_is_vice_founder($_W['uid'])) {
 					$uids = table('users_founder_own_users')->where('founder_uid', $_W['uid'])->getall('uid');
 					if (!empty($uid)) {
-						$users->where('a.uid', array_keys($uids));
+						$user->where('a.uid', array_keys($uids));
 					}
 				}
-				$users = $users->getall();
+				$user = $user->get();
 			}
-			!empty($users) ? $this->query->where('CONCAT(a.name,u.username) LIKE', "%{$title}%")->where('c.role', 'owner') : $this->query->where('a.name LIKE', "%{$title}%");
+			!empty($user) && user_is_founder($user['uid'], true) ? $user = array() : $user;
+			!empty($user) ? $this->query->where('CONCAT(a.name,u.username) LIKE', "%{$title}%")->where('c.role', 'owner') : $this->query->where('a.name LIKE', "%{$title}%");
 		}
 		return $this;
 	}

@@ -41,6 +41,13 @@ if ('wechat' == $do) {
 			$contents = file_get_contents($file);
 		}
 	}
+	if ($_W['isajax']) {
+		$message = array(
+			'tree' => $tree,
+			'content' => $contents
+		);
+		iajax(0, $message);
+	}
 }
 
 //系统日志
@@ -58,6 +65,15 @@ if ('system' == $do) {
 	//将数据进行分页
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
+	if ($_W['isajax']) {
+		$message = array(
+			'list' => $list,
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize,
+		);
+		iajax(0, $message);
+	}
 }
 
 //数据库日志
@@ -75,6 +91,15 @@ if ('database' == $do) {
 	//将数据进行分页
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
+	if ($_W['isajax']) {
+		$message = array(
+			'list' => $list,
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize,
+		);
+		iajax(0, $message);
+	}
 }
 
 //短信发送日志
@@ -90,14 +115,28 @@ if ('sms' == $do) {
 	$list = pdo_fetchall($sql, $params);
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM' . tablename('core_sendsms_log') . ' WHERE uniacid = :uniacid' . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
+	if ($_W['isajax']) {
+		$message = array(
+			'list' => $list,
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize
+		);
+		iajax(0, $message);
+	}
 }
 
 if ('attachment' == $do) {
 	$where = array(
 		'a.uid <>' => 0,
-		'a.createtime >=' => $starttime,
-		'a.createtime <' => $endtime + 86400
 	);
+	if (!empty($starttime)) {
+		$where['a.createtime >='] = $starttime;
+		$where['a.createtime <'] = $starttime + 86400;
+	}
+	if (!empty($_GPC['keyword'])) {
+		$where['c.name LIKE'] = '%' . safe_gpc_string($_GPC['keyword']) . '%';
+	}
 	if (!empty($_GPC['keyword'])) {
 		$where['c.name LIKE'] = '%' . safe_gpc_string($_GPC['keyword']) . '%';
 	}
@@ -129,6 +168,15 @@ if ('attachment' == $do) {
 	$total += $wechat_attachment_table->getLastQueryTotal();
 	$list =  array_slice($list, ($pindex - 1) * $psize, $psize);
 	$pager = pagination($total, $pindex, $psize);
+	if ($_W['isajax']) {
+		$message = array(
+			'list' => $list,
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize
+		);
+		iajax(0, $message);
+	}
 }
 
 template('system/logs');

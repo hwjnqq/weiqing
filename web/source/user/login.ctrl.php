@@ -16,7 +16,7 @@ if (!empty($_W['uid']) && 'bind' != $_GPC['handle_type']) {
 	if ($_W['isajax']) {
 		iajax(-1, '请先退出再登录！');
 	}
-	itoast('请先退出再登录！');
+	itoast('', $_W['siteroot'] . 'web/home.php');
 }
 if (checksubmit() || $_W['isajax']) {
 	_login($_GPC['referer']);

@@ -35,6 +35,12 @@ if ('smsLog' == $do) {
 			$item['createtime'] = date('Y-m-d H:i:s', $item['createtime']);
 		}
 	}
-	iajax(0, $data['data']);
+	$message = array(
+		'list' => $data['data'],
+		'total' => $data['total'],
+		'page_size' => $data['per_page'],
+		'page' => $data['current_page'],
+	);
+	iajax(0, $message);
 }
 template('cloud/sms-statistics');

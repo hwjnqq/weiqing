@@ -27,7 +27,7 @@
 					} else if (config.type == 'webtheme') {
 						targetUrl = './index.php?c=cloud&a=process&step=schemas&w=' + config.appname + '&is_upgrade=' + config.is_upgrade;
 					} else {
-						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type + '&has_new_support={$has_new_support}';
+						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type + '&application_type=' + config.application_type +  '&has_new_support={$has_new_support}';
 					}
 					util.message('文件同步完成，正在处理数据同步......', targetUrl, 'success');
 				}
@@ -236,6 +236,7 @@
 	<script type="text/javascript">
 		angular.module('cloudApp').value('config', {
 			files : {php echo $packet['files'] ? json_encode($packet['files']) : '[]'},
+			application_type: '{$application_type}',
 			type : '{$type}',
 			appname : '{$m}',
 			is_upgrade : '{$is_upgrade}',
@@ -252,38 +253,18 @@
 		<!-- 如果是安装模块,数据库操作完成后,不处理script,直接跳转到system/module/install -->
 		<!-- 安装 -->
 		{if !empty($packet['install'])}
-			{if $packet['type'] == 'theme'}
 			<script>
-				location.href = '{url "system/template/install" array("templateid" => $m, "flag" => 1)}';
+				location.href = '{url "module/manage-system/install" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"], "application_type" => $_GPC["application_type"])}';
 			</script>
-			{elseif $packet['type'] == 'webtheme'}
-			<script>
-				location.href = '{url "system/webtheme/install" array("webtheme" => $m, "flag" => 1)}';
-			</script>
-			{else}
-			<script>
-				location.href = '{url "module/manage-system/install" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"])}';
-			</script>
-			{/if}
 		{/if}
 		<!-- 升级 -->
-		{if $packet['type'] == 'theme'}
-		<script>
-			location.href = '{url "cloud/process" array("step" => "scripts", "t" => $m, "is_upgrade" => $is_upgrade)}';
-		</script>
-		{elseif $packet['type'] == 'webtheme'}
-		<script>
-			location.href = '{url "cloud/process" array("step" => "scripts", "w" => $m, "is_upgrade" => $is_upgrade)}';
-		</script>
-		{else}
 		<script>
 			{if $_GPC['batch']}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
 			{else}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
 			{/if}
 		</script>
-		{/if}
 	{/if}
 	<div class="upgrade-pragress we7-margin-bottom">
 		<div class="wrapper top">

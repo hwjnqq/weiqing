@@ -215,18 +215,6 @@ if ('display' == $do || 'list' == $do) {
 	template('account/display');
 }
 
-if ('rank' == $do && $_W['isajax'] && $_W['ispost']) {
-	$uniacid = intval($_GPC['uniacid']);
-	if (!empty($uniacid)) {
-		$exist = uni_fetch($uniacid);
-		if (!$exist) {
-			iajax(1, '账号信息不存在', '');
-		}
-	}
-	uni_account_rank_top($uniacid);
-	iajax(0, '更新成功！', '');
-}
-
 if ('switch' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
 	$module_name = safe_gpc_string($_GPC['module_name']);
@@ -506,6 +494,7 @@ if ('account_modules' == $do) {
 	if (empty($account_modules)) {
 		iajax(0, $result);
 	}
+	$user_account_modules = permission_account_user_menu($_W['uid'], $uniacid, 'modules');
 	$account_info = uni_fetch($uniacid);
 	if ($account_info->supportVersion) {
 		$version_info = miniapp_fetch($uniacid);
@@ -513,7 +502,9 @@ if ('account_modules' == $do) {
 	}
 	$star_info = table('users_operate_star')->where('type', USERS_OPERATE_TYPE_MODULE)->where('uid', $_W['uid'])->where('uniacid', $uniacid)->where('module_name IN', array_keys($account_modules))->getall('module_name');
 	foreach ($account_modules as $module) {
-		if ($module['issystem'] || $module[$account_all_type[$account_info['type']]['module_support_name']]  != $account_all_type[$account_info['type']]['module_support_value']) {
+		if ($module['issystem'] ||
+			!empty($user_account_modules) && empty($user_account_modules[$module['name']]) ||
+			$module[$account_all_type[$account_info['type']]['module_support_name']]  != $account_all_type[$account_info['type']]['module_support_value']) {
 			continue;
 		}
 		if (!empty($version_modules) && !in_array($module['name'], $version_modules)) {
@@ -534,7 +525,6 @@ if ('account_modules' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 40;
 	$page_result = array_slice($result, ($pindex - 1) * $psize, $psize);
-
 	$message = array(
 		'total' => count($result),
 		'page' => $pindex,

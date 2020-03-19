@@ -41,7 +41,7 @@ if ($do == 'display') {
 	$styles = $site_template = table('site_styles')
 		->searchWithTemplates(array('a.*', 'b.name as tname', 'b.title'))
 		->where(array('a.uniacid' => $_W['uniacid']))
-		->getall();
+		->getall('id');
 
 	if (!empty($id)) {
 		$category = table('site_category')->getBySnake('*', array('uniacid' => $_W['uniacid'], 'id' => $id))->get();

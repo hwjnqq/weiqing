@@ -162,16 +162,10 @@
 							<img src="resource/images/welcome/mysql-backup-icon.png" alt="">
 						</div>
 						<div class="content">
-							{if $backup_days != 1}
 							<div class="no-backup">
-								<span class="day">{$backup_days}天</span>没有备份数据库了,请及时备份!
+								<span class="day">{$backup_days}</span>
+								备份数据库,请养成备份数据的好习惯!
 							</div>
-							{else}
-							<div class="old-time">
-								{php echo date('Y-m-d H:i:s', $last_backup_time)}
-							</div>
-							<div class="title">完成数据库备份,请养成备份数据的好习惯。</div>
-							{/if}
 							<a href="{php echo url('system/database');}"  class="btn btn-primary">立即备份</a>
 						</div>
 					</div>

@@ -37,22 +37,12 @@
 <table class="table we7-table table-hover table-manage vertical-middle" id="js-users-display" ng-controller="UsersDisplay" ng-cloak>
 	<col width="90px"/>
 	<col width="150px">
-	<!-- <col width="170px"/>
-	<col width="100px"/>
-	<col width="100px"/>
-	<col width="80px"/>
-	<col width="80px"/> -->
 	<col width="200px"/>
 	<col width="130px"/>
 	<col width=""/>
 	<tr>
 		<th></th>
 		<th class="text-left">用户名</th>
-		<!-- <th>用户权限组</th>
-		<th>公众号</th>
-		<th>小程序</th>
-		<th>pc</th>
-		<th>APP</th> -->
 		<th>注册时间</th>
 		<th>到期时间</th>
 		<th>类型</th>
@@ -65,15 +55,6 @@
 			</a>
 		</td>
 		<td><span ng-bind="user.username"></span><br/><span ng-bind="user.mobile"></span></td>
-		<!-- <td>
-			<span class="color-default" ng-if="user.founder">管理员</span>
-			<span class="color-default" ng-if="user.groupname && !user.founder" ng-bind="user.groupname"></span>
-			<span class="color-default" ng-if="!user.groupname && !user.founder">未分配</span>
-		</td>
-		<td class="color-default" ng-bind="user.maxaccount"></td>
-		<td class="color-default" ng-bind="user.maxwxapp"></td>
-		<td class="color-default" ng-bind="user.maxwebapp"></td>
-		<td class="color-default" ng-bind="user.maxphoneapp"></td> -->
 		<td>
 			<span ng-bind="user.joindate"></span>
 		</td>

@@ -344,7 +344,6 @@ class WeEngine {
 					$updatestat = array(
 						'cancel' => $todaystat['cancel'] + 1,
 					);
-					$updatestat['cumulate'] = 0;
 					pdo_update('stat_fans', $updatestat, array('id' => $todaystat['id']));
 				}
 			} elseif ($message['event'] == 'subscribe') {
@@ -360,7 +359,6 @@ class WeEngine {
 				} else {
 					$updatestat = array(
 						'new' => $todaystat['new'] + 1,
-						'cumulate' => 0,
 					);
 					pdo_update('stat_fans', $updatestat, array('id' => $todaystat['id']));
 				}

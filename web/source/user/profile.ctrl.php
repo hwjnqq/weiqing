@@ -10,7 +10,7 @@ load()->classs('oauth2/oauth2client');
 load()->model('message');
 load()->model('setting');
 
-$dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind', 'modules_tpl', 'create_account', 'account_dateline');
+$dos = array('base', 'post', 'bind', 'validate_mobile', 'bind_mobile', 'unbind', 'modules_tpl', 'create_account', 'account_dateline', 'check_mobile_sms_code', 'change_mobile');
 $do = in_array($do, $dos) ? $do : 'base';
 
 if ('post' == $do) {
@@ -157,12 +157,17 @@ if ('post' == $do) {
 			$result = pdo_update('users', array('password' => $newpwd), array('uid' => $uid));
 			break;
 		case 'endtime':
+			if (!$_W['isfounder']) {
+				iajax(-1, '无权限操作！');
+			}
 			if (1 == $_GPC['endtype']) {
 				$endtime = 0;
 			} else {
 				$endtime = strtotime($_GPC['endtime']);
 			}
-			
+			if (user_is_vice_founder() && !empty($_W['user']['endtime']) && ($endtime > $_W['user']['endtime'] || empty($endtime))) {
+				iajax(-1, '副创始人给用户设置的时间不能超过自己的到期时间');
+			}
 			$result = pdo_update('users', array('endtime' => $endtime), array('uid' => $uid));
 			pdo_update('users_profile', array('send_expire_status' => 0), array('uid' => $uid));
 			$uni_account_user = pdo_getall('uni_account_users', array('uid' => $uid, 'role' => 'owner'));
@@ -250,17 +255,20 @@ if ('base' == $do) {
 
 	$profile = user_detail_formate($profile);
 
-	
-	
-		if (!$_W['isfounder']) {
-			//应用模版权限
+	if (!$_W['isfounder'] || user_is_vice_founder()) {
+		//应用模版权限
+		if ($_W['user']['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
+			$groups = user_founder_group();
+			$group_info = user_founder_group_detail_info($user['groupid']);
+		} else {
 			$groups = user_group();
 			$group_info = user_group_detail_info($user['groupid']);
-
-			//使用帐号列表
-			$account_detail = user_account_detail_info($_W['uid']);
 		}
-	
+
+		//使用帐号列表
+		$account_detail = user_account_detail_info($_W['uid']);
+	}
+
 
 	if (empty($_W['isfounder'])) {
 		$user_extra_groups = table('users_extra_group')->getUniGroupsByUid($_W['uid']);
@@ -269,7 +277,7 @@ if ('base' == $do) {
 		$extend = array();
 		$user_extend_templates_ids = array_keys((array) table('users_extra_templates')->getExtraTemplatesIdsByUid($_W['uid']));
 		if (!empty($user_extend_templates_ids)) {
-			$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
+			$extend['templates'] = table('modules')->getAllTemplateByIds($user_extend_templates_ids);
 		}
 		$user_extend_modules = table('users_extra_modules')->getExtraModulesByUid($_W['uid']);
 		if (!empty($user_extend_modules)) {
@@ -428,6 +436,31 @@ if ('bind_mobile' == $do) {
 	}
 }
 
+if ('change_mobile' == $do) {
+	$step = 1;
+	$bind_mobile = table('users_bind')->getByTypeAndUid(USER_REGISTER_TYPE_MOBILE, $_W['uid']);
+	$setting_sms_sign = setting_load('site_sms_sign');
+	$bind_sign = !empty($setting_sms_sign['site_sms_sign']['register']) ? $setting_sms_sign['site_sms_sign']['register'] : '';
+	template('user/change-mobile');
+}
+
+if ('check_mobile_sms_code' == $do) {
+	if ($_W['isajax'] && $_W['ispost']) {
+		$check_result = OAuth2Client::create('mobile')->paramValidate();
+		if (is_error($check_result)) {
+			iajax(-1, $check_result['message']);
+		}
+		$check_authcode = authcode(safe_gpc_string($_GPC['mobile']), 'ENCODE');
+		$message = array(
+			'message' => '验证成功',
+			'check_authcode' => $check_authcode
+		);
+		iajax(0, $message);
+	} else {
+		iajax(-1, '非法请求');
+	}
+}
+
 if ('unbind' == $do) {
 	$types = array(1 => 'qq', 2 => 'wechat', 3 => 'mobile');
 	if (!in_array($_GPC['bind_type'], array(USER_REGISTER_TYPE_QQ, USER_REGISTER_TYPE_WECHAT, USER_REGISTER_TYPE_MOBILE))) {
@@ -452,7 +485,7 @@ if ('unbind' == $do) {
 
 if ('modules_tpl' == $do) {
 	$modules = user_modules($_W['uid']);
-	$templates = pdo_getall('site_templates', array(), array('id', 'name', 'title'));
+	$templates = table('modules')->getAllTemplates();
 
 	$group_info = user_group_detail_info($_W['user']['groupid']);
 
@@ -460,7 +493,7 @@ if ('modules_tpl' == $do) {
 	$users_extra_template_table = table('users_extra_templates');
 	$user_extend_templates_ids = array_keys($users_extra_template_table->getExtraTemplatesIdsByUid($_W['uid']));
 	if (!empty($user_extend_templates_ids)) {
-		$extend['templates'] = pdo_getall('site_templates', array('id' => $user_extend_templates_ids), array('id', 'name', 'title'));
+		$extend['templates'] = table('modules')->getAllTemplateByIds($user_extend_templates_ids);
 	}
 	if (!empty($templates) && !empty($user_extend_templates_ids)) {
 		foreach ($templates as $template_key => $template_val) {

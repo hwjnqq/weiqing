@@ -13,9 +13,15 @@ $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 
 if (empty($module)) {
+	if ($_W['isajax']) {
+		iajax(-1, '抱歉，你操作的模块不能被访问！');
+	}
 	itoast('抱歉，你操作的模块不能被访问！');
 }
 if (!permission_check_account_user_module($module_name . '_permissions', $module_name)) {
+	if ($_W['isajax']) {
+		iajax(-1, '您没有权限进行该操作');
+	}
 	itoast('您没有权限进行该操作');
 }
 
@@ -172,13 +178,13 @@ if ('post' == $do) {
 if ('delete' == $do) {
 	$operator_id = intval($_GPC['uid']);
 	if (empty($operator_id)) {
-		itoast('参数错误', referer(), 'error');
+		iajax(-1, '参数错误！');
 	}
 	$uniacid = intval($_GPC['uniacid']);
 	if (!empty($uniacid) && !user_is_founder($_W['uid'], true)) {
 		$role = permission_account_user_role($_W['uid'], $uniacid);
 		if (!in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
-			itoast('操作失败, 无权限', referer(), 'error');
+			iajax(-1, '操作失败, 无权限');
 		}
 	}
 	$uniacid = empty($uniacid) ? $_W['uniacid'] : $uniacid;
@@ -200,6 +206,6 @@ if ('delete' == $do) {
 
 		pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $uniacid, 'modulename' => $module_name));
 	}
-	itoast('删除成功', referer(), 'success');
+	iajax(0, '删除成功！', referer());
 }
 template('module/permission');

@@ -759,6 +759,9 @@ function tomedia($src, $local_path = false, $is_cahce = false) {
 	if (strexists($src, 'addons/')) {
 		return $_W['siteroot'] . substr($src, strpos($src, 'addons/'));
 	}
+	if (strexists($src, 'app/themes/')) {
+		return $_W['siteroot'] . substr($src, strpos($src, 'app/themes/'));
+	}
 	//如果远程地址中包含本地host也检测是否远程图片
 	if (strexists($src, $_W['siteroot']) && !strexists($src, '/addons/')) {
 		$urls = parse_url($src);

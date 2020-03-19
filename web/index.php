@@ -4,6 +4,20 @@
  * [WeEngine System] Copyright (c) 2014 W7.CC.
  */
 define('IN_SYS', true);
+$allow_origin = array('https://user.w7.cc', 'https://m.w7.cc','https://console.w7.cc','http://console.w7.cc', 'http://user.w7.cc', 'http://m.w7.cc');
+if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $allow_origin)) {
+	header('Access-Control-Allow-Headers:Origin,X-Requested-With,Content-Type,Accept,Authorization,cancelload');
+	header('Access-Control-Allow-Credentials:true');
+	header('Access-Control-Allow-Method:POST,GET,OPTIONS');
+	header('Access-Control-Allow-Origin:' . $_SERVER['HTTP_ORIGIN']);
+}
+if ('OPTIONS' == $_SERVER['REQUEST_METHOD']) {
+	$vars = array();
+	$vars['message'] = 	array('errno' => 0, 'message' => NULL);
+	$vars['redirect'] = '';
+	$vars['type'] = 'ajax';
+	exit(json_encode($vars));
+}
 require '../framework/bootstrap.inc.php';
 require IA_ROOT . '/web/common/bootstrap.sys.inc.php';
 
@@ -14,6 +28,15 @@ if (!empty($_GPC['state'])) {
 		$action = 'login';
 		$_GPC['login_type'] = $login_callback_params['from'];
 		$_GPC['handle_type'] = $login_callback_params['mode'];
+	}
+}
+
+$welcome_bind = pdo_get('system_welcome_binddomain', array('domain IN ' => array('http://' . $_SERVER['HTTP_HOST'], 'https://' . $_SERVER['HTTP_HOST'])));
+$site_url_query = parse_url($_W['siteurl'], PHP_URL_QUERY);
+if (!empty($welcome_bind) && empty($site_url_query)) {
+	$site = WeUtility::createModuleSystemWelcome($welcome_bind['module_name']);
+	if (!is_error($site)) {
+		exit($site->systemWelcomeDisplay($welcome_bind['uid']));
 	}
 }
 
@@ -38,17 +61,15 @@ if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && '
 		if (checksubmit() || $_W['isajax'] && $_W['ispost']) {
 			require _forward($controller, $action);
 		}
-		template('user/login');
+		$login_template = !empty($_W['setting']['basic']['login_template']) ? $_W['setting']['basic']['login_template'] : 'base';
+		template('user/login-' . $login_template);
 		exit();
 	}
 	isetcookie('__session', '', -10000);
 	if ($_W['isajax']) {
 		iajax(-1, '站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
 	}
-	
-		message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('user/login'), 'info');
-	
-	
+	message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], $_W['siteroot'], 'info');
 }
 
 $controllers = array();
@@ -104,22 +125,23 @@ if (!in_array($action, $actions)) {
 if (!in_array($action, $actions)) {
 	$action = $acl[$controller]['default'] ? $acl[$controller]['default'] : $actions[0];
 }
+if (!defined('FRAME')) {
+	define('FRAME', '');
+}
 $_W['iscontroller'] = current_operate_is_controller();
 if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]['direct'])) {
 	// 如果这个目标被配置为不需要登录直接访问, 则直接访问
 	require _forward($controller, $action);
 	exit();
 }
-if (!defined('FRAME')) {
-	define('FRAME', '');
-}
+
 checklogin();
 // 判断非创始人是否拥有目标权限
-if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['role']) {
-	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['role']) {
+if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['highest_role']) {
+	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['highest_role']) {
 		itoast('', url('user/third-bind'));
 	}
-	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['m']) {
+	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
 		itoast('', url('account/display/platform'), 'info');
 	}
 
