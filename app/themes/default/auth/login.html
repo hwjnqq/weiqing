@@ -28,7 +28,8 @@
 					util.toast(data.message, '', 'error');
 				} else {
 					util.toast('登录成功');
-					location.reload();
+					location.href = "{php echo url('mc/home', array('i' => $_W['uniacid']))}";
+					return;
 				}
 			})
 		})

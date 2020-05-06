@@ -6,7 +6,7 @@
 define('IN_IA', true);
 define('STARTTIME', microtime());
 define('IA_ROOT', str_replace('\\', '/', dirname(dirname(__FILE__))));
-define('MAGIC_QUOTES_GPC', (function_exists('get_magic_quotes_gpc') && get_magic_quotes_gpc()) || @ini_get('magic_quotes_sybase'));
+define('MAGIC_QUOTES_GPC', (function_exists('get_magic_quotes_gpc') && @get_magic_quotes_gpc()) || @ini_get('magic_quotes_sybase'));
 define('TIMESTAMP', time());
 
 $_W = $_GPC = array();
@@ -183,9 +183,7 @@ if (Agent::MICRO_MESSAGE_YES == Agent::isMicroMessage()) {
 	$_W['container'] = 'iphone';
 } elseif (Agent::BROWSER_TYPE_IPOD == $_W['container']) {
 	$_W['container'] = 'ipod';
-} elseif (Agent::BROWSER_TYPE_XZAPP == $_W['container']) {
-	$_W['container'] = 'baidu';
-} else {
+}else {
 	$_W['container'] = 'unknown';
 }
 

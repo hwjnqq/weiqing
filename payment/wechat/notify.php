@@ -100,16 +100,8 @@ if(is_array($setting['payment'])) {
 					mc_credit_update($log['uid'], $setting['creditbehaviors']['currency'], -$mix_pay_credit_log['fee'], array($log['uid'], '消费' . $setting['creditbehaviors']['currency'] . ':' . $fee));
 				}
 				if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-					$coupon_info = table('coupon')
-						->where(array('id' => $log['card_id']))
-						->select('id')
-						->get();
-					$coupon_record = table('coupon_record')
-						->where(array(
-							'code' => $log['encrypt_code'],
-							'status' => '1'
-						))
-						->get();
+					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
+					$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
 					load()->model('activity');
 				 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 				}

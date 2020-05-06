@@ -7,7 +7,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 define('REGULAR_EMAIL', '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/i');
-define('REGULAR_MOBILE', '/^\d{6,15}$/');
+define('REGULAR_MOBILE', '/1[345789][0-9]{9}/');
 define('REGULAR_USERNAME', '/^[\x{4e00}-\x{9fa5}a-z\d_\.]{3,30}$/iu');
 /*
  * 模板引用相关
@@ -41,10 +41,7 @@ define('ACCOUNT_TYPE_PHONEAPP_NORMAL', 6);
 define('ACCOUNT_TYPE_APP_AUTH', 7);
 //正常接入企业小程序
 define('ACCOUNT_TYPE_WXAPP_WORK', 8);
-//正常接入熊掌号
-define('ACCOUNT_TYPE_XZAPP_NORMAL', 9);
-//授权接入熊掌号
-define('ACCOUNT_TYPE_XZAPP_AUTH', 10);
+
 //支付宝小程序
 define('ACCOUNT_TYPE_ALIAPP_NORMAL', 11);
 //百度小程序
@@ -64,8 +61,7 @@ define('WEBAPP_TYPE_SIGN', 'webapp');
 define('PHONEAPP_TYPE_SIGN', 'phoneapp');
 //欢迎页
 define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
-//熊掌号
-define('XZAPP_TYPE_SIGN', 'xzapp');
+
 //支付宝小程序
 define('ALIAPP_TYPE_SIGN', 'aliapp');
 //百度小程序
@@ -77,8 +73,6 @@ define('TOUTIAOAPP_TYPE_SIGN', 'toutiaoapp');
 define('ACCOUNT_OAUTH_LOGIN', 3);
 //api接入
 define('ACCOUNT_NORMAL_LOGIN', 1);
-
-define('WEIXIN_ROOT', 'https://mp.weixin.qq.com');
 
 //系统线上操作
 define('ACCOUNT_OPERATE_ONLINE', 1);
@@ -182,9 +176,6 @@ define('MODULE_SUPPORT_ANDROID', 2);
 //是否支持ios 不支持1 支持2
 define('MODULE_NOSUPPORT_IOS', 1);
 define('MODULE_SUPPORT_IOS', 2);
-// 是否支持熊掌号 不支持1 支持2
-define('MODULE_SUPPORT_XZAPP', 2);
-define('MODULE_NOSUPPORT_XZAPP', 1);
 // 是否支持支付宝小程序 不支持1 支持2
 define('MODULE_SUPPORT_ALIAPP', 2);
 define('MODULE_NOSUPPORT_ALIAPP', 1);
@@ -200,7 +191,6 @@ define('MODULE_SUPPORT_ACCOUNT_NAME', 'account_support');
 define('MODULE_SUPPORT_WEBAPP_NAME', 'webapp_support');
 define('MODULE_SUPPORT_PHONEAPP_NAME', 'phoneapp_support');
 define('MODULE_SUPPORT_SYSTEMWELCOME_NAME', 'welcome_support');
-define('MODULE_SUPPORT_XZAPP_NAME', 'xzapp_support');
 define('MODULE_SUPPORT_ALIAPP_NAME', 'aliapp_support');
 define('MODULE_SUPPORT_BAIDUAPP_NAME', 'baiduapp_support');
 define('MODULE_SUPPORT_TOUTIAOAPP_NAME', 'toutiaoapp_support');
@@ -231,7 +221,6 @@ define('PERMISSION_ACCOUNT', 'system');
 define('PERMISSION_WXAPP', 'wxapp');
 define('PERMISSION_WEBAPP', 'webapp');
 define('PERMISSION_PHONEAPP', 'phoneapp');
-define('PERMISSION_XZAPP', 'xzapp');
 define('PERMISSION_ALIAPP', 'aliapp');
 define('PERMISSION_BAIDUAPP', 'baiduapp');
 define('PERMISSION_TOUTIAOAPP', 'toutiaoapp');
@@ -283,7 +272,7 @@ define('USER_STATUS_BAN', 3);
 //用户类型
 //普通用户
 define('USER_TYPE_COMMON', 1);
-//店员
+//应用操作员
 define('USER_TYPE_CLERK', 3);
 
 //我的账户链接类型
@@ -299,7 +288,6 @@ define('STORE_TYPE_ACCOUNT', 2);
 define('STORE_TYPE_WXAPP', 3);
 define('STORE_TYPE_WEBAPP', 17);
 define('STORE_TYPE_PHONEAPP', 18);
-define('STORE_TYPE_XZAPP', 19);
 define('STORE_TYPE_ALIAPP', 20);
 define('STORE_TYPE_BAIDUAPP', 21);
 define('STORE_TYPE_TOUTIAOAPP', 22);
@@ -309,7 +297,6 @@ define('STORE_TYPE_ACCOUNT_RENEW', 7);
 define('STORE_TYPE_WXAPP_RENEW', 8);
 define('STORE_TYPE_WEBAPP_RENEW', 23);
 define('STORE_TYPE_PHONEAPP_RENEW', 24);
-define('STORE_TYPE_XZAPP_RENEW', 25);
 define('STORE_TYPE_ALIAPP_RENEW', 26);
 define('STORE_TYPE_BAIDUAPP_RENEW', 27);
 define('STORE_TYPE_TOUTIAOAPP_RENEW', 28);
@@ -318,7 +305,6 @@ define('STORE_TYPE_MODULE', 1); //公众号应用
 define('STORE_TYPE_WXAPP_MODULE', 4); //小程序应用
 define('STORE_TYPE_WEBAPP_MODULE', 11); //PC应用
 define('STORE_TYPE_PHONEAPP_MODULE', 12); //APP应用
-define('STORE_TYPE_XZAPP_MODULE', 13); //熊掌号应用
 define('STORE_TYPE_ALIAPP_MODULE', 14); //支付宝小程序应用
 define('STORE_TYPE_BAIDUAPP_MODULE', 15); //百度小程序应用
 define('STORE_TYPE_TOUTIAOAPP_MODULE', 16); //头条小程序应用
@@ -328,6 +314,9 @@ define('STORE_TYPE_API', 6);
 
 define('STORE_TYPE_USER_PACKAGE', 9);
 define('STORE_TYPE_ACCOUNT_PACKAGE', 10);
+
+//用户账号有效期
+define('STORE_TYPE_USER_RENEW', 29);
 
 //订单状态
 define('STORE_ORDER_PLACE', 1);

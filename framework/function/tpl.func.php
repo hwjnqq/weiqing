@@ -55,7 +55,7 @@ function tpl_form_field_clock($name, $value = '') {
  * @param array  $value 表单input值
  *                      array('start' => 开始日期,'end' => 结束日期)
  * @param bool   $time  是否显示时间
- *
+ * @param bool   $clear 默认不限时间
  * @return string
  */
 function tpl_form_field_daterange($name, $value = array(), $time = false, $clear = true) {

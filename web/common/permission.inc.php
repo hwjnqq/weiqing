@@ -443,19 +443,6 @@ $we7_file_permission = array(
 		),
 		'unbind_user' => array(),
 	),
-	'xzapp' => array(
-		'default' => '',
-		'direct' => array(),
-		'vice_founder' => array('xzapp*'),
-		'owner' => array('xzapp*'),
-		'manager' => array(),
-		'operator' => array(
-			'post-step',
-			'create',
-		),
-		'clerk' => array(),
-		'unbind_user' => array(),
-	),
 	'phoneapp' => array(
 		'default' => '',
 		'direct' => array(),

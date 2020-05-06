@@ -9,7 +9,7 @@
 		</div>
 		{/if}
 	</div>
-	<table class="table we7-table table-hover">
+	<table id="js-module-permission" class="table we7-table table-hover" ng-controller="clerkPermission" ng-cloak>
 		<thead class="navbar-inner">
 		<tr>
 			<th class="text-center" style="width:100px;">操作员名称</th>
@@ -42,7 +42,7 @@
 					<div class="link-group" >
 						{if empty($module['main_module'])}
 							<a href="{php echo url('module/permission/post', array('uid' => $item['uid'], 'm' => $module_name));}">编辑</a>
-							<a href="javascript:void(0);" onclick="deleteClerk('{$item["uid"]}', '{$module_name}')" class="del">删除</a>
+							<a href="javascript:void(0);" ng-click="deleteClerk({$item['uid']}, '{$module_name}')" class="del">删除</a>
 						{else}
 							<span>---</span>
 						{/if}
@@ -51,23 +51,19 @@
 			</tr>
 		{/loop}
 		{else}
-		<tr ng-if="!wechats">
+		<tr>
 			<td colspan="3" class="text-center">暂无数据</td>
 		</tr>
 		{/if}
 		</tbody>
 	</table>
 	<script>
-		var url = "{php echo url('module/permission/delete');}";
-		function deleteClerk(uid, module_name) {
-			url += "&uid=" + uid;
-			url += "&m=" + module_name;
-			util.confirm(function () {
-				window.location.href = url;
-			}, function () {
-				return false;
-			}, '确认删除吗?');
-		}
+		angular.module('moduleApp').value('config', {
+			links: {
+				deleteClerk: "{php echo url('module/permission/delete');}"
+			}
+		});
+		angular.bootstrap($('#js-module-permission'),['moduleApp']);
 	</script>
 </div>
 {/if}

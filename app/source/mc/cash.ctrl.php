@@ -146,7 +146,7 @@ if(!empty($type)) {
 		$we7_coupon_info = module_fetch('we7_coupon');
 		if (!empty($we7_coupon_info)) {
 			$coupon_id = intval($_GPC['coupon_id']);
-			$coupon_info = table('coupon')->getById($coupon_id, $_W['uniacid']);
+			$coupon_info = pdo_get('coupon', array('uniacid' => $_W['uniacid'], 'id' => $coupon_id));
 			$coupon_info['fee'] = $log['card_fee'];
 			if (!empty($coupon_info)) {
 				$extra = iunserializer($coupon_info['extra']);
@@ -272,18 +272,8 @@ if(!empty($type)) {
 					message("余额不足以支付, 需要 {$ps['fee']}, 当前 {$credtis[$setting['creditbehaviors']['currency']]}");
 				}
 				if (!empty($we7_coupon_info) && $log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-					$coupon_info = table('coupon')
-						->select('id')
-						->where(array('id' => $log['card_id']))
-						->get();
-					$coupon_record = table('coupon_record')
-						->where(array(
-							'couponid' => $log['card_id'],
-							'openid' => $_W['openid'],
-							'code' => $log['encrypt_code'],
-							'status' => '1'
-						))
-						->get();
+					$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
+					$coupon_record = pdo_get('coupon_record', array('couponid' => $log['card_id'], 'openid' => $_W['openid'], 'code' => $log['encrypt_code'], 'status' => '1'));
 					$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
 				}
 				$fee = floatval($ps['fee']);
@@ -381,18 +371,8 @@ if(!empty($type)) {
 			->get();
 		if(!empty($log) && $log['status'] == '0') {
 			if (!empty($we7_coupon_info) && $log['is_usecard'] == 1) {
-				$coupon_info = table('coupon')
-					->where(array('id' => $log['card_id']))
-					->select('id')
-					->get();
-				$coupon_record = table('coupon_record')
-					->where(array(
-						'couponid' => $log['card_id'],
-						'openid' => $_W['openid'],
-						'code' => $log['encrypt_code'],
-						'status' => '1'
-					))
-					->get();
+				$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
+				$coupon_record = pdo_get('coupon_record', array('couponid' => $log['card_id'], 'openid' => $_W['openid'], 'code' => $log['encrypt_code'], 'status' => '1'));
 			 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $params['module']);
 			 	if (is_error($status)) {
 			 		message($status['message']);

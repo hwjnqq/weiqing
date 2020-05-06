@@ -14,22 +14,6 @@ $we7_system_menu['welcome'] = array(
 	'section' => array(),
 );
 
-//$we7_system_menu['platform'] = array(
-//	'title' => '平台入口',
-//	'icon' => 'wi wi-platform',
-//	'dimension' => 2,
-//	'url' => url('account/display/platform'),
-//	'section' => array(),
-//);
-
-//$we7_system_menu['module'] = array(
-//	'title' => '应用入口',
-//	'icon' => 'wi wi-apply',
-//	'dimension' => 2,
-//	'url' => url('module/display/switch_last_module'),
-//	'section' => array(),
-//);
-
 $we7_system_menu['account_manage'] = array(
 	'title' => '平台管理',
 	'icon' => 'wi wi-platform-manage',
@@ -280,7 +264,7 @@ $we7_system_menu['system'] = array(
 					'url' => url('cloud/sms-mass'),
 					'icon' => 'wi wi-sms-sign',
 					'permission_name' => 'system_cloud_sms_mass',
-					'is_display' => false,
+					'is_display' => 0,
 				),
 			),
 			'founder' => true,
@@ -490,8 +474,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 					'sub_permission' => array(
 						'platform_reply_keyword' => array(
@@ -553,8 +535,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 					'sub_permission' => array(
 						'platform_menu_default' => array(
@@ -607,8 +587,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 					'sub_permission' => array(
 						'platform_masstask_post' => array(
@@ -633,8 +611,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 					'sub_permission' => array(
 						'platform_material_news' => array(
@@ -668,7 +644,7 @@ $we7_system_menu['account'] = array(
 						'platform_material_delete' => array(
 							'title' => '删除',
 							'permission_name' => 'platform_material_delete',
-							'is_display' => false,
+							'is_display' => 0,
 						),
 					),
 				),
@@ -712,14 +688,12 @@ $we7_system_menu['account'] = array(
 			'permission_display' => array(
 				ACCOUNT_TYPE_OFFCIAL_NORMAL,
 				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
 			),
 		),
 		'platform_module' => array(
 			'title' => '应用模块',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 		'mc' => array(
 			'title' => '粉丝',
@@ -732,8 +706,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 					'sub_permission' => array(
 						'mc_fans_display' => array(
@@ -758,8 +730,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 						ACCOUNT_TYPE_WEBAPP_NORMAL,
 					),
 					'sub_permission' => array(
@@ -827,16 +797,12 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 				),
 			),
 			'permission_display' => array(
 				ACCOUNT_TYPE_OFFCIAL_NORMAL,
 				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
 				ACCOUNT_TYPE_WEBAPP_NORMAL,
 			),
 		),
@@ -851,8 +817,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 						ACCOUNT_TYPE_WEBAPP_NORMAL,
 					),
 					'sub_permission' => array(
@@ -938,8 +902,6 @@ $we7_system_menu['account'] = array(
 					'is_display' => array(
 						ACCOUNT_TYPE_OFFCIAL_NORMAL,
 						ACCOUNT_TYPE_OFFCIAL_AUTH,
-						ACCOUNT_TYPE_XZAPP_NORMAL,
-						ACCOUNT_TYPE_XZAPP_AUTH,
 					),
 				),
 				
@@ -967,8 +929,6 @@ $we7_system_menu['account'] = array(
 			'permission_display' => array(
 				ACCOUNT_TYPE_OFFCIAL_NORMAL,
 				ACCOUNT_TYPE_OFFCIAL_AUTH,
-				ACCOUNT_TYPE_XZAPP_NORMAL,
-				ACCOUNT_TYPE_XZAPP_AUTH,
 				ACCOUNT_TYPE_WEBAPP_NORMAL,
 			),
 		),
@@ -1008,7 +968,7 @@ $we7_system_menu['wxapp'] = array(
 		'platform_module' => array(
 			'title' => '应用',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 		'mc' => array(
 			'title' => '粉丝',
@@ -1149,7 +1109,7 @@ $we7_system_menu['wxapp'] = array(
 					),
 				),
 				'wxapp_profile_front_download' => array(
-					'title' => $_W['account']['type_sign'] == 'wxapp' ? '上传微信审核' : '下载程序包',
+					'title' => '上传微信审核',
 					'url' => $_W['account']['type_sign'] == 'phoneapp' ? url('phoneapp/front-download') : url('wxapp/front-download'),
 					'is_display' => array(
 						ACCOUNT_TYPE_APP_NORMAL,
@@ -1259,7 +1219,7 @@ $we7_system_menu['phoneapp'] = array(
 		'platform_module' => array(
 			'title' => '应用',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 		'phoneapp_profile' => array(
 			'title' => '配置',
@@ -1276,12 +1236,12 @@ $we7_system_menu['phoneapp'] = array(
 				'front_download' => array(
 					'title' => '下载APP',
 					'url' => url('phoneapp/front-download'),
-					'is_display' => true,
+					'is_display' => 1,
 					'icon' => 'wi wi-examine',
 					'permission_name' => 'phoneapp_front_download',
 				),
 			),
-			'is_display' => true,
+			'is_display' => 1,
 			'permission_display' => array(
 				ACCOUNT_TYPE_PHONEAPP_NORMAL,
 			),
@@ -1289,18 +1249,6 @@ $we7_system_menu['phoneapp'] = array(
 	),
 );
 
-$we7_system_menu['xzapp'] = array(
-	'title' => '熊掌号',
-	'icon' => 'wi wi-xzapp',
-	'url' => url('xzapp/home/display'),
-	'section' => array(
-		'platform_module' => array(
-			'title' => '应用模块',
-			'menu' => array(),
-			'is_display' => true,
-		),
-	),
-);
 $we7_system_menu['aliapp'] = array(
 	'title' => '支付宝小程序',
 	'icon' => 'wi wi-aliapp',
@@ -1309,7 +1257,7 @@ $we7_system_menu['aliapp'] = array(
 		'platform_module' => array(
 			'title' => '应用',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 	),
 );
@@ -1322,7 +1270,7 @@ $we7_system_menu['baiduapp'] = array(
 		'platform_module' => array(
 			'title' => '应用',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 	),
 );
@@ -1335,7 +1283,7 @@ $we7_system_menu['toutiaoapp'] = array(
 		'platform_module' => array(
 			'title' => '应用',
 			'menu' => array(),
-			'is_display' => true,
+			'is_display' => 1,
 		),
 	),
 );

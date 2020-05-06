@@ -32,6 +32,7 @@ if (is_array($session)) {
 		$user['lastip'] = $session['lastip'];
 		$_W['user'] = $user;
 		$_W['isfounder'] = user_is_founder($_W['uid']);
+		$_W['isadmin'] = user_is_founder($_W['uid'], true);
 	} else {
 		isetcookie('__session', false, -100);
 	}
@@ -39,7 +40,7 @@ if (is_array($session)) {
 }
 unset($session);
 $_W['isw7_request'] = isset($_GPC['w7_request_secret']) ? true : false;
-if ($_W['isw7_request'] && !user_is_founder($_W['uid'], true)) {
+if ($_W['isw7_request'] && !$_W['isadmin']) {
 	$request_token = cloud_w7_request_token(safe_gpc_string($_GPC['w7_request_secret']));
 	if (isset($_GPC['w7_accesstoken'])) {
 		if ($_GPC['w7_accesstoken'] != $request_token) {
@@ -49,7 +50,7 @@ if ($_W['isw7_request'] && !user_is_founder($_W['uid'], true)) {
 			$_W['user'] = user_single(current(explode(',', $_W['config']['setting']['founder'])));
 			$_W['uid'] = $_W['user']['uid'];
 			$_W['username'] = $_W['user']['username'];
-			$_W['isfounder'] = user_is_founder($_W['uid'], true);
+			$_W['isfounder'] = $_W['isadmin'] = user_is_founder($_W['uid'], true);
 		}
 		if (empty($_W['uid'])) {
 			iajax(403, '身份验证失败！');

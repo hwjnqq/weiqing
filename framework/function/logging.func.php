@@ -22,13 +22,12 @@ define('LOGGING_INFO', 'info');
  */
 function logging_run($log, $type = 'trace', $filename = 'run') {
 	global $_W;
-	$filename = IA_ROOT . '/data/logs/' . $filename . '_' . date('Ymd') . '.log';
+	$filename = IA_ROOT . '/data/logs/' . $filename . '_' . date('Ymd') . '.php';
 
 	load()->func('file');
 	mkdirs(dirname($filename));
 
 	$logFormat = '%date %type %user %url %context';
-
 	if (!empty($GLOBALS['_POST'])) {
 		$context[] = logging_implode($GLOBALS['_POST']);
 	}
@@ -46,9 +45,12 @@ function logging_run($log, $type = 'trace', $filename = 'run') {
 		$_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'],
 		implode("\n", $context),
 	), $logFormat);
-
-	file_put_contents($filename, $log . "\r\n", FILE_APPEND);
-
+	if (file_exists($filename)) {
+		$log =  $log . "\r\n";
+	} else {
+		$log = "<?php exit;?>\r\n" . $log . "\r\n";
+	}
+	file_put_contents($filename, $log, FILE_APPEND);
 	return true;
 }
 

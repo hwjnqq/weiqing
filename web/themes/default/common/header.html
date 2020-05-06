@@ -14,33 +14,9 @@
 			</div>
 			{if !empty($_W['uid'])}
 			<div class="collapse navbar-collapse">
-				<style>
-					.nav > li:hover .dropdown-menu {display: block;}
-				</style>
-				{php global $top_nav}
-				{php $nav_top_fold=array()}
-				{php $platform_url=url('account/display')}
-				{php $nav_top_fold[] = array('name' => 'all', 'title'=>'全部类型', 'type' => 'all', 'url' => $platform_url)}
-				{loop $top_nav $nav}
-					{if in_array($nav['name'], array(ACCOUNT_TYPE_SIGN, WXAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN, PHONEAPP_TYPE_SIGN, XZAPP_TYPE_SIGN, ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))}
-						{php $nav_top_fold[]=$nav}
-					{elseif in_array($nav['name'], array('store', 'help', 'workorder', 'custom_help')) || !$nav['is_system']}
-						{php $nav_top_tiled_other[] = $nav}
-					{elseif $nav['name'] =='message'}
-						{php $nav_top_message = $nav}
-					{else}
-						{php $nav_top_tiled_system[] = $nav}
-					{/if}
-					{if 'store' == $nav['name'] && user_is_founder($_W['uid'], true)}{php $nav_top_tiled_system[] = $nav}{/if}
-				{/loop}
 				<ul class="nav navbar-nav  navbar-left">
-					{loop $nav_top_tiled_system $nav}
-					<li {if FRAME == $nav['name'] && !defined('IN_MODULE')} class="active" {/if}>
-					<a href="{$nav['url']}{if $nav['title'] != '市场'}&iscontroller=1{/if}" {if !empty($nav['blank'])}target="_blank"{/if}>{$nav['title']}</a>
-					</li>
-					{/loop}
+					{template 'common/header-topnav'}
 				</ul>
-
 				<ul class="nav navbar-nav navbar-right ">
 					{template 'common/header-user'}
 				</ul>
@@ -61,10 +37,10 @@
 	{if !defined('IN_MESSAGE')}
 	<div class="container">
 		<a href="javascript:;" class="js-big-main button-to-big color-gray" title="加宽">{if $_GPC['main-lg']}正常{else}宽屏{/if}</a>
-		{if $frames['dimension'] == 3 && defined('FRAME') && in_array(FRAME, array('account', 'system', 'wxapp', 'site', 'store', 'webapp', 'phoneapp', 'xzapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show', 'notice-news'))}
+		{if $frames['dimension'] == 3 && defined('FRAME') && in_array(FRAME, array('account', 'system', 'wxapp', 'site', 'store', 'webapp', 'phoneapp')) && !in_array($_GPC['a'], array('news-show', 'notice-show', 'notice-news'))}
 		<div class="panel panel-content main-panel-content {if !empty($frames['section']['platform_module_menu']['plugin_menu'])}panel-content-plugin{/if}">
 			<div class="content-head panel-heading main-panel-heading">
-				{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service', 'apply'))) || defined('IN_MODULE')}
+				{if ($_GPC['c'] != 'cloud' && !empty($_GPC['m']) && !in_array($_GPC['m'], array('keyword', 'special', 'welcome', 'default', 'userapi', 'service', 'apply'))) || defined('IN_MODULE') && IN_MODULE != ''}
 					{template 'common/header-module'}
 				{else}
 					{template 'common/header-' . FRAME}
@@ -101,7 +77,7 @@
 											</li>
 										{else}
 											{if $menu['active']}{php $active_sub_permission = $menu['sub_permission']}{/if}
-											{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION) || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL}
+											{if (in_array($_W['role'], array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_FOUNDER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER)) && $menu_id == 'front_download' || $menu_id != 'front_download') && !($menu_id == 'platform_menu' && $_W['account']['level'] == ACCOUNT_SUBSCRIPTION)}
 											<li class="list-group-item {if $menu['multilevel']}list-group-item-more{/if} {if $menu['active']}active{/if}">
 												<a href="{if $menu['multilevel']}javascript:;{else}{$menu['url']}{/if}" {if $menu['multilevel']}data-toggle="collapse" data-target="#frame-child-{$frame_section_id}-{$menu_id}"{/if} class="text-over" {if $frame_section_id == 'platform_module'}target="_blank"{/if}>
 													{if $frame_section_id == 'platform_module' || $frame_section_id == 'platform_module_plugin'}

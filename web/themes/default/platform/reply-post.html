@@ -170,15 +170,16 @@
 						{if $m ==  'userapi'}
 						{php echo module_build_form('userapi', $rid)}
 						{elseif in_array($m, $sysmods)}
-							{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-								{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false))}
-							{else}
-								{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> true,'voice'=> true,'video'=> true))}
-							{/if}
+							{php echo module_build_form('core', $rid, array('basic'=> false,'news'=> false,'image'=> false,'music'=> false,'voice'=> false,'video'=> false))}
 						{else}
 						{php echo module_build_form($m, $rid)}
 						{/if}
 					</div>
+					{if $m == 'keyword'}
+					<div class="help-block color-red">
+						<i class="wi wi-info-sign" ></i>添加多条内容后，实际操作会随机回复一条内容
+					</div>
+					{/if}
 					<div class="clearfix"></div>
 					<div class="form-group reply-post-action we7-margin-top">
 						<div class="">

@@ -3,7 +3,7 @@
 	<!-- 默认后台入口 start -->
 	<div class="panel we7-panel module-go-panele" ng-if="module_info.welcome_display">
 		<div class="panel-heading we7-padding clearfix">
-			<h4 class="pull-left">应用后台管理1</h4>
+			<h4 class="pull-left">应用后台管理</h4>
 			<a href="{php echo url('module/welcome/welcome_display', array('m' => $module_name))}" class="btn btn-primary pull-right" target="_blank">
 				 进入后台
 			</a>
@@ -52,17 +52,20 @@
 						</div>
 					</div>
 				</div>
-				<div class="account-item" ng-repeat="link_account in link_accounts" ng-if="$index < 4" ng-click="link_account.switchurl ? account_switch(link_account.switchurl) : ''"> <!-- 最多4个-->
+				<div class="account-item" ng-repeat="link_account in link_accounts" ng-if="$index < 4"> <!-- 最多4个-->
 					<img ng-src="{{ link_account.logo }}" class="account-img logo" alt="">
 					<div class="info">
 						<div class="title">
-							{{ link_account.name }}
+							<span class="text-over name" ng-click="link_account.switchurl ? account_switch(link_account.switchurl) : ''">{{ link_account.name }}</span>
+
+							<a ng-if="link_account.switchurl && link_account.unbindurl" class="action" ng-click="unbind_module(link_account.switchurl, link_account.unbindurl)">去解绑</a>
 						</div>
 						<div class="type">
 							<i class="wi wi-{{ link_account.type_sign}}"></i><span ng-bind="link_account.type_name"></span>
 						</div>
 					</div>
 				</div>
+				
 				<!-- 为空的时候显示 -->
 				<!--<div class="empty">-->
 					<!--<a href="" class="btn btn-primary" >添加子账号</a>-->

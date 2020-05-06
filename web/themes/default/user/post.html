@@ -2,7 +2,7 @@
 <div class="new-keyword" id="js-user-post" ng-controller="UserCreateCtrl" ng-cloak>
 	<ol class="breadcrumb we7-breadcrumb">
 		{if $user_type == 'vice_founder'}
-		<a href="{url 'founder/display'}"><i class="wi wi-back-circle"></i> </a>
+		<a href="{url 'founder/display'}"><i class="wi wi-back-circle"></i></a>
 		<li><a href="{url 'founder/display'}">副创始人管理</a></li>
 		<li>添加副创始人</li>
 		{else}
@@ -342,7 +342,7 @@
 		<div class="col-sm-offset-2">
 			<input type="button" ng-if="create_step == 2" value="上一步" class="btn btn-primary" ng-click="step(1)" ng-style="{'padding': '6px 50px'}"/>
 			<input type="button" ng-if="create_step == 1" value="下一步" class="btn btn-primary" ng-click="step(2)" ng-style="{'padding': '6px 50px'}"/>
-			<input type="submit" ng-if="create_step == 2" name="submit" id="" value="提交" class="btn btn-primary" ng-click="checkSubmit($event)" ng-style="{'padding': '6px 50px'}"/>
+			<input type="submit" ng-if="create_step == 2" name="submit" ng-disabled="submitDisabled" value="提交" class="btn btn-primary" ng-click="checkSubmit($event)" ng-style="{'padding': '6px 50px'}"/>
 
 		</div>
 	</form>
@@ -360,8 +360,6 @@
 		/* 帐号权限 - 帐号权限组*/
 		// account_group_lists: {php echo !empty($account_group_lists) ? json_encode($account_group_lists) : 'null'},
 		create_account: {php echo json_encode($create_account)},
-		/* 应用权限 - 模板*/
-		source_templates: {php echo !empty($source_templates) ? json_encode($source_templates) : 'null'},
 		{if $user_type == 'vice_founder'}
 		user_save_url : "{php echo url('founder/create/save')}",
 		get_user_group_detail_url : "{php echo url('founder/create/get_user_founder_group_detail_info')}",
@@ -374,7 +372,6 @@
 		check_user_info_url : "{php echo url('user/create/check_user_info')}",
 		check_vice_founder_permission_limit_url : "{php echo url('user/create/check_vice_founder_permission_limit')}",
 	});
-
 	angular.bootstrap($('#js-user-post'), ['userManageApp']);
 </script>
 {template 'common/footer'}

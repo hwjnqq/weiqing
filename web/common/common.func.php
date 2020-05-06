@@ -346,7 +346,7 @@ function buildframes($framename = '') {
 				$new_modules = array_reverse($modules);
 				$i = 0;
 				foreach ($new_modules as $module) {
-					if (!empty($module['issystem'])) {
+					if (in_array($module['name'], $sysmodules) || $module['application_type'] == APPLICATION_TYPE_TEMPLATES) {
 						continue;
 					}
 					if (5 == $i) {
@@ -448,7 +448,7 @@ function buildframes($framename = '') {
 			);
 		}
 		if ($module['isrulefields'] || !empty($entries['cover']) || !empty($entries['mine'])) {
-			if (!empty($module['isrulefields']) && !empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH, ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
+			if (!empty($module['isrulefields']) && !empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
 				$url = url('platform/reply', array('m' => $modulename, 'version_id' => $version_id));
 			}
 			if (empty($url) && !empty($entries['cover'])) {
@@ -646,8 +646,9 @@ function buildframes($framename = '') {
 		} else {
 			$frames['wxapp']['section']['platform_module']['is_display'] = false;
 		}
-		if (!empty($frames['wxapp']['section']['wxapp_profile']['menu']['front_download'])) {
-			$frames['wxapp']['section']['wxapp_profile']['menu']['front_download']['need_upload'] = empty($need_upload) ? 0 : 1;
+		if (!empty($frames['wxapp']['section']['wxapp_profile']['menu']['wxapp_profile_front_download'])) {
+			$frames['wxapp']['section']['wxapp_profile']['menu']['wxapp_profile_front_download']['need_upload'] = empty($need_upload) ? 0 : 1;
+			$frames['wxapp']['section']['wxapp_profile']['menu']['wxapp_profile_front_download']['title'] = $_W['account']['type_sign'] == 'wxapp' ? (ACCOUNT_TYPE_APP_AUTH == $_W['account']['type'] ? '代码发布管理' : '上传微信审核') : '下载程序包';
 		}
 
 		if (!empty($frames['wxapp']['section'])) {
@@ -683,12 +684,11 @@ function frames_top_menu($frames) {
 	}
 	//todo 整理全站$_W['isfounder'],既包含创始人又包含副创始人
 	$is_vice_founder = user_is_vice_founder();
-	$founders = explode(',', $_W['config']['setting']['founder']);
 	foreach ($frames as $menuid => $menu) {
-		if ((!empty($menu['founder']) || in_array($menuid, array('module_manage', 'site', 'advertisement', 'appmarket'))) && !in_array($_W['uid'], $founders) ||
+		if ((!empty($menu['founder']) || in_array($menuid, array('module_manage', 'site', 'advertisement', 'appmarket'))) && !$_W['isadmin'] ||
 			ACCOUNT_MANAGE_NAME_CLERK == $_W['highest_role'] && in_array($menuid, array('account', 'wxapp', 'system', 'platform', 'welcome', 'account_manage')) ||
-			!$is_vice_founder && !in_array($_W['uid'], $founders) && in_array($menuid, array('user_manage', 'permission')) ||
-			'myself' == $menuid && in_array($_W['uid'], $founders) ||
+			!$is_vice_founder && !$_W['isadmin'] && in_array($menuid, array('user_manage', 'permission')) ||
+			'myself' == $menuid && $_W['isadmin'] ||
 			!$menu['is_display']) {
 			continue;
 		}

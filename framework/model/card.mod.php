@@ -104,7 +104,7 @@ function card_params_setting($setting_name = '') {
 	} else {
 		return $params_new;
 	}
-	
+
 }
 /*
  * 获取会员卡消费优惠后的价格

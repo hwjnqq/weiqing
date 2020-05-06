@@ -1,7 +1,7 @@
 {template 'common/header'}
 {template 'account/account-header'}
 <div id="js-account-manage-modules-tpl" ng-controller="AccountMangeModulesTpl" ng-cloak>
-	{if in_array($owner['uid'], $founders)}
+	{if $owner['is_admin']}
 		<div class="panel we7-panel user-permission">
 			<div class="panel-heading">
 				主管理员的会员权限
@@ -11,14 +11,14 @@
 			</div>
 		</div>
 	{/if}
-	{if !in_array($owner['uid'], $founders)}
+	{if !$owner['is_admin']}
 		<!--主管理员会员权限-->
 		<div class="panel we7-panel user-permission">
 			<div class="panel-heading">
 				<span>主管理员: {{owner.group.name}}</span>
 				
 				
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
 					<a href="{php echo url('user/edit/edit_modules_tpl',array('uid'=>$owner['uid']))}" class="pull-right color-default">修改</a>
 				{/if}
 				
@@ -91,7 +91,7 @@
 				<span>附加应用权限组</span>
 				
 				
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
 				<we7-modal-app title="'修改附加应用权限组'" module-list="groupList" multiple="true" on-confirm="changeGroup()"><a href="javascript:;" class="pull-right color-default">修改</a></we7-modal-app>
 				{/if}
 				
@@ -137,7 +137,7 @@
 				<span>附加应用</span>
 				
 				
-				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER && !in_array($owner['uid'], $founders)}
+				{if $_W['role'] == ACCOUNT_MANAGE_NAME_FOUNDER}
 				<we7-modal-app module-list="moduleList" multiple="true" on-confirm="addExtend()"><a href="javascript:;" class="pull-right color-default">修改</a></we7-modal-app>
 				{/if}
 				

@@ -229,10 +229,7 @@ class PaycenterModuleSite extends WeModuleSite {
 			message('订单不存在或已删除', '', 'error');
 		}
 		if ($order['store_id'] > 0) {
-			$store = table('activity_stores')
-				->select('business_name')
-				->where(array('id' => $order['store_id']))
-				->get();
+			$store = pdo_get('activity_stores', array('id' => $order['store_id']), array('business_name'));
 		}
 		include $this->template('paydetail');
 	}

@@ -17,15 +17,21 @@
 		{if !empty($icps)}
 		{loop $icps $icp}
 		{if $icp['domain'] == $_SERVER['HTTP_HOST']}
-		备案号：<a href="http://beian.miit.gov.cn/" target="_blank">{$icp['icp']}</a>
+			备案号：<a href="http://www.beian.miit.gov.cn/" target="_blank">{$icp['icp']}</a>
+			{if !empty($icp['policeicp_location']) && !empty($icp['policeicp_code'])}
+			<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={php echo $icp['policeicp_code']}" >
+				&nbsp;&nbsp;<img src="./resource/images/icon-police.png" >
+				{php echo $icp['policeicp_location']}{php echo $icp['policeicp_code']}号
+			</a>
+			{/if}
+			{if !empty($icp['electronic_license'])}
+			<div>
+				<img src="./resource/images/electronic_license.png" width="45px">
+				<p><a target="_blank" href="{php echo $icp['electronic_license']}" class="color-default">点击验照</a></p>
+			</div>
+			{/if}
 		{/if}
 		{/loop}
-		{/if}
-		{if !empty($_W['setting']['copyright']['policeicp']['policeicp_location']) && !empty($_W['setting']['copyright']['policeicp']['policeicp_code'])}
-			<a target="_blank" href="http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={php echo $_W['setting']['copyright']['policeicp']['policeicp_code']}">
-                &nbsp;&nbsp;<img src="./resource/images/icon-police.png" >
-				{php echo $_W['setting']['copyright']['policeicp']['policeicp_location']} {php echo $_W['setting']['copyright']['policeicp']['policeicp_code']}号
-			</a>
 		{/if}
 	</div>
 </div>

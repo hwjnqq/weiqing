@@ -34,11 +34,6 @@
 						<i class="wi wi-app" ></i> {$user_permission_account['user_group_maxphoneapp']}个
 					</span>
 					{/if}
-					{if $user_permission_account['user_group_maxxzapp']}
-					<span class="account-num-item">
-						<i class="wi wi-xzapp" ></i> {$user_permission_account['user_group_maxxzapp']}个
-					</span>
-					{/if}
 					{if $user_permission_account['user_group_maxaliapp']}
 					<span class="account-num-item">
 						<i class="wi wi-aliapp" ></i> {$user_permission_account['user_group_maxaliapp']}个
@@ -101,11 +96,6 @@
 						<i class="wi wi-app" ></i> {$create_group['maxphoneapp']}个
 					</span>
 					{/if}
-					{if $create_group['maxxzapp']}
-					<span class="account-num-item">
-						<i class="wi wi-xzapp" ></i> {$create_group['maxxzapp']}个
-					</span>
-					{/if}
 					{if $create_group['maxaliapp']}
 					<span class="account-num-item">
 						<i class="wi wi-aliapp" ></i> {$create_group['maxaliapp']}个
@@ -131,7 +121,7 @@
 		</div>
 		{/if}
 	</div>
-	{if user_is_founder($_W['uid'])}
+	{if $_W['isfounder']}
 	<div class="panel we7-panel user-permission">
 		<div class="panel-heading">
 			<span>附加权限</span>
@@ -139,7 +129,7 @@
 				<we7-modal-account account="create_account_info" multiple="true" type="3" on-confirm="extraCreateGroup('numbers')"><a href="javascript:;" class="color-default">修改</a></we7-modal-account>
 			</div>
 		</div>
-		{if $user_permission_account['extra_account'] || $user_permission_account['extra_wxapp'] || $user_permission_account['extra_webapp'] || $user_permission_account['extra_phoneapp'] || $user_permission_account['extra_xzapp'] || $user_permission_account['extra_aliapp'] || $user_permission_account['extra_toutiaoapp'] || $user_permission_account['extra_baiduapp']}
+		{if $user_permission_account['extra_account'] || $user_permission_account['extra_wxapp'] || $user_permission_account['extra_webapp'] || $user_permission_account['extra_phoneapp'] || $user_permission_account['extra_aliapp'] || $user_permission_account['extra_toutiaoapp'] || $user_permission_account['extra_baiduapp']}
 		<div class="panel-body we7-padding">
 			<div class="we7-account-show">
 				<div class="name">添加账号</div>
@@ -162,11 +152,6 @@
 					{if $user_permission_account['extra_phoneapp']}
 					<span class="account-num-item">
 						<i class="wi wi-app" ></i> {$user_permission_account['extra_phoneapp']}个
-					</span>
-					{/if}
-					{if $user_permission_account['extra_xzapp']}
-					<span class="account-num-item">
-						<i class="wi wi-xzapp" ></i> {$user_permission_account['extra_xzapp']}个
 					</span>
 					{/if}
 					{if $user_permission_account['extra_aliapp']}
@@ -198,7 +183,7 @@
 		<div class="panel-heading">
 			<span>商城购买账号权限</span>
 		</div>
-		{if $user_permission_account['store_buy_account'] || $user_permission_account['store_buy_wxapp']}
+		{if $user_permission_account['store_limit_total']}
 		<div class="panel-body we7-padding">
 			<div class="we7-account-show">
 				<div class="name">购买账号</div>
@@ -213,6 +198,33 @@
 						<i class="wi wi-wxapp" ></i> {$user_permission_account['store_buy_wxapp']}个
 					</span>
 					{/if}
+
+					{if $user_permission_account['store_buy_webapp']}
+					<span class="account-num-item">
+						<i class="wi wi-pc" ></i> {$user_permission_account['store_buy_webapp']}个
+					</span>
+					{/if}
+					{if $user_permission_account['store_buy_phoneapp']}
+					<span class="account-num-item">
+						<i class="wi wi-app" ></i> {$user_permission_account['store_buy_phoneapp']}个
+					</span>
+					{/if}
+					{if $user_permission_account['store_buy_aliapp']}
+					<span class="account-num-item">
+						<i class="wi wi-aliapp" ></i> {$user_permission_account['store_buy_aliapp']}个
+					</span>
+					{/if}
+					{if $user_permission_account['store_buy_toutiaoapp']}
+					<span class="account-num-item">
+						<i class="wi wi-toutiaoapp" ></i> {$user_permission_account['store_buy_toutiaoapp']}个
+					</span>
+					{/if}
+					{if $user_permission_account['store_buy_baiduapp']}
+					<span class="account-num-item">
+						<i class="wi wi-baiduapp" ></i> {$user_permission_account['store_buy_baiduapp']}个
+					</span>
+					{/if}
+
 				</div>
 			</div>
 			<div class="user-account-num-shop hidden">
@@ -280,7 +292,6 @@
 			group_info: {php echo !empty($group_info) ? json_encode($group_info) : 'null'},
 			webapps: {php echo !empty($account_detail['webapp']) ? json_encode($account_detail['webapp']) : 'null'},
 			phoneapps: {php echo !empty($account_detail['phoneapp']) ? json_encode($account_detail['phoneapp']) : 'null'},
-			xzapps : {php echo !empty($account_detail['xzapp']) ? json_encode($account_detail['xzapp']) : 'null'},
 			profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
 			create_account_info: {php echo json_encode($create_account)},
 			user_groups: {php echo json_encode($user_groups)},

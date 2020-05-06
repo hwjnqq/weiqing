@@ -451,27 +451,9 @@ if ($do == 'binding_account') {
 						))
 						->delete();
 					//转换各种券的信息
-					table('coupon_record')
-						->where(array(
-							'uid' => $_W['member']['uid'],
-							'uniacid' => $_W['uniacid']
-						))
-						->fill(array('uid' => $member['uid']))
-						->save();
-					table('activity_exchange_trades')
-						->where(array(
-							'uid' => $_W['member']['uid'],
-							'uniacid' => $_W['uniacid']
-						))
-						->fill(array('uid' => $member['uid']))
-						->save();
-					table('activity_exchange_trades_shipping')
-						->where(array(
-							'uid' => $_W['member']['uid'],
-							'uniacid' => $_W['uniacid']
-						))
-						->fill(array('uid' => $member['uid']))
-						->save();
+					pdo_update('coupon_record', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					pdo_update('activity_exchange_trades', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
+					pdo_update('activity_exchange_trades_shipping', array('uid' => $member['uid']), array('uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 					//积分变更日志信息
 					table('mc_credits_record')
 						->where(array(

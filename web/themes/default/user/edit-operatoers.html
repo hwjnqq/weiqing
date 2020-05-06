@@ -14,7 +14,7 @@
 		<tr>
 			<td>{$modules_info[$permission['type']]['title']}</td>
 			<td>{$accounts_info[$permission['uniacid']]['name']}</td>
-			<td class="color-default">{php echo count($permission['permission'])} 项</td>
+			<td class="color-default">{$permission['count']} 项</td>
 			{if $_W['isfounder']}
 			<td class="color-default">
 				<a target="_blank" href="{php echo url('module/display/switch', array('module_name' => $permission['permission_module'], 'uniacid' => $permission['uniacid'], 'redirect' => urlencode(url('module/permission/post', array('uid' => $permission['uid'], 'm' => $permission['permission_module'], 'uniacid' => $permission['uniacid']))) ))}">

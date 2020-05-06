@@ -33,7 +33,7 @@ if (!empty($_GPC['state'])) {
 
 $welcome_bind = pdo_get('system_welcome_binddomain', array('domain IN ' => array('http://' . $_SERVER['HTTP_HOST'], 'https://' . $_SERVER['HTTP_HOST'])));
 $site_url_query = parse_url($_W['siteurl'], PHP_URL_QUERY);
-if (!empty($welcome_bind) && empty($site_url_query)) {
+if (!empty($welcome_bind) && empty($site_url_query) && !$_W['ispost'] && !$_W['isajax']) {
 	$site = WeUtility::createModuleSystemWelcome($welcome_bind['module_name']);
 	if (!is_error($site)) {
 		exit($site->systemWelcomeDisplay($welcome_bind['uid']));
@@ -95,7 +95,7 @@ if (defined('FRAME') && $need_account_info) {
 	if (!empty($_W['uniacid'])) {
 		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 		if (is_error($_W['account'])) {
-			itoast('', url('account/display'));
+			itoast('', $_W['siteroot'] . 'web/home.php');
 		}
 		$_W['acid'] = $_W['account']['acid'];
 		$_W['weid'] = $_W['uniacid'];
@@ -146,7 +146,7 @@ if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['highest_role']) {
 	}
 
 	$acl = permission_build();
-	if (in_array(FRAME, array('system', 'site', 'account_manage', 'platform', 'module', 'welcome', 'myself'))) {
+	if (in_array(FRAME, array('system', 'site', 'account_manage', 'platform', 'module', 'welcome', 'myself', 'user_manage', 'permission'))) {
 		$checked_role = $_W['highest_role'];
 	} else {
 		$checked_role = $_W['role'];
@@ -194,7 +194,7 @@ function _calc_current_frames(&$frames) {
 		$_W['breadcrumb'] = $frames['title'];
 	}
 	if (defined('IN_MODULE')) {
-		$_W['breadcrumb'] = ($_W['current_module']['name'] == 'store' ? '' : ('<a href="' . url('home/welcome', array('uniacid' => $_W['account']['uniacid'])) . '">' . $_W['account']['name'] . '</a> / ')) .  $_W['current_module']['title'];
+		$_W['breadcrumb'] = ($_W['current_module']['name'] == 'store' ? '' : ('<a href="' . $_W['account']['switchurl'] . '">' . $_W['account']['name'] . '</a> / ')) .  $_W['current_module']['title'];
 	}
 	if (empty($frames['section']) || !is_array($frames['section'])) {
 		return true;

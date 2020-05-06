@@ -26,12 +26,6 @@
 			<div class="num">剩余可创建 <span>{$user_permission_account['phoneapp_limit']}</span></div>
 		</div>
 		<div class="item">
-			<div class="title">熊掌号</div>
-			<div class="num">可创建总数 <span>{$user_permission_account['maxxzapp']}</span></div>
-			<div class="num">已创建 <span>{$user_permission_account['xzapp_num']}</span></div>
-			<div class="num">剩余可创建 <span>{$user_permission_account['xzapp_limit']}</span></div>
-		</div>
-		<div class="item">
 			<div class="title">支付宝小程序</div>
 			<div class="num">可创建总数 <span>{$user_permission_account['maxaliapp']}</span></div>
 			<div class="num">已创建 <span>{$user_permission_account['aliapp_num']}</span></div>
@@ -55,7 +49,6 @@
 				<span>微信小程序使用权限： {$user_permission_account['user_group_maxwxapp']}</span>
 				<span>PC使用权限： {$user_permission_account['user_group_maxwebapp']}</span>
 				<span>APP使用权限： {$user_permission_account['user_group_maxphoneapp']}</span>
-				<span>熊掌号使用权限： {$user_permission_account['user_group_maxxzapp']}</span>
 				<span>支付宝小程序使用权限：{$user_permission_account['user_group_maxaliapp']}</span>
 			</div>
 		</div>
@@ -78,7 +71,6 @@
 				<span>微信小程序使用权限： {$create_group['maxwxapp']}</span>
 				<span>PC使用权限： {$create_group['maxwebapp']}</span>
 				<span>APP使用权限： {$create_group['maxphoneapp']}</span>
-				<span>熊掌号使用权限： {$create_group['maxxzapp']}</span>
 				<span>支付宝小程序使用权限：{$create_group['maxaliapp']}</span>
 			</div>
 		</div>
@@ -95,7 +87,6 @@
 				<span>微信小程序使用权限： {$user_permission_account['extra_wxapp']}</span>
 				<span>PC使用权限： {$user_permission_account['extra_webapp']}</span>
 				<span>APP使用权限： {$user_permission_account['extra_phoneapp']}</span>
-				<span>熊掌号使用权限： {$user_permission_account['extra_xzapp']}</span>
 				<span>支付宝小程序使用权限：{$user_permission_account['extra_aliapp']}</span>
 			</div>
 		</div>
@@ -128,61 +119,6 @@
 						<!--<p class="date">有效期：1个月	</p>-->
 					</div>
 				</div>
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-pc"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-app"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-xzapp"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-aliapp"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
-				<!--<div class="item media">-->
-					<!--<div class="media-left">-->
-						<!--<div class="media-object logo">-->
-							<!--<i class="wi wi-account"></i>-->
-						<!--</div>-->
-					<!--</div>-->
-					<!--<div class="media-body media-middle">-->
-						<!--<h4 class="media-heading num">数量：1</h4>-->
-						<!--<p class="date">有效期：1个月	</p>-->
-					<!--</div>-->
-				<!--</div>-->
 			</div>
 		</div>
 	</div>
@@ -242,12 +178,6 @@
 						</div>
 					</div>
 					<div class="form-group">
-						<label for="" class="control-label col-sm-3">熊掌号使用权限：</label>
-						<div class="form-controls col-sm-8">
-							<input type="text" name="group_name" class="form-control" ng-model="groupInfo.group_name" autocomplete="off" />
-						</div>
-					</div>
-					<div class="form-group">
 						<label for="" class="control-label col-sm-3">支付宝小程序使用权限：</label>
 						<div class="form-controls col-sm-8">
 							<input type="text" name="group_name" class="form-control" ng-model="groupInfo.group_name" autocomplete="off" />
@@ -270,7 +200,6 @@
 		group_info: {php echo !empty($group_info) ? json_encode($group_info) : 'null'},
 		webapps: {php echo !empty($account_detail['webapp']) ? json_encode($account_detail['webapp']) : 'null'},
 		phoneapps: {php echo !empty($account_detail['phoneapp']) ? json_encode($account_detail['phoneapp']) : 'null'},
-		xzapps : {php echo !empty($account_detail['xzapp']) ? json_encode($account_detail['xzapp']) : 'null'},
 		profile: {php echo !empty($profile) ? json_encode($profile) : 'null'},
 		links: {
 			recycleUser: "{php echo url('user/display/operate', array('type' => 'recycle'))}",

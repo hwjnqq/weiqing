@@ -26,7 +26,6 @@ function file_write($filename, $data) {
 	return is_file($filename);
 }
 function file_read($filename) {
-	global $_W;
 	$filename = ATTACHMENT_ROOT . '/' . $filename;
 	if (!is_file($filename)) {
 		return false;
@@ -140,7 +139,7 @@ function file_tree_limit($path, $limit = 0, $acquired_files_count = 0) {
  *
  * @param string $path 文件夹目录
  *
- * @return array
+ * @return boolean
  */
 function file_dir_exist_image($path) {
 	if (is_dir($path)) {
@@ -149,7 +148,7 @@ function file_dir_exist_image($path) {
 				if (in_array($file, array('.', '..'))) {
 					continue;
 				}
-				if (is_file($path . '/' . $file) && file_is_image($path . '/' . $file)) {
+				if (is_file($path . '/' . $file) && $path != (ATTACHMENT_ROOT . 'images') && file_is_image($path . '/' . $file)) {
 					if (0 === strpos($path, ATTACHMENT_ROOT)) {
 						$attachment = str_replace(ATTACHMENT_ROOT . 'images/', '', $path . '/' . $file);
 						list($file_account) = explode('/', $attachment);
@@ -482,6 +481,7 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			file_delete($filename);
 		}
 	}
+	return true;
 }
 
 /**
@@ -509,14 +509,6 @@ function file_dir_remote_upload($dir_path, $limit = 200) {
 			list($image_dir, $file_account) = explode('/', $filename);
 			if ('global' == $file_account || !file_is_image($attachment)) {
 				continue;
-			}
-			if (is_numeric($file_account)) {
-				$uni_remote_setting = uni_setting_load('remote', $file_account);
-			}
-			if (is_dir(ATTACHMENT_ROOT . 'images/' . $file_account) && !empty($uni_remote_setting['remote']['type'])) {
-				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'][$file_account];
-			} else {
-				$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
 			}
 			$result = file_remote_upload($filename);
 			if (is_error($result)) {
@@ -974,30 +966,6 @@ function file_is_image($url) {
 	}
 
 	return true;
-}
-
-function file_image_type_map() {
-	return array(
-		0 => 'unknown',
-		1 => 'gif',
-		2 => 'jpg',
-		3 => 'png',
-		4 => 'swf',
-		5 => 'psd',
-		6 => 'bmp',
-		7 => 'tiff_ii',
-		8 => 'tiff_mm',
-		9 => 'jpc',
-		10 => 'jp2',
-		11 => 'jpx',
-		12 => 'jb2',
-		13 => 'swc',
-		14 => 'iff',
-		15 => 'wbmp',
-		16 => 'xbm',
-		17 => 'ico',
-		18 => 'count',
-	);
 }
 
 /**

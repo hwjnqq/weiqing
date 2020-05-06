@@ -16,13 +16,6 @@
 		<div class="ext-apply-item {if $row['shortcut']}apply-show{/if}" >
 			<img src="{$row['logo']}" class="apply-img {if !$row['enabled']}gray{/if}" />
 			<h2 class="apply-title">{$row['title']}</h2>
-			<span class="color-green">
-				{if $row['enabled']}
-					启用
-				{else}
-					禁用
-				{/if}
-			</span>
 			<div class="mask">
 
 				<a href="{url 'home/welcome/ext'  array('m' => $row['name'])}" class="entry">

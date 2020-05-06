@@ -251,7 +251,7 @@ function complex_authkey() {
 	return implode('', $key);
 }
 function checkcaptcha($code) {
-	global $_W, $_GPC;
+	global $_GPC;
 	session_start();
 	$key = complex_authkey();
 	$codehash = md5(strtolower($code) . $key);
@@ -516,7 +516,7 @@ function is_serialized($data, $strict = true) {
  *
  * @param string $segment 路由参数
  * @param array  $params  附加参数
- *
+ * @param boolean $contain_domain 是否包含域名
  * @return string
  */
 function wurl($segment, $params = array(), $contain_domain = false) {
@@ -561,9 +561,6 @@ if (!function_exists('murl')) {
 			$url = './';
 		}
 		$str = '';
-		if (uni_is_multi_acid()) {
-			$str .= "&j={$_W['acid']}";
-		}
 		if (!empty($_W['account']) && $_W['account']['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 			$str .= '&a=webapp';
 		}
@@ -1161,7 +1158,7 @@ function authcode($string, $operation = 'DECODE', $key = '', $expiry = 0) {
  * 格式化显示文件大小.
  *
  * @param int $size 文件原始大小
- *
+ * @param $unit boolean 是否显示单位
  * @return string
  */
 function sizecount($size, $unit = false) {
@@ -1251,6 +1248,10 @@ function xml2array($xml) {
 	}
 }
 
+/**
+ * 获取当前文件的相对路径
+ * @return mixed|string
+ */
 function scriptname() {
 	global $_W;
 	$_W['script_name'] = basename($_SERVER['SCRIPT_FILENAME']);

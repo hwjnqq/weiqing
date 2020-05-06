@@ -29,6 +29,13 @@ function safe_gpc_int($value, $default = 0) {
 	return $value;
 }
 
+/**
+ * 检测某个值是否在某一数组中
+ * @param $value 要检测的值
+ * @param array $allow 要检测的数组
+ * @param string $default 如果$value不在$allow中，返回的默认值
+ * @return string
+ */
 function safe_gpc_belong($value, $allow = array(), $default = '') {
 	if (empty($allow)) {
 		return $default;

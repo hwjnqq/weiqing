@@ -13,7 +13,7 @@ if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == 
 }
 if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder'])) {
 	isetcookie('__session', '', -10000);
-	itoast('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
+	itoast('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], url('user/login'), 'info');
 }
 $_W['page'] = array();
 $_W['page']['copyright'] = $_W['setting']['copyright'];

@@ -22,20 +22,20 @@ if($do == 'mobile_exist') {
 	if($_W['ispost'] && $_W['isajax']) {
 		$type = safe_gpc_string($_GPC['find_mode']);
 		$info = safe_gpc_string($_GPC['mobile']);
-		$member_table = table('mc_members');
-		switch ($type) {
-			case 'mobile':
+		if (in_array($type, array('mobile', 'email'))) {
+			$member_table = table('mc_members');
+			$member_table->searchWithUniacid($_W['uniacid']);
+			if ('mobile' == $type) {
 				$member_table->searchWithMobile($info);
-				break;
-			case 'email':
+			}
+			if ('email' == $type) {
 				$member_table->searchWithEmail($info);
-				break;
-			default:
-				$member_table->searchWithMobileOrEmail($info);
-				break;
+			}
+			$is_exist = $member_table->get();
+		} else {
+			$params = array(':uniacid' => $_W['uniacid'], ':email' => $info, ':mobile' => $info);
+			$is_exist = pdo_fetch("SELECT `uid` FROM " . tablename('mc_members') . " WHERE uniacid = :uniacid AND (`email` = :email OR `mobile` = :mobile);", $params);
 		}
-		$member_table->searchWithUniacid($_W['uniacid']);
-		$is_exist = $member_table->get();
 		if (!empty($is_exist)) {
 			message(error(1, ''), '', 'ajax');
 		} else {

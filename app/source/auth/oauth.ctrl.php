@@ -35,11 +35,7 @@ if (is_error($oauth) || empty($oauth['openid'])) {
 	if (isset($_GPC['state']) && !empty($_GPC['state']) && strexists($_GPC['state'], 'we7sid-')) {
 		$state = $_GPC['state'];
 	}
-	$str = '';
-	if(uni_is_multi_acid()) {
-		$str = "&j={$_W['acid']}";
-	}
-	$url = "{$_W['siteroot']}app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=snsapi_base";
+	$url = "{$_W['siteroot']}app/index.php?i={$_W['uniacid']}&c=auth&a=oauth&scope=snsapi_base";
 	$callback = urlencode($url);
 	$forward = $oauth_account->getOauthCodeUrl($callback, $state);
 	header('Location: ' . $forward);
@@ -302,11 +298,7 @@ if ($scope == 'userinfo' || $scope == 'snsapi_userinfo') {
 }
 
 $forward = urldecode($_SESSION['dest_url']);
-$str = '';
-if(uni_is_multi_acid()) {
-	$str = "&j={$_W['acid']}";
-}
-$forward = strexists($forward, 'i=') ? $forward : "{$forward}&i={$_W['uniacid']}{$str}";
+$forward = strexists($forward, 'i=') ? $forward : "{$forward}&i={$_W['uniacid']}";
 //部分开发者链接内有‘&wxref=mp.weixin.qq.com’，而没有‘#wechat_redirect’会导致判断错误，故不能直接判断‘&wxref=mp.weixin.qq.com#wechat_redirect’
 if (strpos($forward, '&wxref=mp.weixin.qq.com')) {
 	//部分开发者链接形如： i=1&c=enrey&do=detail&wxref=mp.weixin.qq.com&m=we7_mall&id=2,此时使用strstr会丢失&wxref=mp.weixin.qq.com后的值

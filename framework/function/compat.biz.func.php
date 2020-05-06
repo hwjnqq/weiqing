@@ -135,3 +135,17 @@ if (!defined('CACHE_KEY_MODULE_SETTING')) {
 	//模块配置信息
 	define('CACHE_KEY_MODULE_SETTING', 'module_setting:%s:%s');
 }
+if (!function_exists('uni_accounts')) {
+	//获取当前公号的所有子公众号
+	function uni_accounts($uniacid = 0) {
+		global $_W;
+		$uniacid = empty($uniacid) ? $_W['uniacid'] : intval($uniacid);
+		$account_info = pdo_get('account', array('uniacid' => $uniacid));
+		if (!empty($account_info)) {
+			$account_tablename = uni_account_type($account_info['type']);
+			$account_tablename = $account_tablename['table_name'];
+			$accounts = pdo_fetchall("SELECT w.*, a.type, a.isconnect FROM " . tablename('account') . " a INNER JOIN " . tablename($account_tablename) . " w USING(acid) WHERE a.uniacid = :uniacid AND a.isdeleted <> 1 ORDER BY a.acid ASC", array(':uniacid' => $uniacid), 'acid');
+		}
+		return !empty($accounts) ? $accounts : array();
+	}
+}

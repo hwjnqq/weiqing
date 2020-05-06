@@ -75,7 +75,7 @@ class Prpcrypt
 	{
 
 		try {
-			$decrypted = openssl_decrypt($aesCipher, 'AES-128-CBC', $this->key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $aesIV);
+			$decrypted = openssl_decrypt($aesCipher, 'AES-256-CBC', $this->key, OPENSSL_RAW_DATA|OPENSSL_ZERO_PADDING, $aesIV);
 		} catch (Exception $e) {
 			return array(ErrorCode::$IllegalBuffer, null);
 		}

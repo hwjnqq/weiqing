@@ -18,5 +18,9 @@ if (!empty($host)) {
 if($_W['os'] == 'mobile' && (!empty($_GPC['i']) || !empty($_SERVER['QUERY_STRING']))) {
 	header('Location: ' . $_W['siteroot'] . 'app/index.php?' . $_SERVER['QUERY_STRING']);
 } else {
-	header('Location: ' . $_W['siteroot'] . 'web/index.php' . (!empty($_SERVER['QUERY_STRING']) ? ('?' . $_SERVER['QUERY_STRING']) : ''));
+	if (!empty($_SERVER['QUERY_STRING'])) {
+		header('Location: ' . $_W['siteroot'] . 'web/index.php?' . $_SERVER['QUERY_STRING']);
+	} else {
+		header('Location: ' . $_W['siteroot'] . 'web/home.php');
+	}
 }

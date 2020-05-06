@@ -23,17 +23,11 @@
 				<option value="">全部</option>
 				<option value="news" >回复图文</option>
 				<option value="apply">回复模块</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
 				<option value="voice">回复语音</option>
-				{/if}
 				<option value="basic">回复文字</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
 				<option value="music">回复音乐</option>
-				{/if}
 				<option value="images" >回复图片</option>
-				{if !in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
 				<option value="video" >回复视频</option>
-				{/if}
 			</select>
 			{/if}
 

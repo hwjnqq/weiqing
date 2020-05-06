@@ -122,7 +122,7 @@ class DB {
 
 			return false;
 		}
-		$starttime = microtime(true);
+		$starttime = intval(microtime(true));
 		if (empty($params)) {
 			$result = $this->pdo->exec($sql);
 			$error_info = $this->pdo->errorInfo();
@@ -142,7 +142,7 @@ class DB {
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime(true);
+		$endtime = intval(microtime(true));
 		$this->performance($sql, $endtime - $starttime);
 		$error_info = $statement->errorInfo();
 		if (in_array($error_info[1], array(1317, 2013))) {
@@ -167,13 +167,13 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchcolumn($sql, $params = array(), $column = 0) {
-		$starttime = microtime();
+		$starttime = intval(microtime(true));
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime();
+		$endtime = intval(microtime(true));
 		$this->performance($sql, $endtime - $starttime);
 		$error_info = $statement->errorInfo();
 		if (in_array($error_info[1], array(1317, 2013))) {
@@ -200,13 +200,13 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetch($sql, $params = array()) {
-		$starttime = microtime(true);
+		$starttime = intval(microtime(true));
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime(true);
+		$endtime = intval(microtime(true));
 		$this->performance($sql, intval($endtime - $starttime));
 		$error_info = $statement->errorInfo();
 		if (in_array($error_info[1], array(1317, 2013))) {
@@ -232,13 +232,13 @@ class DB {
 	 * @return mixed
 	 */
 	public function fetchall($sql, $params = array(), $keyfield = '') {
-		$starttime = microtime();
+		$starttime = intval(microtime(true));
 		$statement = $this->prepare($sql);
 		$result = $statement->execute($params);
 
 		$this->logging($sql, $params, $statement->errorInfo());
 
-		$endtime = microtime();
+		$endtime = intval(microtime(true));
 		$this->performance($sql, $endtime - $starttime);
 		$error_info = $statement->errorInfo();
 		if (in_array($error_info[1], array(1317, 2013))) {
@@ -695,15 +695,16 @@ class SqlPaser {
 				$cleansql = self::stripSafeChar($sql);
 			}
 
-			$cleansql = preg_replace("/[^a-z0-9_\-\(\)#\*\/\"]+/is", '', strtolower($cleansql));
+			$clean_function_sql = preg_replace("/\s+/", '', strtolower($cleansql));
 			if (is_array(self::$disable['function'])) {
 				foreach (self::$disable['function'] as $fun) {
-					if (false !== strpos($cleansql, $fun . '(')) {
+					if (false !== strpos($clean_function_sql, $fun . '(')) {
 						return error(1, 'SQL中包含禁用函数 - ' . $fun);
 					}
 				}
 			}
-
+			
+			$cleansql = preg_replace("/[^a-z0-9_\-\(\)#\*\/\"]+/is", '', strtolower($cleansql));
 			if (is_array(self::$disable['action'])) {
 				foreach (self::$disable['action'] as $action) {
 					if (false !== strpos($cleansql, $action)) {

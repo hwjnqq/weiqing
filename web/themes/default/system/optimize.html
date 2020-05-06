@@ -67,7 +67,7 @@
 						<td>session存储方式</td>
 						<td class="text-left">
 							{if $extensions['memcache']['status'] && $setting['memcache']['session'] == 1}
-							<span class="label label-danger">memcache</span>
+							<span class="label label-success">memcache</span>
 							{else if $extensions['redis']['status'] && $setting['redis']['session'] == 1}
 							<span class="label label-success">redis</span>
 							{else}

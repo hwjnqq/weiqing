@@ -32,28 +32,6 @@
 			已接入
 			{/if}
 		</span>
-		{elseif $_W['account']->typeSign == 'xzapp'}
-		<span class="account-type">
-			{if $_W['account']['level'] == 1}
-				个人
-			{elseif $_W['account']['level'] == 2}
-				媒体
-			{elseif $_W['account']['level'] == 3}
-				企业
-			{elseif $_W['account']['level'] == 4}
-				政府
-			{elseif $_W['account']['level'] == 5}
-				其他组织
-			{/if}
-		</span>
-		<div class="account-isconnect">
-			{if $_W['uniaccount']['isconnect'] == 0}
-			未接入
-			<a href="{php echo $_W['account']['accessurl']}" class="text-danger">立即接入</a>
-			{else}
-			已接入
-			{/if}
-		</div>
 		{/if}
 	</div>
 	<div class="account-operate">

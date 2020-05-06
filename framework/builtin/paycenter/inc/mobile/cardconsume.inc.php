@@ -10,7 +10,7 @@ if ('consume' == $op) {
 	$qrcode = trim($_GPC['code']);
 	if ($_W['isajax']) {
 		$code = trim($_GPC['code']);
-		$record = table('coupon_record')->where(array('code' => $code))->get();
+		$record = pdo_get('coupon_record', array('code' => $code));
 		if (empty($record)) {
 			message(error(-1, '卡券记录不存在'), '', 'ajax');
 		}

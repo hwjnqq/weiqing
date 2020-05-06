@@ -4,12 +4,7 @@ global $_GPC;
 $card = table('mc_card')->where(array('uniacid' => safe_gpc_int($_GPC['uniacid'])))->get();
 if (!empty($card)) {
 	if ($card['source'] == 2) {
-		$code = table('coupon_record')
-			->where(array(
-				'uniacid' => safe_gpc_int($_GPC['uniacid']),
-				'card_id' => $card['card_id']
-			))
-			->getcolumn('code');
+		$code = pdo_getcolumn('coupon_record', array('uniacid' => $_GPC['uniacid'], 'card_id' => $card['card_id']), 'code');
 		$status = empty($code) ? 3 : 1;
 		if (empty($code)) {
 			load()->classs('coupon');

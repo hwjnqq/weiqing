@@ -19,7 +19,7 @@
 			var path = $scope.files.pop();
 			if(!path && i >= total) {
 				if ($scope.fails && $scope.fails.length > 0) {
-					util.message('文件同步失败，可能是目录权限问题，请重试同步成功后继续。', config.appname ? './index.php?c=module&a=manage-system&do=installed' : './index.php?c=cloud&a=upgrade&', 'info');
+					util.message('保证写入权限，如有文件写入失败，可尝试F5刷新重复更新。', config.appname ? './index.php?c=module&a=manage-system&do=installed' : './index.php?c=cloud&a=upgrade&', 'info');
 				} else {
 					var targetUrl = '';
 					if (config.type == 'theme') {
@@ -311,35 +311,25 @@
 	{if empty($packet['scripts']) || !empty($packet['type'])}
 		<!-- 如果是更新模块,跳转到system/module/upgrade -->
 		{if $is_upgrade == 1}
-			{if $packet['type'] == 'theme'}
-			<script>
-				location.href = '{url "system/template/upgrade" array("templateid" => $m, "flag" => 1)}';
-			</script>
-			{elseif $packet['type'] == 'webtheme'}
-			<script>
-				location.href = '{url "system/webtheme/upgrade" array("webthemeid" => $m, "flag" => 1)}';
-			</script>
-			{else}
 			<script>
 				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
 			</script>
-			{/if}
-		
-		{/if}
-		<script>
-			var is_confirm = "{php echo $_GPC['is_confirm']}";
-			if(is_confirm == 1) {
-				if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
-					location.href = '{url "cloud/upgrade"}';
+		{else}
+			<script>
+				var is_confirm = "{php echo $_GPC['is_confirm']}";
+				if(is_confirm == 1) {
+					if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
+						location.href = '{url "cloud/upgrade"}';
+					} else {
+						location.href = '{url "cloud/upgrade"}';
+					}
 				} else {
-					location.href = '{url "cloud/upgrade"}';
+					require(['util'], function(u){
+						u.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "cloud/upgrade"}');
+					});
 				}
-			} else {
-				require(['util'], function(u){
-					u.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "cloud/upgrade"}');
-				});
-			}
-		</script>
+			</script>
+		{/if}
 	{/if}
 	<div class="upgrade-pragress we7-margin-bottom">
 		<div class="wrapper top">

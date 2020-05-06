@@ -70,13 +70,7 @@ if ('detail' == $op) {
 		$types = paycenter_order_types();
 		$trade_types = paycenter_order_trade_types();
 		$status = paycenter_order_status();
-		$store_info = table('activity_stores')
-			->select('business_name')
-			->where(array(
-				'id' => $id, 
-				'uniacid' => $_W['uniacid']
-			))
-			->get();
+		$store_info = pdo_get('activity_stores', array('id' => $store_id, 'uniacid' => $_W['uniacid']), array('business_name'));
 	}
 }
 

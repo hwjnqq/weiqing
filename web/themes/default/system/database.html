@@ -4,7 +4,6 @@
 	<li{if $do == 'restore'} class="active"{/if}><a href="{php echo url('system/database/restore');}">还原</a></li>
 	<li{if $do == 'trim'} class="active"{/if}><a href="{php echo url('system/database/trim');}">数据库结构整理</a></li>
 	<li{if $do == 'optimize'} class="active"{/if}><a href="{php echo url('system/database/optimize');}">优化</a></li>
-	<li{if $do == 'run'} class="active"{/if}><a href="{php echo url('system/database/run');}">运行SQL</a></li>
 	<li{if $do == 'scrap_table'} class="active"{/if}><a href="{php echo url('system/database/scrap_table');}">废弃表</a></li>
 </ul>
 	{if $do == 'backup'}

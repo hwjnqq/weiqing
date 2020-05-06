@@ -159,7 +159,7 @@
 				<td >{$endtime}</td>
 				<td></td>
 			</tr>
-			{if $_W['isfounder'] && !user_is_vice_founder()}
+			{if $_W['isadmin']}
 				<tr>
 					<td class="table-label">备注</td>
 					<td ng-bind="user.remark"></td>
@@ -645,7 +645,7 @@ require(['underscore'], function(){
 				<div class="link-group">
 					<a href="javascript:;"  data-toggle="modal" data-target="#myModal" ng-if="bindmobile.third_type == 3">解绑手机</a>
 					<a href="javascript:;"  data-toggle="modal" data-target="#myModal" ng-if="bindmobile.third_type != 3">绑定手机</a>
-					{if user_is_founder($_W['uid'], true)}
+					{if $_W['isadmin']}
 					<a href="javascript:;"  data-toggle="modal" data-target="#founderModal" ng-if="bindmobile.third_type == 3">更换手机</a>
 					{else}
 					<a href="{php echo url('user/profile/change_mobile')}"  ng-if="bindmobile.third_type == 3">更换手机</a>
@@ -705,7 +705,7 @@ require(['underscore'], function(){
 				</div>
 			</div>
 		</div>
-		{if user_is_founder($_W['uid'], true)}
+		{if $_W['isadmin']}
 		<div class="modal fade basic" id="founderModal" tabindex="-1" role="dialog" aria-labelledby="founderModalLabel">
 			<div class="modal-dialog">
 				<div class="modal-content">

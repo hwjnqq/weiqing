@@ -81,7 +81,7 @@
 				</th>
 			</tr>
 		</thead>
-		<tbody class="module_select system-select-box">
+		<tbody class="module_select">
 			{php $i=1;}
 			{loop $module $k $m}
 				{if $i%4 == 1 || $i == 1}<tr>{/if}
@@ -92,7 +92,7 @@
 								<label for="check-module-{$k}" >{php echo mb_substr($m['title'], 0, 12, 'utf-8')}<span class="caret"></span></label>
 							</span>
 							<ul class="dropdown-menu" role="menu"></ul>
-							<input type="hidden" name="{$k}_select" value="0"/>
+							<input type="hidden" name="{$k}_select" value="{if in_array($k, $module_permission_keys)}1{else}0{/if}"/>
 						</div>
 					</td>
 				{if $i%4 == 0}</tr>{/if}
@@ -229,6 +229,9 @@ $(function(){
 function selectall(obj, a){
 	$('.'+a+' input:checkbox').each(function() {
 		$(this)[0].checked = obj.checked ? true : false;
+	});
+	$('.'+a+' input[name$="_select"]').each(function() {
+		$(this)[0].value = obj.checked ? 1 : 0;
 	});
 }
 //当已经全选时，默认全选按钮选中

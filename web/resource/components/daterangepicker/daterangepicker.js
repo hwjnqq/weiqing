@@ -415,7 +415,13 @@
 		updateFormInputs: function () {
 			this.container.find('input[name=daterangepicker_start]').val(this.startDate.format(this.format));
 			this.container.find('input[name=daterangepicker_end]').val(this.endDate.format(this.format));
-			
+			if(this.startDate.format(this.format) == '0000-01-01' &&  '0000-01-01' == this.startDate.format(this.format)) {
+				this.container.find('.daterangepicker_start_input').hide()
+				this.container.find('.daterangepicker_end_input').hide()
+			} else {
+				this.container.find('.daterangepicker_start_input').show()
+				this.container.find('.daterangepicker_end_input').show()
+			}
 			if (this.startDate.isSame(this.endDate) || this.startDate.isBefore(this.endDate)) {
 				this.container.find('button.applyBtn').removeAttr('disabled');
 			} else {

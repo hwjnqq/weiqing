@@ -38,16 +38,8 @@ if (!empty($_GPC['pay_result']) && $_GPC['pay_result'] == '1') {
 				->fill($record)
 				->save();
 			if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-				$coupon_info = table('coupon')
-					->where(array('id' => $log['card_id']))
-					->select('id')
-					->get();
-				$coupon_record = table('coupon_record')
-					->where(array(
-						'code' => $log['encrypt_code'],
-						'status' => '1'
-					))
-					->get();
+				$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
+				$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
 				load()->model('activity');
 			 	$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 			}

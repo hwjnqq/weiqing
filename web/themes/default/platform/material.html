@@ -1,7 +1,7 @@
 {template 'common/header'}
 <ul class="we7-page-tab">
 	{loop $active_sub_permission $active_menu}
-	{if permission_check_account_user($active_menu['permission_name'], false) && $active_menu['is_display'] !== false && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
+	{if permission_check_account_user($active_menu['permission_name'], false) && $active_menu['is_display'] !== 0 && (empty($active_menu['is_display']) || is_array($active_menu['is_display']) && in_array($_W['account']['type'], $active_menu['is_display']))}
 	<li {if $type == $active_menu['active']}class="active"{/if}><a href="{$active_menu['url']}">{$active_menu['title']}</a></li>
 	{/if}
 	{/loop}
@@ -20,7 +20,7 @@
 							</span>
 						</div>
 					</form>
-					{if $_W['account']['level'] > 2 || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL && $_W['account']['isconnect'] = 1}
+					{if $_W['account']['level'] > 2}
 					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步{$_W['account']['type_name']}</a>
 					{/if}
 					<a href="javascript:;" data-toggle="modal" data-target="#new_type" class="btn btn-primary we7-margin-left">新建图文消息</a>
@@ -86,11 +86,7 @@
 							{if $material['model'] == 'local'}
 							<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 							{else}
-								{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-									<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
-								{else}
-									<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
-								{/if}
+								<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
 							{/if}
 							{if $material['prompt_msg'] && $material['model'] != 'local'}
 							<div class="undone-tips">
@@ -101,9 +97,9 @@
 						</div>
 						<div class="{if !empty($material['items']['1'])}cover-{/if}appmsg-item">
 							<h4 class="appmsg-title">
-								<a href="" target="-blank">{$material['items']['0']['title']}</a>
+								<a href="" target="blank">{$material['items']['0']['title']}</a>
 							</h4>
-							<div class="appmsg-thumb" style="background-image:url('{php echo tomedia($material['items']['0']['thumb_url'])}')">
+							<div class="appmsg-thumb" style="background-image:url({$material['items']['0']['thumb_url']})">
 							</div>
 							<p class="appmsg-desc">{$material['items']['0']['digest']}</p>
 							{if $material['model'] == 'local'}
@@ -152,11 +148,9 @@
 									<a href="javascript:;" class="" ng-click="checkGroup('news', {$material['id']})" data-toggle="tooltip" data-placement="bottom" title="群发"><i class="wi wi-send"></i></a>
 								</li>
 							{else}
-								{if $_W['account']['type_sign'] != 'xzapp'}
 								<li class="appmsg-opr-item">
 									<a href="javascript:;" ng-click="newsToWechat({$material['id']})" class="" data-toggle="tooltip" data-placement="bottom" title="转换为微信文章"><i class="wi wi-transform"></i></a>
 								</li>
-								{/if}
 							{/if}
 							<li class="appmsg-opr-item">
 								<a href="{php echo url('platform/material-post/news', array('newsid' => $material['id']))}" class="" data-toggle="tooltip" data-placement="bottom" title="编辑">&nbsp;<i class="wi wi-text"></i></a>
@@ -175,7 +169,7 @@
 			<div class="upload-queue"></div>
 			<div class="material-list-head clearfix">
 				<div class="action">
-					{if $_W['account']['level'] > 2 || $_W['account']['type'] == ACCOUNT_TYPE_XZAPP_NORMAL && $_W['account']['isconnect'] = 1}
+					{if $_W['account']['level'] > 2}
 					<a href="javascript:;" class="btn btn-default" ng-click="sync('{$type}')">同步{$_W['account']['type_name']}</a>
 					{/if}
 					{if $server == MATERIAL_WEXIN}
@@ -196,11 +190,7 @@
 						{if $server == 'local'}
 						<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 						{else}
-							{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-								<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
-							{else}
-								<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
-							{/if}
+							<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
 						{/if}
 						<span class="appimg-title">{$image['filename']}</span>
 					</div>
@@ -257,11 +247,7 @@
 						{if $server == 'local'}
 						<i class="wi wi-local pull-right color-default" style="font-size: 20px;"></i>
 						{else}
-							{if in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))}
-								<i class="wi wi-xzapp pull-right color-green" style="font-size: 20px;"></i>
-							{else}
-								<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
-							{/if}
+							<i class="wi wi-wx-circle pull-right color-green" style="font-size: 20px;"></i>
 						{/if}
 						<span class="audio-time">{php echo date('m月d日', $voice['createtime'])}</span>
 					</div>

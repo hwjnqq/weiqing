@@ -82,8 +82,6 @@ class WeAccount extends ArrayObject {
 		'groups' => 'groups',
 		'setting' => 'setting',
 		'grouplevel' => 'groupLevel',
-		'logo' => 'logo',
-		'qrcode' => 'qrcode',
 		'type_name' => 'typeName',
 		'switchurl' => 'switchUrl',
 		'setmeal' => 'setMeal',
@@ -101,8 +99,6 @@ class WeAccount extends ArrayObject {
 		ACCOUNT_TYPE_WXAPP_WORK => 'wxapp.work',
 		ACCOUNT_TYPE_WEBAPP_NORMAL => 'webapp.account',
 		ACCOUNT_TYPE_PHONEAPP_NORMAL => 'phoneapp.account',
-		ACCOUNT_TYPE_XZAPP_NORMAL => 'xzapp.account',
-		ACCOUNT_TYPE_XZAPP_AUTH => 'xzapp.platform',
 		ACCOUNT_TYPE_ALIAPP_NORMAL => 'aliapp.account',
 		ACCOUNT_TYPE_BAIDUAPP_NORMAL => 'baiduapp.account',
 		ACCOUNT_TYPE_TOUTIAOAPP_NORMAL => 'toutiaoapp.account',
@@ -115,7 +111,8 @@ class WeAccount extends ArrayObject {
 		$cachekey = cache_system_key('uniaccount', array('uniacid' => $this->uniacid));
 		$cache = cache_load($cachekey);
 		if (empty($cache)) {
-			$cache = $this->getAccountInfo($uniaccount['acid']);
+			$this->account = $uniaccount;
+			$cache = $this->getAccountInfo($this->uniacid);
 			cache_write($cachekey, $cache);
 		}
 		$this->account = array_merge((array) $cache, $uniaccount);
@@ -184,7 +181,7 @@ class WeAccount extends ArrayObject {
 		if (empty($uniaccount)) {
 			return error('-1', '帐号不存在或是已经被删除');
 		}
-		if (!empty($_W['uid']) && !user_is_founder($_W['uid'], true) && !permission_account_user_role($_W['uid'], $uniacid)) {
+		if (!empty($_W['uid']) && !$_W['isadmin'] && !permission_account_user_role($_W['uid'], $uniacid)) {
 			return error('-1', '无权限操作该平台账号');
 		}
 
@@ -245,22 +242,22 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function fetchDisplayUrl() {
-		return url('account/display', array('type' => $this->typeSign));
+		global $_W;
+		return $_W['siteroot'] . 'web/home.php';
 	}
 
 	protected function fetchCurrentUserRole() {
 		global $_W;
 		load()->model('permission');
-
 		return permission_account_user_role($_W['uid'], $this->uniacid);
 	}
 
 	protected function fetchLogo() {
-		return to_global_media('headimg_' . $this->account['acid'] . '.jpg') . '?time=' . time();
+		return  $this->account['logo'] . '?time=' . time();
 	}
 
 	protected function fetchQrcode() {
-		return to_global_media('qrcode_' . $this->account['acid'] . '.jpg') . '?time=' . time();
+		return $this->account['qrcode'] . '?time=' . time();
 	}
 
 	protected function fetchSwitchUrl() {
@@ -311,7 +308,12 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function fetchSameAccountExist() {
-		return pdo_getall($this->tablename, array('key' => $this->account['key'], 'uniacid <>' => $this->uniacid), array(), 'uniacid');
+		return table($this->tablename)
+			->where(array(
+			'key' => $this->account['key'],
+			'uniacid <>' => $this->uniacid
+			))
+			->getall('uniacid');
 	}
 
 	protected function fetchIsStar() {
@@ -321,7 +323,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function supportOauthInfo() {
-		if (ACCOUNT_TYPE_SIGN == $this->typeSign && ACCOUNT_SERVICE_VERIFY == $this->account['level'] || XZAPP_TYPE_SIGN == $this->typeSign) {
+		if (ACCOUNT_TYPE_SIGN == $this->typeSign && ACCOUNT_SERVICE_VERIFY == $this->account['level']) {
 			return STATUS_ON;
 		} else {
 			return STATUS_OFF;
@@ -329,7 +331,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function supportJssdk() {
-		if (in_array($this->typeSign, array(XZAPP_TYPE_SIGN, WXAPP_TYPE_SIGN, ACCOUNT_TYPE_SIGN))) {
+		if (in_array($this->typeSign, array(WXAPP_TYPE_SIGN, ACCOUNT_TYPE_SIGN))) {
 			return STATUS_ON;
 		} else {
 			return STATUS_OFF;
@@ -652,7 +654,11 @@ class WeAccount extends ArrayObject {
 			'88010' => '获取评论数目不合法',
 			'87009' => '该回复不存在',
 			'87014' => '内容含有违法违规内容',
-			'89002' => '没有绑定开放平台帐号',
+			'89000' => '该公众号/小程序已经绑定了开放平台帐号',
+			'89001' => 'Authorizer 与开放平台帐号主体不相同',
+			'89002' => '该公众号/小程序未绑定微信开放平台帐号',
+			'89003' => '该开放平台帐号并非通过 api 创建，不允许操作',
+			'89004' => '该开放平台帐号所绑定的公众号/小程序已达上限（100 个）',
 			'89044' => '不存在该插件appid',
 			'89236' => '该插件不能申请',
 			'89237' => '已经添加该插件',
@@ -1154,10 +1160,20 @@ abstract class WeBase {
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
 		$row = array();
 		$row['settings'] = iserializer($settings);
-		if (pdo_fetchcolumn('SELECT module FROM ' . tablename('uni_account_modules') . ' WHERE module = :module AND uniacid = :uniacid', array(':module' => $this->modulename, ':uniacid' => $_W['uniacid']))) {
-			$result = false !== pdo_update('uni_account_modules', $row, $pars);
+		if (table('uni_account_modules')->where(array('module' => $this->modulename, 'uniacid' => $_W['uniacid']))->getcolumn('module')){
+			$result = false !== table('uni_account_modules')
+				->where($pars)
+				->fill($row)
+				->save();
 		} else {
-			$result = false !== pdo_insert('uni_account_modules', array('settings' => iserializer($settings), 'module' => $this->modulename, 'uniacid' => $_W['uniacid'], 'enabled' => 1));
+			$result = false !== table('uni_account_modules')
+				->fill(array(
+					'settings' => iserializer($settings),
+					'module' => $this->modulename,
+					'uniacid' => $_W['uniacid'],
+					'enabled' => 1
+				))
+				->save();
 		}
 		cache_build_module_info($this->modulename);
 
@@ -1722,9 +1738,6 @@ abstract class WeModuleProcessor extends WeBase {
 		if (strexists($url, 'http://') || strexists($url, 'https://')) {
 			return $url;
 		}
-		if (uni_is_multi_acid() && strexists($url, './index.php?i=') && !strexists($url, '&j=') && !empty($_W['acid'])) {
-			$url = str_replace("?i={$_W['uniacid']}&", "?i={$_W['uniacid']}&j={$_W['acid']}&", $url);
-		}
 		if ($_W['account']['level'] == ACCOUNT_SERVICE_VERIFY) {
 			return $_W['siteroot'] . 'app/' . $url;
 		}
@@ -1733,12 +1746,13 @@ abstract class WeModuleProcessor extends WeBase {
 			$pass = array();
 			$pass['openid'] = $this->message['from'];
 			$pass['acid'] = $_W['acid'];
-
-			$sql = 'SELECT `fanid`,`salt`,`uid` FROM ' . tablename('mc_mapping_fans') . ' WHERE `acid`=:acid AND `openid`=:openid';
-			$pars = array();
-			$pars[':acid'] = $_W['acid'];
-			$pars[':openid'] = $pass['openid'];
-			$fan = pdo_fetch($sql, $pars);
+			$fan = table('mc_mapping_fans')
+				->where(array(
+					'acid' => $_W['acid'],
+					'openid' => $pass['openid']
+				))
+				->select(array('fanid', 'salt', 'uid'))
+				->get();
 			if (empty($fan) || !is_array($fan) || empty($fan['salt'])) {
 				$fan = array('salt' => '');
 			}
@@ -1903,7 +1917,13 @@ abstract class WeModuleSite extends WeBase {
 				exit($site->$method($pars));
 			}
 		}
-		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
+		$log = table('core_paylog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'module' => $params['module'],
+				'tid' => $params['tid']
+			))
+			->get();
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
@@ -1916,7 +1936,9 @@ abstract class WeModuleSite extends WeBase {
 				'status' => '0',
 				'is_usecard' => '0',
 			);
-			pdo_insert('core_paylog', $log);
+			table('core_paylog')
+				->fill($log)
+				->save();
 		}
 		if ('1' == $log['status']) {
 			message('这个订单已经支付成功, 不需要重复支付.', '', 'info');
@@ -2025,11 +2047,12 @@ abstract class WeModuleSite extends WeBase {
 	 *               $ret['tag'] 订单附加信息, 根据支付类型不同, 所包含数据不同
 	 */
 	protected function payResultQuery($tid) {
-		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `module`=:module AND `tid`=:tid';
-		$params = array();
-		$params[':module'] = $this->module['name'];
-		$params[':tid'] = $tid;
-		$log = pdo_fetch($sql, $params);
+		$log = table('core_paylog')
+			->where(array(
+				'module' => $this->module['name'],
+				'tid' => $tid
+			))
+			->get();
 		$ret = array();
 		if (!empty($log)) {
 			$ret['uniacid'] = $log['uniacid'];
@@ -2124,7 +2147,9 @@ abstract class WeModuleCron extends WeBase {
 			'note' => $note,
 			'createtime' => TIMESTAMP,
 		);
-		pdo_insert('core_cron_record', $data);
+		table('core_cron_record')
+			->fill($data)
+			->save();
 		iajax($errno, $note, '');
 	}
 }
@@ -2194,7 +2219,7 @@ abstract class WeModuleWxapp extends WeBase {
 				}
 			}
 			ksort($sign_list);
-			$sign = http_build_query($sign_list, '', '&') . $this->token;
+			$sign = http_build_query($sign_list, '', '&') . '&' . $this->token;
 
 			return md5($sign) == $_GPC['sign'];
 		} else {
@@ -2212,7 +2237,13 @@ abstract class WeModuleWxapp extends WeBase {
 		}
 		$moduleid = empty($this->module['mid']) ? '000000' : sprintf('%06d', $this->module['mid']);
 		$uniontid = date('YmdHis') . $moduleid . random(8, 1);
-		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $order['tid']));
+		$paylog = table('core_paylog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'module' => $this->module['name'],
+				'tid' => $order['tid']
+			))
+			->get();
 		if (empty($paylog)) {
 			$paylog = array(
 				'uniacid' => $_W['uniacid'],
@@ -2228,16 +2259,18 @@ abstract class WeModuleWxapp extends WeBase {
 				'is_usecard' => '0',
 				'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid'])),
 			);
-			pdo_insert('core_paylog', $paylog);
+			table('core_paylog')->fill($paylog)->save();
 			$paylog['plid'] = pdo_insertid();
 		}
 		if (!empty($paylog) && '0' != $paylog['status']) {
 			return error(1, '这个订单已经支付成功, 不需要重复支付.');
 		}
 		if (!empty($paylog) && empty($paylog['uniontid'])) {
-			pdo_update('core_paylog', array(
-				'uniontid' => $uniontid,
-			), array('plid' => $paylog['plid']));
+			table('core_paylog')
+				->where(array('plid' => $paylog['plid']))
+				->fill( array('uniontid' => $uniontid))
+				->save();
+
 			$paylog['uniontid'] = $uniontid;
 		}
 		$_W['openid'] = $paylog['openid'];
@@ -2273,7 +2306,13 @@ abstract class WeModuleWxapp extends WeBase {
 	protected function creditExtend($params) {
 		global $_W;
 		$credtis = mc_credit_fetch($_W['member']['uid']);
-		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $params['tid']));
+		$paylog = table('core_paylog')
+			->where(array(
+				'uniacid' => $_W['uniacid'],
+				'module' => $this->module['name'],
+				'tid' => $params['tid']
+			))
+			->get();
 		if (empty($_GPC['notify'])) {
 			if (!empty($paylog) && '0' != $paylog['status']) {
 				return error(-1, '该订单已支付');
@@ -2286,7 +2325,10 @@ abstract class WeModuleWxapp extends WeBase {
 			if (is_error($result)) {
 				return error(-1, $result['message']);
 			}
-			pdo_update('core_paylog', array('status' => '1'), array('plid' => $paylog['plid']));
+			table('core_paylog')
+				->where(array('plid' => $paylog['plid']))
+				->fill(array('status' => 1))
+				->save();
 			$site = WeUtility::createModuleWxapp($paylog['module']);
 			if (is_error($site)) {
 				return error(-1, '参数错误');

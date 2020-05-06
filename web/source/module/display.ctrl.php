@@ -16,7 +16,7 @@ if ('switch_last_module' == $do) {
 	$last_module = switch_get_module_display();
 	if (!empty($last_module)) {
 		$account_info = uni_fetch($last_module['uniacid']);
-		if (!is_error($account_info) && ($account_info['endtime'] > 0 && TIMESTAMP > $account_info['endtime'] && !user_is_founder($_W['uid'], true))) {
+		if (!is_error($account_info) && !($account_info['endtime'] > 0 && TIMESTAMP > $account_info['endtime'])) {
 			itoast('', url('account/display/switch', array('module_name' => $last_module['modulename'], 'uniacid' => $last_module['uniacid'], 'switch_uniacid' => 1, 'tohome' => intval($_GPC['tohome']))));
 		}
 	}
@@ -120,7 +120,7 @@ if ('rank' == $do) {
 	$module_name = trim($_GPC['module_name']);
 	$uniacid = intval($_GPC['uniacid']);
 
-	$exist = module_fetch($module_name, $uniacid);
+	$exist = module_fetch($module_name);
 	if (empty($exist)) {
 		iajax(1, '模块不存在', '');
 	}
@@ -258,9 +258,16 @@ if ('own' == $do) {
 			if (!empty($keyword)) {
 				$uni_modules_table->where('module_name IN', array_keys($search_module));
 			}
+
+			foreach ($owned_account_list as $uniacid => $account) {
+				$role = table('uni_account_users')->where(array('uniacid' => $uniacid, 'uid' => $_W['uid']))->getcolumn('role');
+				if (!empty($role) && !in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+					unset($owned_account_list[$uniacid]);
+				}
+			}
 			$uni_modules_table->where('uniacid IN', array_keys($owned_account_list));
 			$uni_modules_list = $uni_modules_table->getall();
-			$clerk_modules_list = pdo_fetchall("SELECT uau.id, uau.uniacid, up.type module_name FROM " . tablename('uni_account_users') . " as uau LEFT JOIN " . tablename('users_permission') . " as up ON uau.uniacid=up.uniacid AND uau.uid=up.uid WHERE uau.role='clerk' AND uau.uid=" . $_W['uid']);
+			$clerk_modules_list = pdo_fetchall("SELECT uau.id, uau.uniacid, up.type module_name FROM " . tablename('uni_account_users') . " as uau LEFT JOIN " . tablename('users_permission') . " as up ON uau.uniacid=up.uniacid AND uau.uid=up.uid WHERE uau.role IN ('" . ACCOUNT_MANAGE_NAME_MANAGER . "', '" . ACCOUNT_MANAGE_NAME_OPERATOR . "', '" . ACCOUNT_MANAGE_NAME_CLERK . "') AND uau.uid=" . $_W['uid']);
 			$modules_list_all = array_merge($uni_modules_list, $clerk_modules_list);
 			$modules_list = array_slice($modules_list_all, ($pageindex - 1) * $pagesize, $pagesize);
 			break;
@@ -302,7 +309,13 @@ if ('system_welcome' == $do) {
 	if (empty($system_welcome_modules)) {
 		iajax(0, $result);
 	}
-	$bind_domain = table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $system_welcome_modules))->getall('module_name');
+	$bind_domains = table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $system_welcome_modules))->getall();
+	$module_bind_domains = array();
+	if (!empty($bind_domains)) {
+		foreach ($bind_domains as $domain) {
+			$module_bind_domains[$domain['module_name']][] = $domain['domain'];
+		}
+	}
 	foreach ($system_welcome_modules as $module) {
 		$list[] = array(
 			"mid"=> $user_modules[$module]['mid'],
@@ -315,7 +328,7 @@ if ('system_welcome' == $do) {
 			"list_type"=> "system_welcome_module",
 			"is_star"=> 0,
 			"manageurl" => url('home/welcome/ext', array('system_welcome' => 1, 'm' => $module), true),
-			"bind_domain"=> $bind_domain[$module]['domain'],
+			"bind_domain"=> !empty($module_bind_domains[$module]) ? join(',', $module_bind_domains[$module]) : '',
 		);
 	}
 	$result = array_slice($list, ($pageindex - 1) * $pagesize, $pagesize);
@@ -328,9 +341,6 @@ if ('system_welcome' == $do) {
 if ('set_system_welcome_domain' == $do) {
 	$bind_domain = safe_gpc_string($_GPC['domain']);
 	$module_name = safe_gpc_string($_GPC['module_name']);
-	if (!empty($bind_domain) && !starts_with($bind_domain, 'http')) {
-		iajax(-1, '要绑定的域名请以http://或以https://开头');
-	}
 	$user_modules = user_modules();
 	if (!in_array($module_name, array_keys($user_modules))) {
 		iajax(-1, '该用户无此模块权限！');
@@ -339,27 +349,37 @@ if ('set_system_welcome_domain' == $do) {
 		table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $module_name))->delete();
 		iajax(0, '设置成功！');
 	}
-	$special_domain = array('.com.cn', '.net.cn', '.gov.cn', '.org.cn', '.com.hk', '.com.tw');
-	$domain = str_replace($special_domain, '.com', parse_url($bind_domain, PHP_URL_HOST));
-	$domain_array = explode('.', $domain);
-	if (count($domain_array) > 3 || count($domain_array) < 2) {
-		iajax(-1, '只支持一级域名和二级域名！');
+	$bind_domain = explode(',', $bind_domain);
+	$domain_data = array();
+	$data = array();
+	foreach ($bind_domain as $domain) {
+		if (!starts_with($domain, 'http')) {
+			iajax(-1, '要绑定的域名请以http://或以https://开头');
+		}
+		if (in_array($domain, $domain_data)) {
+			iajax(-1, '绑定域名' . $domain . '重复!');
+		}
+		$special_domain = array('.com.cn', '.net.cn', '.gov.cn', '.org.cn', '.com.hk', '.com.tw');
+		$domain_host = str_replace($special_domain, '.com', parse_url($domain, PHP_URL_HOST));
+		$domain_array = explode('.', $domain_host);
+		if (count($domain_array) > 3 || count($domain_array) < 2) {
+			iajax(-1, '只支持一级域名和二级域名！');
+		}
+		$nohttp_domain = preg_replace('/^https?/', '', $domain);
+		$bind_exist = table('system_welcome_binddomain')
+			->where(array('domain' => array('http' . $nohttp_domain, 'https' . $nohttp_domain)))
+			->where('module_name !=', $module_name)
+			->getcolumn('module_name');
+		if (!empty($bind_exist)) {
+			$module_info = module_fetch($bind_exist);
+			iajax(-1, "绑定失败, 域名{$domain}已绑定模块： {$module_info['title']} ！");
+		}
+		$domain_data[] = $domain;
+		$data[] = array('uid' => $_W['uid'], 'domain' => $domain, 'module_name' => $module_name, 'createtime' => TIMESTAMP);
 	}
-	$user_modules = user_modules();
-	if (!in_array($module_name, array_keys($user_modules))) {
-		iajax(-1, '该用户无此模块权限！');
+	table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $module_name))->delete();
+	foreach ($data as $val) {
+		table('system_welcome_binddomain')->fill($val)->save();
 	}
-	$nohttp_domain = preg_replace('/^https?/', '', $bind_domain);
-	$bind_exist = table('system_welcome_binddomain')
-		->where(array('domain' => array('http' . $nohttp_domain, 'https' . $nohttp_domain)))
-		->getcolumn('module_name');
-	if (empty($bind_exist)) {
-		table('system_welcome_binddomain')->where(array('uid' => $_W['uid'], 'module_name' => $module_name))->delete();
-		$data = array('uid' => $_W['uid'], 'domain' => $bind_domain, 'module_name' => $module_name, 'createtime' => TIMESTAMP);
-		table('system_welcome_binddomain')->fill($data)->save();
-		iajax(0, '设置成功！');
-	} else {
-		$module_info = module_fetch($bind_exist);
-		iajax(-1, "绑定失败, 该域名已绑定模块： {$module_info['title']} ！");
-	}
+	iajax(0, '设置成功！');
 }
