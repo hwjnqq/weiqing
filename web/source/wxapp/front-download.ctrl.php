@@ -10,7 +10,7 @@ load()->classs('cloudapi');
 load()->classs('uploadedfile');
 
 $dos = array('front_download', 'domainset', 'code_uuid', 'code_gen', 'code_token', 'qrcode', 'checkscan',
-	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry',
+	'commitcode', 'preview', 'getpackage', 'entrychoose', 'set_wxapp_entry', 'platform_version_manage',
 	'custom', 'custom_save', 'custom_default', 'custom_convert_img', 'upgrade_module', 'tominiprogram');
 $do = in_array($do, $dos) ? $do : 'front_download';
 
@@ -78,29 +78,44 @@ if ('front_download' == $do) {
 	permission_check_account_user('wxapp_profile_front_download');
 	$appurl = $_W['siteroot'] . '/app/index.php';
 	$uptype = $_GPC['uptype'];
-	$wxapp_versions_info = miniapp_version($version_id);
 	if (!in_array($uptype, array('auto', 'normal'))) {
 		$uptype = 'auto';
 	}
-	if (!empty($wxapp_versions_info['last_modules'])) {
-		$last_modules = current($wxapp_versions_info['last_modules']);
+	if (!empty($version_info['last_modules'])) {
+		$last_modules = current($version_info['last_modules']);
 	}
 	$need_upload = false;
 	$module = array();
-	if (!empty($wxapp_versions_info['modules'])) {
-		foreach ($wxapp_versions_info['modules'] as $item) {
+	if (!empty($version_info['modules'])) {
+		foreach ($version_info['modules'] as $item) {
 			$module = module_fetch($item['name']);
 			$need_upload = !empty($last_modules) && ($module['version'] != $last_modules['version']);
 		}
 	}
-	if (!empty($wxapp_versions_info['version'])) {
-		$user_version = explode('.', $wxapp_versions_info['version']);
+	if (!empty($version_info['version'])) {
+		$user_version = explode('.', $version_info['version']);
 		$user_version[count($user_version) - 1] += 1;
 		$user_version = join('.', $user_version);
 	}
+	$module_config = miniapp_code_config($version_id);
+	$version_info['support_live'] = !empty($module_config['has_live_player_plugin']) ? STATUS_ON : STATUS_OFF;
 	template('wxapp/version-front-download');
 }
 
+if ('platform_version_manage' == $do) {
+	$platform_version_info = array('success' => array(), 'audit' => array(), 'develop' => array());
+	$wxapp_register_version = table('wxapp_register_version')->getByUniacid($_W['uniacid']);
+	foreach ($wxapp_register_version as $key => $value) {
+		if (WXAPP_REGISTER_VERSION_STATUS_RELEASE == $value['status']) {
+			$platform_version_info['success'] = $value;
+		} elseif (in_array($value['status'], array(WXAPP_REGISTER_VERSION_STATUS_CHECKING, WXAPP_REGISTER_VERSION_STATUS_CHECKFAIL))) {
+			$platform_version_info['audit'] = $value;
+		} elseif (WXAPP_REGISTER_VERSION_STATUS_DEVELOP == $value['status']) {
+			$platform_version_info['develop'][] = $value;
+		}
+	}
+	template('wxapp/version-front-download');
+}
 if ('upgrade_module' == $do) {
 	$modules = table('wxapp_versions')
 		->where(array('id' => $version_id))
@@ -126,13 +141,13 @@ if ('upgrade_module' == $do) {
 			->save();
 		cache_delete(cache_system_key('miniapp_version', array('version_id' => $version_id)));
 	}
-	exit;
+	iajax(0, '更新模块信息成功');
 }
-
 // 获取上传代码uuid
 if ('code_uuid' == $do) {
 	$user_version = $_GPC['user_version'];
-	$data = miniapp_code_generate($version_id, $user_version);
+	$support_live = intval($_GPC['support_live']);
+	$data = miniapp_code_generate($version_id, $user_version, array('live_plugin' => $support_live));
 	echo json_encode($data);
 }
 

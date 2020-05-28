@@ -10,7 +10,7 @@
 			{$_W['setting']['copyright']['footerright']}
 		{/if}
 	</div>
-	<div class="copyright">{if empty($_W['setting']['copyright']['footerleft'])}Powered by <a href="http://www.w7.cc"><b>微擎</b></a> v{IMS_VERSION} &copy; 2014-2018 <a href="http://www.w7.cc">www.w7.cc</a>{else}{$_W['setting']['copyright']['footerleft']}{/if}</div>
+	<div class="copyright">{if empty($_W['setting']['copyright']['footerleft'])}Powered by <a href="http://www.w7.cc"><b>微擎</b></a> v{IMS_VERSION} &copy; 2014-2020 <a href="http://www.w7.cc">www.w7.cc</a>{else}{$_W['setting']['copyright']['footerleft']}{/if}</div>
 	
 	<div>
 		{php $icps = iunserializer($_W['setting']['copyright']['icps']);}
@@ -25,10 +25,7 @@
 			</a>
 			{/if}
 			{if !empty($icp['electronic_license'])}
-			<div>
-				<img src="./resource/images/electronic_license.png" width="45px">
-				<p><a target="_blank" href="{php echo $icp['electronic_license']}" class="color-default">点击验照</a></p>
-			</div>
+			<div>{php echo $icp['electronic_license']}</div>
 			{/if}
 		{/if}
 		{/loop}

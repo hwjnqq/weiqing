@@ -10,7 +10,7 @@ load()->model('setting');
 $dos = array('save_expire', 'change_status', 'setting');
 $do = in_array($do, $dos) ? $do : 'setting';
 
-if (!user_is_founder($_W['uid'])) {
+if (!$_W['isfounder']) {
 	if ($_W['isajax']) {
 		iajax(-1, '无权限操作！');
 	}

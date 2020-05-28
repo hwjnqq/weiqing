@@ -34,7 +34,6 @@ function site_cover($coverparams = array()) {
 	if (!empty($rid)) {
 		//更新，添加，删除关键字
 		pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $coverparams['uniacid']));
-		
 		$keywordrow = array(
 			'rid' => $rid,
 			'uniacid' => intval($coverparams['uniacid']),

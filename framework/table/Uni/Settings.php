@@ -8,6 +8,7 @@ class Settings extends \We7Table {
 	protected $tableName = 'uni_settings';
 	protected $primaryKey = 'uniacid';
 	protected $field = array(
+		'uniacid',
 		'passport',
 		'oauth',
 		'jsauth_acid',
@@ -39,9 +40,10 @@ class Settings extends \We7Table {
 		'remote'
 	);
 	protected $default = array(
+		'uniacid' => 0,
 		'passport' => '',
 		'oauth' => '',
-		'jsauth_acid' => '',
+		'jsauth_acid' => 0,
 		'notify' => '',
 		'creditnames' => '',
 		'creditbehaviors' => '',
@@ -51,22 +53,22 @@ class Settings extends \We7Table {
 		'shortcuts' => '',
 		'payment' => '',
 		'stat' => '',
-		'default_site' => '',
+		'default_site' => 0,
 		'sync' => '',
 		'recharge' => '',
 		'tplnotice' => '',
-		'grouplevel' => '',
+		'grouplevel' => 1,
 		'mcplugin' => '',
-		'exchange_enable' => '',
-		'coupon_type' => '',
+		'exchange_enable' => 0,
+		'coupon_type' => 1,
 		'statistics' => '',
 		'bind_domain' => '',
-		'comment_status' => '',
-		'reply_setting' => '',
+		'comment_status' => 0,
+		'reply_setting' => 0,
 		'default_module' => '',
-		'attachment_limit' => '',
+		'attachment_limit' => 0,
 		'attachment_size' => '',
-		'sync_member' => '',
+		'sync_member' => 0,
 		'remote' => ''
 	);
 	public function searchWirhUniAccountAndAccount(){

@@ -8,6 +8,6 @@ isetcookie('__session', '', -10000);
 isetcookie('__iscontroller', '', -10000);
 $forward = $_GPC['forward'];
 if (empty($forward)) {
-	$forward = './index.php';
+	$forward = $_W['siteroot'];
 }
 header('Location:' . $forward);

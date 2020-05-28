@@ -83,6 +83,7 @@ function _login($forward = '') {
 		}
 		$_W['uid'] = $record['uid'];
 		$_W['isfounder'] = user_is_founder($record['uid']);
+		$_W['isadmin'] = user_is_founder($_W['uid'], true);
 		$_W['user'] = $record;
 
 		$support_login_bind_types = Oauth2CLient::supportThirdLoginBindType();
@@ -198,6 +199,8 @@ function _login($forward = '') {
 				$message = array(
 					'status' => -1,
 					'message' => $notice,
+					'extend_buttons' => $extend_buttons,
+					'redirect' => $redirect,
 				);
 				iajax(0, $message);
 			}

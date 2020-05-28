@@ -79,7 +79,7 @@ function visit_system_update($system_stat_visit, $displayorder = false) {
 	global $_W;
 	load()->model('user');
 	load()->model('account');
-	if (user_is_founder($_W['uid'])) {
+	if ($_W['isfounder']) {
 		return true;
 	}
 
@@ -94,7 +94,7 @@ function visit_system_update($system_stat_visit, $displayorder = false) {
 	if (!empty($system_stat_visit['uniacid'])) {
 		$account_info = uni_fetch($system_stat_visit['uniacid']);
 		$type = $account_info->typeSign;
-		$own_uniacid = uni_owned($_W['uid'], false, $type);
+		$own_uniacid = uni_user_accounts($_W['uid'], $type);
 		$uniacids = !empty($own_uniacid) ? array_keys($own_uniacid) : array();
 		if (empty($uniacids) || !in_array($system_stat_visit['uniacid'], $uniacids)) {
 			return true;
@@ -261,7 +261,7 @@ function visit_app_pass_visit_limit($uniacid = 0) {
 		//本月累计大于（设定值+购买量-购买使用量）->返回true
 		$before_num = visit_app_month_visit_till_today($uniacid);
 		$sum_num = intval($limit['founder']) + $order_num - intval($limit['use']);
-		if($sum_num <= 0 || $limit['founder'] + $order_num <= $before_num + $today_num){
+		if($sum_num <= 0 || $limit['founder'] + $order_num <= $before_num + $today_num) {
 			$data['limit'] = true;
 			cache_write($cachekey, $data);
 			return true;

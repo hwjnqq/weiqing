@@ -80,10 +80,14 @@ class Modules extends \We7Table {
 	}
 
 	public function getByName($module_name) {
-		if (empty($module_name)) {
-			return array();
+		$result = $this->query->where('name', $module_name)->get();
+		if (!empty($result['subscribes'])) {
+			$result['subscribes'] = iunserializer($result['subscribes']);
 		}
-		return $this->query->where('name', $module_name)->get();
+		if (!empty($result['handles'])) {
+			$result['handles'] = iunserializer($result['handles']);
+		}
+		return $result;
 	}
 	//todo template函数先兼容之前的id，后期需要和前端一起改
 	protected function templatesMidToId($result) {

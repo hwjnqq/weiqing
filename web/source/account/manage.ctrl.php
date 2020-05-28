@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('message');
 load()->model('miniapp');
 
-$dos = array('display', 'delete', 'user_account_num', 'account_list', 'account_detailinfo', 'account_create_info');
+$dos = array('display', 'delete', 'user_account_num', 'account_list', 'account_detailinfo');
 $do = in_array($_GPC['do'], $dos) ? $do : 'display';
 
 if ('display' == $do) {
@@ -18,7 +18,7 @@ if ('display' == $do) {
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
 	foreach ($account_all_type_sign as $type_sign => $type_value) {
-		if (user_is_founder($_W['uid'], true)) {
+		if ($_W['isadmin']) {
 			$account_all_type_sign[$type_sign]['account_num'] = 1;
 			continue;
 		}
@@ -28,14 +28,10 @@ if ('display' == $do) {
 	template('account/manage-display');
 }
 
-if ('account_create_info' == $do) {
-	$result = uni_account_create_info();
-	iajax(0, $result);
-}
 if ('account_list' == $do) {
 	$page = max(1, intval($_GPC['page']));
 	$page_size = empty($_GPC['page_size']) ? 20 : max(1, intval($_GPC['page_size']));
-	$order = safe_gpc_string($_GPC['order']);
+	$order = !empty($_GPC['order']) ? safe_gpc_string($_GPC['order']) : 'asc';
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	$account_type = empty($account_all_type_sign[$_GPC['account_type']]) ? 0 : $_GPC['account_type'];
 	$expire_type = in_array($_GPC['type'], array('expire', 'unexpire')) ? $_GPC['type'] : '';
@@ -47,7 +43,12 @@ if ('account_list' == $do) {
 	if (!empty($keyword)) {
 		$account_table->searchWithKeyword($keyword);
 	}
-	$account_table->accountUniacidOrder($order);
+	if(in_array($order, array('asc', 'desc'))) {
+		$account_table->accountUniacidOrder($order);
+	}
+	if (in_array($order, array('endtime_asc', 'endtime_desc'))) {
+		$account_table->accountEndtimeOrder($order);
+	}
 	$account_table->searchWithPage($page, $page_size);
 	$list = $account_table->searchAccountList($expire_type);
 	$total = $account_table->getLastQueryTotal();
@@ -100,9 +101,9 @@ if ('delete' == $do) {
 				if (empty($account)) {
 					continue;
 				}
-
 				pdo_update('account', array('isdeleted' => 1), array('uniacid' => $uniacid));
 				pdo_delete('uni_modules', array('uniacid' => $uniacid));
+				table('users_operate_star')->where(array('uniacid' => $uniacid))->delete();
 				pdo_delete('users_lastuse', array('uniacid' => $uniacid));
 				pdo_delete('core_menu_shortcut', array('uniacid' => $uniacid));
 				pdo_delete('uni_link_uniacid', array('link_uniacid' => $uniacid));
@@ -115,5 +116,13 @@ if ('delete' == $do) {
 			}
 		}
 	}
-	iajax(0, '停用成功！，您可以在回收站中恢复', url('account/manage'));
+
+	$redirct_url = url('account/manage');
+	if (!$_W['iscontroller']) {
+		$redirct_url = $_W['siteroot'] . 'web/home.php';
+	}
+	if (!$_W['isajax'] || !$_W['ispost']) {
+		itoast('停用成功！，您可以在回收站中恢复', $redirct_url);
+	}
+	iajax(0, '停用成功！，您可以在回收站中恢复', $redirct_url);
 }

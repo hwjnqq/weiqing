@@ -83,15 +83,11 @@ class Versions extends \We7Table {
 		return $result;
 	}
 	public function dataunserializer($data) {
-		if (!empty($data['modules'])) {
-			$data['modules'] = iunserializer($data['modules']);
-		}
-		if (!empty($data['quickmenu'])) {
-			$data['quickmenu'] = iunserializer($data['quickmenu']);
-		}
-		if (!empty($data['last_modules'])) {
-			$data['last_modules'] = iunserializer($data['last_modules']);
-		}
+		$data['modules'] = iunserializer($data['modules']);
+		$data['quickmenu'] = iunserializer($data['quickmenu']);
+		$data['last_modules'] = iunserializer($data['last_modules']);
+		$data['tominiprogram'] = iunserializer($data['tominiprogram']);
+		$data['default_appjson'] = iunserializer($data['default_appjson']);
 		return $data;
 	}
 }

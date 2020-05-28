@@ -41,12 +41,12 @@ class WeixinPlatform extends WeixinAccount {
 		parent::__construct($uniaccount);
 	}
 
-	protected function getAccountInfo($acid) {
+	protected function getAccountInfo($uniacid) {
 		if ('wx570bc396a51b8ff8' == $this->account['key']) {
 			$this->account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
-		$account = table('account_wechats')->getById($acid);
+		$account = table('account_wechats')->getAccount($uniacid);
 		$account['encrypt_key'] = $this->appid;
 
 		return $account;
@@ -137,7 +137,22 @@ class WeixinPlatform extends WeixinAccount {
 
 		return $this->request(ACCOUNT_PLATFORM_API_ACCOUNT_INFO . $component_accesstoken, $post);
 	}
-
+	
+	//拉取所有已授权的帐号信息
+	public function getAuthorizerList() {
+		$token = $this->getComponentAccesstoken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$data = array(
+			'component_appid' => $this->appid,
+			'offset' => 0,
+			'count' => 500
+		);
+		$url = "https://api.weixin.qq.com/cgi-bin/component/api_get_authorizer_list?component_access_token={$token}";
+		return $this->request($url, $data);
+	}
+	
 	public function getAccessToken() {
 		$cachekey = cache_system_key('account_auth_accesstoken', array('key' => $this->account['key']));
 		$auth_accesstoken = cache_load($cachekey);
@@ -233,14 +248,14 @@ class WeixinPlatform extends WeixinAccount {
 	}
 
 	public function getJssdkConfig($url = '') {
-		global $_W;
+		global $_W, $urls;
 		$jsapiTicket = $this->getJsApiTicket();
 		if (is_error($jsapiTicket)) {
 			$jsapiTicket = $jsapiTicket['message'];
 		}
 		$nonceStr = random(16);
 		$timestamp = TIMESTAMP;
-		$url = empty($url) ? $_W['siteurl'] : $url;
+		$url = empty($url) ? (str_replace($urls['path'], '', $_W['siteroot']) . $_SERVER['REQUEST_URI']) : $url;
 		$string1 = "jsapi_ticket={$jsapiTicket}&noncestr={$nonceStr}&timestamp={$timestamp}&url={$url}";
 		$signature = sha1($string1);
 		$config = array(
@@ -302,7 +317,34 @@ class WeixinPlatform extends WeixinAccount {
 		$xml['MsgSignature'] = sha1($signature);
 		exit(array2xml($xml));
 	}
-
+	
+	//获取公众号/小程序所绑定的开放平台帐号
+	public function openGet($appid = '') {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$data = array(
+			'appid' => !empty($appid) ? $appid : $this->account['key'],
+		);
+		$url = "https://api.weixin.qq.com/cgi-bin/open/get?access_token={$token}";
+		return $this->request($url, $data);
+	}
+	
+	//将公众号/小程序绑定到开放平台帐号下
+	public function openBind($appid = '') {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$data = array(
+			'appid' => !empty($appid) ? $appid : $this->account['key'],
+			'open_appid' => $this->appid,
+		);
+		$url = "https://api.weixin.qq.com/cgi-bin/open/bind?access_token={$token}";
+		return $this->request($url, $data);
+	}
+	
 	protected function request($url, $post = array()) {
 		if (!empty($post)) {
 			$response = ihttp_request($url, json_encode($post, JSON_UNESCAPED_UNICODE));

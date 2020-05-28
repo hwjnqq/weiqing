@@ -10,7 +10,7 @@ load()->classs('uploadedfile');
 
 $dos = array('save_setting', 'display');
 $do = in_array($do, $dos) ? $do : 'display';
-permission_check_account_user('profile_payment_refund', true, 'wxapp');
+permission_check_account_user('wxapp_payment_refund', true, 'wxapp');
 
 if ('display' == $do) {
 	$setting = uni_setting_load('payment', $_W['uniacid']);

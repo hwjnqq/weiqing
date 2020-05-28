@@ -169,4 +169,10 @@ class Users extends \We7Table {
 		$this->query->orderby($field, $order);
 		return $this;
 	}
+
+	public function searchWithUsersProfile() {
+		return $this->query->from($this->tableName, 'u')
+			->leftjoin('users_profile', 'p')
+			->on(array('u.uid' => 'p.uid'));
+	}
 }

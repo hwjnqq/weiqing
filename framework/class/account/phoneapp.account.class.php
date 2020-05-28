@@ -13,7 +13,7 @@ class PhoneappAccount extends WeAccount {
 	protected $typeTempalte = '-phoneapp';
 	protected $supportVersion = STATUS_ON;
 
-	protected function getAccountInfo($acid) {
-		return table('account_phoneapp')->getAccount($acid);
+	protected function getAccountInfo($uniacid) {
+		return table('account_phoneapp')->getAccount($uniacid);
 	}
 }

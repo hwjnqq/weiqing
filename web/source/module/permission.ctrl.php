@@ -37,6 +37,10 @@ if ('display' == $do) {
 	}
 	if (!empty($user_permissions)) {
 		foreach ($user_permissions as $key => &$permission) {
+			if (empty($key)) {
+				unset($user_permissions[$key]);
+				continue;
+			}
 			if (!empty($permission['permission'])) {
 				$permission['permission'] = explode('|', $permission['permission']);
 				foreach ($permission['permission'] as $k => $val) {
@@ -95,7 +99,6 @@ if ('post' == $do) {
 
 	if (checksubmit()) {
 		if (empty($uid)) {
-			$founders = explode(',', $_W['config']['setting']['founder']);
 			$username = trim($_GPC['username']);
 			$user = user_single(array('username' => $username));
 
@@ -181,7 +184,7 @@ if ('delete' == $do) {
 		iajax(-1, '参数错误！');
 	}
 	$uniacid = intval($_GPC['uniacid']);
-	if (!empty($uniacid) && !user_is_founder($_W['uid'], true)) {
+	if (!empty($uniacid) && !$_W['isadmin']) {
 		$role = permission_account_user_role($_W['uid'], $uniacid);
 		if (!in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 			iajax(-1, '操作失败, 无权限');
@@ -203,7 +206,6 @@ if ('delete' == $do) {
 			//删除了所有模块的权限后,才删除平台的角色数据
 			pdo_delete('uni_account_users', array('uid' => $operator_id, 'role' => 'clerk', 'uniacid' => $uniacid));
 		}
-
 		pdo_delete('users_lastuse', array('uid' => $operator_id, 'uniacid' => $uniacid, 'modulename' => $module_name));
 	}
 	iajax(0, '删除成功！', referer());

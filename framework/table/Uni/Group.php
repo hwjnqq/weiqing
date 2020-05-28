@@ -8,22 +8,18 @@ class Group extends \We7Table {
 	protected $tableName = 'uni_group';
 	protected $primaryKey = 'id';
 	protected $field = array(
-		'owner_uid',
 		'name',
 		'uniacid',
 		'modules',
 		'templates',
 		'uid',
-
 	);
 	protected $default = array(
-		'owner_uid' => '0',
 		'name' => '',
 		'uniacid' => '0',
 		'modules' => '',
 		'templates' => '',
 		'uid' => '0',
-
 	);
 
 	public function getData($key) {
@@ -41,8 +37,8 @@ class Group extends \We7Table {
 		return $data;
 	}
 
-	public function searchWithUniacidAndUid($uniacid = 0, $uid = 0) {
-		return $this->where('u.uniacid', $uniacid)->where('u.uid', $uid);
+	public function searchWithUid($uid = 0) {
+		return $this->where('u.uid', $uid);
 	}
 
 	public function searchWithName($name) {

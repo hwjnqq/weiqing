@@ -10,14 +10,15 @@ class Modules extends \We7Table {
 	protected $field = array(
 		'uniacid',
 		'module_name',
-
 	);
 	protected $default = array(
 		'uniacid' => '',
 		'module_name' => '',
-
 	);
 
+	public function getAllByModuleName($module_name) {
+		return $this->query->select('uniacid')->where('module_name', $module_name)->getall('uniacid');
+	}
 	public function getallByUniacid($uniacid) {
 		return $this->query->where('uniacid', $uniacid)->getall();
 	}

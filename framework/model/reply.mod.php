@@ -74,6 +74,7 @@ function reply_keywords_search($condition = '', $params = array(), $pindex = 0, 
 					continue;
 				}
 			}
+
 			$containtypes = pdo_get('rule', array('id' => $val['rid']), array('containtype'));
 			if (!empty($containtypes)) {
 				$containtype = explode(',', $containtypes['containtype']);
@@ -95,7 +96,7 @@ function reply_keywords_search($condition = '', $params = array(), $pindex = 0, 
  * @param array $params  查询参数
  * @return array
  */
-function reply_contnet_search($rid = 0) {
+function reply_content_search($rid = 0) {
 	$result = array();
 	$rid = intval($rid);
 	if (empty($rid)) {

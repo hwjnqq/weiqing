@@ -10,7 +10,7 @@ load()->model('statistics');
 $dos = array('display', 'get_visit_api');
 $do = in_array($do, $dos) ? $do : 'display';
 
-permission_check_account_user('statistics_visit_wxapp');
+permission_check_account_user('statistics_fans_wxapp');
 
 if ('display' == $do) {
 	//昨日指标

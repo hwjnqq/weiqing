@@ -42,7 +42,7 @@
 			
 		</div>
 	</form>
-	<a href="{php echo url('mc/member/add');}" class="btn btn-primary">添加会员</a>
+	<a href="{php echo url('mc/member/add', array('version_id' => $version_id));}" class="btn btn-primary">添加会员</a>
 </div>
 <script>
 	angular.module('member', []).controller('display', function($scope) {
@@ -95,8 +95,8 @@
 					<td >{php echo date('Y-m-d H:i',$li['createtime'])}</td>
 					<td style="overflow:visible;">
 						<div class="link-group">
-							<a href="{php echo url('mc/member/base_information',array('uid' => $li['uid']))}">管理设置</a>
-							<a href="javascript:void(0);" onclick="delMcMember('{php echo url("mc/member/del",array("uid" => $li["uid"]))}')" title="删除" class="">删除</a>
+							<a href="{php echo url('mc/member/base_information',array('uid' => $li['uid'], 'version_id' => $version_id))}">管理设置</a>
+							<a href="javascript:void(0);" onclick="delMcMember('{php echo url("mc/member/del",array("uid" => $li["uid"], 'version_id' => $version_id))}')" title="删除" class="">删除</a>
 						</div>
 					</td>
 				</tr>

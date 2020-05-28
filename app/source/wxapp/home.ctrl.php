@@ -84,7 +84,7 @@ if ($do == 'nav') {
 if ($do == 'wxapp_web') {
 	$version = trim($_GPC['v']);
 	$version_info = miniapp_version_by_version($version);
-	$url = $_GPC['url'];
+	$url = safe_gpc_url($_GPC['url']);
 	if (empty($url)) {
 		//无需查询绑定域名 因为本do方法就是根据小程序域名访问的
 		if (count($version_info['modules']) > 1) {

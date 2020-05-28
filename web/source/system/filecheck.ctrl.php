@@ -113,5 +113,16 @@ if ('check' == $do) {
 	$count_unknown = count($unknown);
 	$count_lose = count($lose);
 	$count_modify = count($modify);
+	if ($_W['isw7_request']) {
+		$message = array(
+			'count_modify' => $count_modify,
+			'count_lose' => $count_lose,
+			'count_unknown' => $count_unknown,
+			'modify' => $modify,
+			'unknown' => $unknown,
+			'lose' => $lose
+		);
+		iajax(0, $message);
+	}
 }
 template('system/filecheck');

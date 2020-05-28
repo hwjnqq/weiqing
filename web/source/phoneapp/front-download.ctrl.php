@@ -20,7 +20,7 @@ $version_id = intval($_GPC['version_id']);
 $is_module_wxapp = false;
 if (!empty($version_id)) {
 	$version_info = phoneapp_version($version_id);
-	$module = current($version_info['modules']);
+	$module = !empty($version_info['modules']) ? current($version_info['modules']) : array();
 }
 
 if ('front_download' == $do) {
@@ -33,7 +33,7 @@ if ('front_download' == $do) {
 	}
 	$siteinfo = array(
 		'name' => $account_info['name'],
-		'm' => $account_info['modules'][0]['name'],
+		'm' => !empty($account_info['modules'][0]) ? $account_info['modules'][0]['name'] : '',
 		'uniacid' => $account_info['uniacid'],
 		'acid' => $account_info['acid'],
 		'version' => $account_info['version'],

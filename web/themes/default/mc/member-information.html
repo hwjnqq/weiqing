@@ -395,7 +395,7 @@ require(['trade'], function(trade){
 			<col />
 			<col width="100px">
 			<tr>
-				<th class="text-left" colspan="3">个人情况</th>
+				<th class="text-left" colspan="3">{$uniacid_fields['bio']['title']}</th>
 			</tr>
 			<tr>
 				<td class="table-label">{$uniacid_fields['constellation']['title']}</td>
@@ -529,7 +529,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改性别</div>
+						<div class="modal-title">修改{$uniacid_fields['gender']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -548,11 +548,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改昵称</div>
+						<div class="modal-title">修改{$uniacid_fields['nickname']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.nickname" class="form-control" placeholder="昵称" />
+							<input type="text" ng-model="userOriginal.nickname" class="form-control" placeholder="{$uniacid_fields['nickname']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -568,11 +568,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改真实姓名</div>
+						<div class="modal-title">修改{$uniacid_fields['realname']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.realname" class="form-control" placeholder="真实姓名" />
+							<input type="text" ng-model="userOriginal.realname" class="form-control" placeholder="{$uniacid_fields['realname']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -588,7 +588,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改出生年月日</div>
+						<div class="modal-title">修改{$uniacid_fields['birthyear']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -607,7 +607,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改户籍</div>
+						<div class="modal-title">修改{$uniacid_fields['nationality']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -626,7 +626,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改详细地址</div>
+						<div class="modal-title">修改{$uniacid_fields['resideprovince']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -646,11 +646,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改手机号</div>
+						<div class="modal-title">修改{$uniacid_fields['mobile']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.mobile" class="form-control" placeholder="手机号码" />
+							<input type="text" ng-model="userOriginal.mobile" class="form-control" placeholder="{$uniacid_fields['mobile']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -666,11 +666,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改QQ号</div>
+						<div class="modal-title">{$uniacid_fields['qq']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.qq" class="form-control" placeholder="QQ号" />
+							<input type="text" ng-model="userOriginal.qq" class="form-control" placeholder="{$uniacid_fields['qq']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -686,11 +686,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改Email</div>
+						<div class="modal-title">修改{$uniacid_fields['email']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.email" class="form-control" placeholder="email" />
+							<input type="text" ng-model="userOriginal.email" class="form-control" placeholder="{$uniacid_fields['email']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -736,11 +736,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">修改固定电话</div>
+						<div class="modal-title">修改{$uniacid_fields['telephone']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.telephone" class="form-control" placeholder="固定电话" />
+							<input type="text" ng-model="userOriginal.telephone" class="form-control" placeholder="{$uniacid_fields['telephone']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -756,11 +756,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">MSN</div>
+						<div class="modal-title">修改{$uniacid_fields['msn']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.msn" class="form-control" placeholder="MSN" />
+							<input type="text" ng-model="userOriginal.msn" class="form-control" placeholder="{$uniacid_fields['msn']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -776,7 +776,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">阿里旺旺</div>
+						<div class="modal-title">修改{$uniacid_fields['taobao']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -796,11 +796,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">支付宝账号</div>
+						<div class="modal-title">修改{$uniacid_fields['alipay']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.alipay" class="form-control" placeholder="淘宝账号" />
+							<input type="text" ng-model="userOriginal.alipay" class="form-control" placeholder="{$uniacid_fields['alipay']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -816,11 +816,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">学号</div>
+						<div class="modal-title">修改{$uniacid_fields['studentid']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.studentid" class="form-control" placeholder="学号" />
+							<input type="text" ng-model="userOriginal.studentid" class="form-control" placeholder="{$uniacid_fields['studentid']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -836,11 +836,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">班级</div>
+						<div class="modal-title">修改{$uniacid_fields['grade']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.grade" class="form-control" placeholder="班级" />
+							<input type="text" ng-model="userOriginal.grade" class="form-control" placeholder="{$uniacid_fields['grade']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -856,11 +856,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">毕业院校</div>
+						<div class="modal-title">修改{$uniacid_fields['graduateschool']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.graduateschool" class="form-control" placeholder="毕业院校" />
+							<input type="text" ng-model="userOriginal.graduateschool" class="form-control" placeholder="{$uniacid_fields['graduateschool']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -876,7 +876,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">学历</div>
+						<div class="modal-title">修改{$uniacid_fields['education']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -895,11 +895,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">公司</div>
+						<div class="modal-title">修改{$uniacid_fields['company']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.company" class="form-control" placeholder="公司" />
+							<input type="text" ng-model="userOriginal.company" class="form-control" placeholder="{$uniacid_fields['company']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -915,11 +915,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">职业</div>
+						<div class="modal-title">修改{$uniacid_fields['occupation']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.occupation" class="form-control" placeholder="职业" />
+							<input type="text" ng-model="userOriginal.occupation" class="form-control" placeholder="{$uniacid_fields['occupation']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -935,11 +935,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">职位</div>
+						<div class="modal-title">修改{$uniacid_fields['position']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.position" class="form-control" placeholder="职位" />
+							<input type="text" ng-model="userOriginal.position" class="form-control" placeholder="{$uniacid_fields['position']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -955,11 +955,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">年收入</div>
+						<div class="modal-title">修改{$uniacid_fields['revenue']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.revenue" class="form-control" placeholder="年收入" />
+							<input type="text" ng-model="userOriginal.revenue" class="form-control" placeholder="{$uniacid_fields['revenue']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -975,11 +975,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">兴趣爱好</div>
+						<div class="modal-title">修改{$uniacid_fields['interest']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.interest" class="form-control" placeholder="兴趣爱好" />
+							<input type="text" ng-model="userOriginal.interest" class="form-control" placeholder="{$uniacid_fields['interest']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1015,11 +1015,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">交友目的</div>
+						<div class="modal-title">修改{$uniacid_fields['lookingfor']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.lookingfor" class="form-control" placeholder="交友目的" />
+							<input type="text" ng-model="userOriginal.lookingfor" class="form-control" placeholder="{$uniacid_fields['lookingfor']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1035,11 +1035,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">情感状态</div>
+						<div class="modal-title">修改{$uniacid_fields['affectivestatus']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.affectivestatus" class="form-control" placeholder="情感状态" />
+							<input type="text" ng-model="userOriginal.affectivestatus" class="form-control" placeholder="{$uniacid_fields['affectivestatus']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1055,11 +1055,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">个人主页</div>
+						<div class="modal-title">修改{$uniacid_fields['site']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.site" class="form-control" placeholder="个人主页" />
+							<input type="text" ng-model="userOriginal.site" class="form-control" placeholder="{$uniacid_fields['site']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1075,11 +1075,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">邮编</div>
+						<div class="modal-title">修改{$uniacid_fields['zipcode']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.zipcode" class="form-control" placeholder="邮编" />
+							<input type="text" ng-model="userOriginal.zipcode" class="form-control" placeholder="{$uniacid_fields['zipcode']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1095,7 +1095,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">身份证号</div>
+						<div class="modal-title">修改{$uniacid_fields['idcard']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -1115,11 +1115,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">体重</div>
+						<div class="modal-title">修改{$uniacid_fields['weight']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.weight" class="form-control" placeholder="体重" />
+							<input type="text" ng-model="userOriginal.weight" class="form-control" placeholder="{$uniacid_fields['weight']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1135,11 +1135,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">身高</div>
+						<div class="modal-title">修改{$uniacid_fields['height']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.height" class="form-control" placeholder="身高" />
+							<input type="text" ng-model="userOriginal.height" class="form-control" placeholder="{$uniacid_fields['height']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1155,11 +1155,11 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">国籍</div>
+						<div class="modal-title">修改{$uniacid_fields['nationality']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
-							<input type="text" ng-model="userOriginal.nationality" class="form-control" placeholder="国籍" />
+							<input type="text" ng-model="userOriginal.nationality" class="form-control" placeholder="{$uniacid_fields['nationality']['title']}" />
 							<span class="help-block"></span>
 						</div>
 					</div>
@@ -1175,7 +1175,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">星座</div>
+						<div class="modal-title">修改{$uniacid_fields['constellation']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -1194,7 +1194,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">生肖</div>
+						<div class="modal-title">修改{$uniacid_fields['zodiac']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">
@@ -1213,7 +1213,7 @@ require(['trade'], function(trade){
 				<div class="modal-content">
 					<div class="modal-header">
 						<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-						<div class="modal-title">血型</div>
+						<div class="modal-title">修改{$uniacid_fields['bloodtype']['title']}</div>
 					</div>
 					<div class="modal-body">
 						<div class="form-group">

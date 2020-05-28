@@ -29,10 +29,7 @@
 			</a>
 			{/if}
 			{if !empty($icp['electronic_license'])}
-			<div>
-				<img src="./resource/images/electronic_license.png" width="45px">
-				<p><a target="_blank" href="{php echo $icp['electronic_license']}" class="color-default">点击验照</a></p>
-			</div>
+			<div>{php echo $icp['electronic_license']}</div>
 			{/if}
 		{/if}
 		{/loop}

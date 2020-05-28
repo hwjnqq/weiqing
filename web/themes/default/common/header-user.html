@@ -103,7 +103,6 @@
                 return true;
             }
             $('.dropdown-star [data-toggle="tab"]').on('show.bs.tab', function (e) {
-                console.log(e)
                 var star = $(e.target).data('star')
                 window.localStorage.setItem('we7StarHeader', $(e.target).data('star'))
                 var menuList = {

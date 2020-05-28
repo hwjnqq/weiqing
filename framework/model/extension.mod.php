@@ -16,7 +16,6 @@ function ext_module_convert($manifest) {
 		$wxapp_support = in_array('wxapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WXAPP : MODULE_NONSUPPORT_WXAPP;
 		$welcome_support = in_array('system_welcome', $manifest['platform']['supports']) ? MODULE_SUPPORT_SYSTEMWELCOME : MODULE_NONSUPPORT_SYSTEMWELCOME;
 		$webapp_support = in_array('webapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_WEBAPP : MODULE_NOSUPPORT_WEBAPP;
-		$xzapp_support = in_array('xzapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_XZAPP : MODULE_NOSUPPORT_XZAPP;
 		$aliapp_support = in_array('aliapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_ALIAPP : MODULE_NOSUPPORT_ALIAPP;
 		$baiduapp_support = in_array('baiduapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_BAIDUAPP : MODULE_NOSUPPORT_BAIDUAPP;
 		$toutiaoapp_support = in_array('toutiaoapp', $manifest['platform']['supports']) ? MODULE_SUPPORT_TOUTIAOAPP : MODULE_NOSUPPORT_TOUTIAOAPP;
@@ -27,7 +26,6 @@ function ext_module_convert($manifest) {
 			&& $wxapp_support == MODULE_NONSUPPORT_WXAPP
 			&& $welcome_support == MODULE_NONSUPPORT_SYSTEMWELCOME
 			&& $webapp_support == MODULE_NOSUPPORT_WEBAPP
-			&& $xzapp_support == MODULE_NOSUPPORT_XZAPP
 			&& $aliapp_support == MODULE_NOSUPPORT_ALIAPP
 			&& $baiduapp_support == MODULE_NOSUPPORT_BAIDUAPP
 			&& $toutiaoapp_support == MODULE_NOSUPPORT_TOUTIAOAPP
@@ -40,7 +38,6 @@ function ext_module_convert($manifest) {
 		$wxapp_support = MODULE_NONSUPPORT_WXAPP;
 		$welcome_support = MODULE_NONSUPPORT_SYSTEMWELCOME;
 		$webapp_support = MODULE_NOSUPPORT_WEBAPP;
-		$xzapp_support = MODULE_NOSUPPORT_XZAPP;
 		$aliapp_support = MODULE_NOSUPPORT_ALIAPP;
 		$baiduapp_support = MODULE_NOSUPPORT_BAIDUAPP;
 		$toutiaoapp_support = MODULE_NOSUPPORT_TOUTIAOAPP;
@@ -74,7 +71,6 @@ function ext_module_convert($manifest) {
 		'wxapp_support' => $wxapp_support,
 		'webapp_support' => $webapp_support,
 		'phoneapp_support' => $phoneapp_support,
-		'xzapp_support' => $xzapp_support,
 		'aliapp_support' => $aliapp_support,
 		'baiduapp_support' => $baiduapp_support,
 		'toutiaoapp_support' => $toutiaoapp_support,
@@ -308,27 +304,6 @@ function _ext_module_manifest_entries($elm) {
 }
 
 /**
- * 模块更新检测
- * @param string $modulename 模块名称
- * @return boolean 是否需要更新
- */
-function ext_module_checkupdate($modulename) {
-	$manifest = ext_module_manifest($modulename);
-	if (!empty($manifest) && is_array($manifest)) {
-		$version = $manifest['application']['version'];
-		load()->model('module');
-		$module = module_fetch($modulename);
-		if (version_compare($version, $module['version']) == '1') {
-			return true;
-		} else {
-			return false;
-		}
-	} else {
-		return false;
-	}
-}
-
-/**
  * 获取模块入口类型
  * @return array
  */
@@ -400,7 +375,6 @@ function ext_module_bindings() {
  * @return void
  */
 function ext_module_clean($modulename, $is_clean_rule = false) {
-
 	pdo_delete('core_queue', array('module' => $modulename));
 
 	table('modules')->deleteByName($modulename);
@@ -441,6 +415,24 @@ function ext_module_clean($modulename, $is_clean_rule = false) {
 				}
 				if ($update) {
 					pdo_update('uni_group', array('modules' => iserializer($modules)), array('id' => $group['id']));
+				}
+			}
+		}
+	}
+	$uni_account_extra_modules = table('uni_account_extra_modules')->getall();
+	if (!empty($uni_account_extra_modules)) {
+		foreach ($uni_account_extra_modules as $group) {
+			$update = false;
+			$modules = (array)iunserializer($group['modules']);
+			if (!empty($modules)) {
+				foreach ($modules as $type => $value) {
+					if (!empty($value) && in_array($modulename, $value)) {
+						$modules[$type] = array_diff($modules[$type], array($modulename));
+						$update = true;
+					}
+				}
+				if ($update) {
+					pdo_update('uni_account_extra_modules', array('modules' => iserializer($modules)), array('id' => $group['id']));
 				}
 			}
 		}
@@ -611,6 +603,8 @@ function ext_module_msg_types() {
 	$mtypes['user_get_card'] = '用户领取卡券事件';
 	$mtypes['user_del_card'] = '用户删除卡券事件';
 	$mtypes['user_consume_card'] = '用户核销卡券事件';
+	$mtypes['user_view_card'] = '进入会员卡事件';
+	$mtypes['user_gifting_card'] = '用户转赠卡券事件';
 	return $mtypes;
 }
 
@@ -709,30 +703,6 @@ function ext_file_check($module_name, $manifest) {
 		!file_exists($module_path . 'site.php')) {
 		return error(1, '模块缺失文件，请检查模块文件中site.php, processor.php, module.php, receiver.php 文件是否存在！');
 	}
-	return true;
-}
-
-/**
- *  卸载模块
- * @param string $module_name 模块标识
- * @param bool $is_clean_rule 是否删除相关的统计数据和回复规则
- */
-function ext_module_uninstall($modulename, $is_clean_rule = false) {
-	global $_W;
-	$modulename = trim($modulename);
-	if (empty($modulename)) {
-		return error(1, '模块已经被卸载或是不存在！');
-	}
-	$module = module_fetch($modulename, false);
-	if (empty($module)) {
-		return error(1, '模块已经被卸载或是不存在！');
-	}
-	if (!empty($module['issystem'])) {
-		return error(1, '系统模块不能卸载！');
-	}
-
-	ext_module_clean($modulename, $is_clean_rule);
-	ext_execute_uninstall_script($modulename);
 	return true;
 }
 

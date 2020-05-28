@@ -45,16 +45,8 @@ if(!empty($_POST)) {
 						->fill($record)
 						->save();
 					if ($log['is_usecard'] == 1 && !empty($log['encrypt_code'])) {
-						$coupon_info = table('coupon')
-							->select('id')
-							->where(array('id' => $log['card_id']))
-							->get();
-						$coupon_record = table('coupon_record')
-							->where(array(
-								'code' => $log['encrypt_code'],
-								'status' => '1'
-							))
-							->get();
+						$coupon_info = pdo_get('coupon', array('id' => $log['card_id']), array('id'));
+						$coupon_record = pdo_get('coupon_record', array('code' => $log['encrypt_code'], 'status' => '1'));
 						load()->model('activity');
 						$status = activity_coupon_use($coupon_info['id'], $coupon_record['id'], $log['module']);
 					}

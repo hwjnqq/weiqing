@@ -73,14 +73,11 @@ function menu_update_currentself() {
 		return error(-1, $default_menu_info['message']);
 	}
 
-	if ($account_api->type != ACCOUNT_TYPE_XZAPP_NORMAL && $account_api->type != ACCOUNT_TYPE_XZAPP_AUTH) {
-		if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info'])) {
-			return true;
-		}
-		$default_menu = $default_menu_info['selfmenu_info'];
-	} else {
-		$default_menu = $default_menu_info['menu'];
+	if (empty($default_menu_info['is_menu_open']) || empty($default_menu_info['selfmenu_info'])) {
+		return true;
 	}
+	$default_menu = $default_menu_info['selfmenu_info'];
+
 	$default_sub_button = array();
 	if (!empty($default_menu['button'])) {
 		foreach ($default_menu['button'] as $key => &$button) {

@@ -33,8 +33,8 @@ class WeixinAccount extends WeAccount {
 		'pic_weixin', 'location_select', 'media_id', 'view_limited',
 	);
 
-	protected function getAccountInfo($acid) {
-		$account = table('account_wechats')->getById($acid);
+	protected function getAccountInfo($uniacid) {
+		$account = table('account_wechats')->getAccount($uniacid);
 		$account['encrypt_key'] = $account['key'];
 
 		return $account;
@@ -637,7 +637,7 @@ class WeixinAccount extends WeAccount {
 
 	public function barCodeCreateDisposable($barcode) {
 		$barcode['expire_seconds'] = empty($barcode['expire_seconds']) ? 2592000 : $barcode['expire_seconds'];
-		if (empty($barcode['action_info']['scene']['scene_id']) || empty($barcode['action_name'])) {
+		if (empty($barcode['action_info']['scene']['scene_id']) && empty($barcode['action_info']['scene']['scene_str']) || empty($barcode['action_name'])) {
 			return error('1', 'Invalid params');
 		}
 		$token = $this->getAccessToken();
@@ -849,14 +849,14 @@ class WeixinAccount extends WeAccount {
 	 * @return array
 	 */
 	public function getJssdkConfig($url = '') {
-		global $_W;
+		global $_W, $urls;
 		$jsapiTicket = $this->getJsApiTicket();
 		if (is_error($jsapiTicket)) {
 			$jsapiTicket = $jsapiTicket['message'];
 		}
 		$nonceStr = random(16);
 		$timestamp = TIMESTAMP;
-		$url = empty($url) ? $_W['siteurl'] : $url;
+		$url = empty($url) ? (str_replace($urls['path'], '', $_W['siteroot']) . $_SERVER['REQUEST_URI']) : $url;
 		$string1 = "jsapi_ticket={$jsapiTicket}&noncestr={$nonceStr}&timestamp={$timestamp}&url={$url}";
 		$signature = sha1($string1);
 		$config = array(

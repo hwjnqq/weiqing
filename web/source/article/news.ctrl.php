@@ -11,7 +11,7 @@ permission_check_account_user('system_article_news');
 
 //添加分类
 if ('category_post' == $do) {
-	if (checksubmit('submit')) {
+	if ($_W['ispost']) {
 		$i = 0;
 		if (!empty($_GPC['title'])) {
 			foreach ($_GPC['title'] as $k => $v) {
@@ -28,6 +28,9 @@ if ('category_post' == $do) {
 				++$i;
 			}
 		}
+		if ($_W['isw7_request']) {
+			iajax(0, '添加分类成功');
+		}
 		itoast('添加分类成功', url('article/news/category'), 'success');
 	}
 	template('article/news-category-post');
@@ -36,7 +39,7 @@ if ('category_post' == $do) {
 //修改分类
 if ('category' == $do) {
 	$category_table = table('article_category');
-	if (checksubmit('submit')) {
+	if ($_W['ispost']) {
 		$id = intval($_GPC['id']);
 		if (empty($id)) {
 			iajax(1, '参数有误');
@@ -53,6 +56,9 @@ if ('category' == $do) {
 	}
 
 	$data = $category_table->getNewsCategoryLists();
+	if ($_W['isw7_request']) {
+		iajax(0, $data);
+	}
 	template('article/news-category');
 }
 
@@ -61,6 +67,9 @@ if ('category_del' == $do) {
 	$id = intval($_GPC['id']);
 	pdo_delete('article_category', array('id' => $id, 'type' => 'news'));
 	pdo_delete('article_news', array('cateid' => $id));
+	if ($_W['isw7_request']) {
+		iajax(0, '删除分类成功');
+	}
 	itoast('删除分类成功', referer(), 'success');
 }
 
@@ -68,16 +77,17 @@ if ('category_del' == $do) {
 if ('post' == $do) {
 	$id = intval($_GPC['id']);
 	$new = table('article_news')->searchWithId($id)->get();
+
 	if (empty($new)) {
 		$new = array(
 			'is_display' => 1,
 			'is_show_home' => 1,
 		);
 	}
-	if (checksubmit()) {
-		$title = trim($_GPC['title']) ? trim($_GPC['title']) : itoast('新闻标题不能为空', '', 'error');
-		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : itoast('新闻分类不能为空', '', 'error');
-		$content = trim($_GPC['content']) ? trim($_GPC['content']) : itoast('新闻内容不能为空', '', 'error');
+	if ($_W['ispost']) {
+		$title = trim($_GPC['title']) ? trim($_GPC['title']) : ($_W['isw7_request'] ? iajax(-1, '新闻标题不能为空') : itoast('新闻标题不能为空', '', 'error'));
+		$cateid = intval($_GPC['cateid']) ? intval($_GPC['cateid']) : ($_W['isw7_request'] ? iajax(-1, '新闻分类不能为空') : itoast('新闻分类不能为空', '', 'error'));
+		$content = trim($_GPC['content']) ? trim($_GPC['content']) : ($_W['isw7_request'] ? iajax(-1, '新闻内容不能为空') : itoast('新闻内容不能为空', '', 'error'));
 		$data = array(
 			'title' => $title,
 			'cateid' => $cateid,
@@ -88,9 +98,8 @@ if ('post' == $do) {
 			'click' => intval($_GPC['click']),
 			'is_display' => intval($_GPC['is_display']),
 			'is_show_home' => intval($_GPC['is_show_home']),
-			'createtime' => TIMESTAMP,
 		);
-		if (!empty($_GPC['thumb'])) {
+		if (!empty($_GPC['thumb']) && file_is_image($_GPC['thumb'])) {
 			$data['thumb'] = $_GPC['thumb'];
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();
@@ -105,11 +114,18 @@ if ('post' == $do) {
 		if (!empty($new['id'])) {
 			pdo_update('article_news', $data, array('id' => $id));
 		} else {
+			$data['createtime'] = TIMESTAMP;
 			pdo_insert('article_news', $data);
+		}
+		if ($_W['isw7_request']) {
+			iajax(0, '编辑成功');
 		}
 		itoast('编辑文章成功', url('article/news/list'), 'success');
 	}
 
+	if ($_W['isw7_request']) {
+		iajax(0, $new);
+	}
 	$categorys = table('article_category')->getNewsCategoryLists();
 	template('article/news-post');
 }
@@ -141,10 +157,32 @@ if ('list' == $do) {
 	$article_table->searchWithPage($pindex, $psize);
 	$article_table->orderby($order, 'DESC');
 	$news = $article_table->getall();
+	$categorys = table('article_category')->getNewsCategoryLists($order);
+	foreach ($news as $n=>$new) {
+		if (!empty($categorys[$new['cateid']])) {
+			$news[$n]['catename'] = $categorys[$new['cateid']]['title'];
+		} else {
+			$news[$n]['catename'] = '';
+		}
+		
+		$news[$n]['createtime'] = date('Y-m-d H:i', $new['createtime']);
+		
+	}
+	$news_display = setting_load('news_display');
+	$news_display = !empty($news_display) ? $news_display['news_display'] : 'displayorder';
 	$total = $article_table->getLastQueryTotal();
 	$pager = pagination($total, $pindex, $psize);
-
-	$categorys = table('article_category')->getNewsCategoryLists($order);
+	
+	if ($_W['isw7_request']) {
+		$message = array(
+			'total' => $total,
+			'page' => $pindex,
+			'page_size' => $psize,
+			'list' => $news,
+			'news_display' => $news_display
+		);
+		iajax(0, $message);
+	}
 	template('article/news');
 }
 
@@ -168,7 +206,10 @@ if ('batch_post' == $do) {
 //删除文章
 if ('del' == $do) {
 	$id = intval($_GPC['id']);
-	pdo_delete('article_news', array('id' => $id));
+	table('article_news')->where(array('id' => $id))->delete();
+	if ($_W['isw7_request']) {
+		iajax(0, '删除成功');
+	}
 	itoast('删除文章成功', referer(), 'success');
 }
 
@@ -177,5 +218,8 @@ if ('displaysetting' == $do) {
 	$setting = safe_gpc_string($_GPC['setting']);
 	$data = 'createtime' == $setting ? 'createtime' : 'displayorder';
 	setting_save($data, 'news_display');
+	if ($_W['isw7_request']) {
+		iajax(0, '更改成功');
+	}
 	itoast('更改成功！', referer(), 'success');
 }

@@ -93,7 +93,10 @@ class StoreGoods extends \We7Table {
 		}
 		return $this;
 	}
-
+	
+	public function getByModuleName($module_name, $is_wish = 0) {
+		return $this->query->where(array('module' => $module_name, 'is_wish' => $is_wish))->get();
+	}
 	public function getGoods($is_wish = 0, $status = 1) {
 		$data = $this->query
 			->where(array('is_wish' => $is_wish, 'status' => $status))

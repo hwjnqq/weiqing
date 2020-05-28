@@ -378,7 +378,6 @@ function user_update($user) {
 				}
 			}
 		}
-		//用户到期时间有变动时, 允许再次发送短信提醒
 		$expire_notice = setting_load('user_expire');
 		if (!empty($expire_notice['user_expire']['status'])) {
 			$user_info = empty($user_info) ? table('users')->getById($user['uid']) : $user_info;
@@ -544,7 +543,7 @@ function user_founder_group_detail_info($groupid = 0) {
  *@return array
  */
 function user_account_detail_info($uid) {
-	$account_lists = $app_user_info = $wxapp_user_info = $webapp_user_info = $xzapp_user_info = array();
+	$account_lists = $app_user_info = $wxapp_user_info = $webapp_user_info = array();
 	$uid = intval($uid);
 	if (empty($uid)) {
 		return $account_lists;
@@ -648,9 +647,6 @@ function user_modules($uid = 0) {
 									case 'webapp':
 										$module_list[$name][] = MODULE_SUPPORT_WEBAPP_NAME;
 										break;
-									case 'xzapp':
-										$module_list[$name][] = MODULE_SUPPORT_XZAPP_NAME;
-										break;
 									case 'phoneapp':
 										$module_list[$name][] = MODULE_SUPPORT_PHONEAPP_NAME;
 										break;
@@ -729,7 +725,6 @@ function user_modules($uid = 0) {
 			$all_modules[$value['name']]['main_module_logo'] = $all_modules[$value['main_module']]['logo'];
 			$all_modules[$value['name']]['main_module_title'] = $all_modules[$value['main_module']]['title'];
 		}
-		$is_main_founder = user_is_founder($_W['uid'], true);
 
 		foreach ($modules as $modulename => $support) {
 			if (empty($all_modules[$modulename])) {
@@ -791,7 +786,7 @@ function user_login_forward($forward = '') {
 		return $login_forward;
 	}
 
-	if (user_is_founder($_W['uid'], true)) {
+	if ($_W['isadmin']) {
 		return url('home/welcome/system', array('page' => 'home'));
 	} else {
 		$user_end_time = user_end_time($_W['uid']);
@@ -848,14 +843,14 @@ function user_save_create_group($account_group_info) {
 	}
 
 	if (empty($id)) {
-		 pdo_insert('users_create_group', $account_group_info);
-		 $create_group_id = pdo_insertid();
-		 if (user_is_vice_founder()) {
+		pdo_insert('users_create_group', $account_group_info);
+		$create_group_id = pdo_insertid();
+		if (user_is_vice_founder()) {
 			$own_create_group_table = table('users_founder_own_create_groups');
 			$own_create_group_table->addOwnCreateGroup($_W['uid'], $create_group_id);
-		 }
+		}
 	} else {
-		 pdo_update('users_create_group', $account_group_info, array('id' => $account_group_info['id']));
+		pdo_update('users_create_group', $account_group_info, array('id' => $account_group_info['id']));
 	}
 	return error(0, '添加成功!');
 }
@@ -897,7 +892,6 @@ function user_save_group($group_info) {
 	$group_info['package'] = iserializer($package);
 	if (empty($group_info['id'])) {
 		pdo_insert('users_group', $group_info);
-
 		$users_group_id = pdo_insertid();
 		if (user_is_vice_founder()) {
 			$table = table('users_founder_own_users_groups');
@@ -1028,7 +1022,6 @@ function user_group_format($lists) {
 			$lists[$key]['wxapp_nums'] = 0;
 			$lists[$key]['webapp_nums'] = 0;
 			$lists[$key]['phoneapp_nums'] = 0;
-			$lists[$key]['xzapp_nums'] = 0;
 			continue;
 		}
 		if (is_array($package) && in_array(-1, $package)) {
@@ -1036,7 +1029,6 @@ function user_group_format($lists) {
 			$lists[$key]['wxapp_nums'] = -1;
 			$lists[$key]['webapp_nums'] = -1;
 			$lists[$key]['phoneapp_nums'] = -1;
-			$lists[$key]['xzapp_nums'] = -1;
 			continue;
 		}
 		$names = array();
@@ -1045,7 +1037,6 @@ function user_group_format($lists) {
 			'wxapp' => array(),
 			'webapp' => array(),
 			'phoneapp' => array(),
-			'xzapp' => array()
 		);
 		if (!empty($group['package'])) {
 			foreach ($group['package'] as $package) {
@@ -1054,18 +1045,15 @@ function user_group_format($lists) {
 				$package['wxapp'] = !empty($package['wxapp']) && is_array($package['wxapp']) ? array_keys($package['wxapp']) : array();
 				$package['webapp'] = !empty($package['webapp']) && is_array($package['webapp']) ? array_keys($package['webapp']) : array();
 				$package['phoneapp'] = !empty($package['phoneapp']) && is_array($package['phoneapp']) ? array_keys($package['phoneapp']) : array();
-				$package['xzapp'] = !empty($package['xzapp']) && is_array($package['xzapp']) ? array_keys($package['xzapp']) : array();
 				$modules['modules'] = array_unique(array_merge($modules['modules'], $package['modules']));
 				$modules['wxapp'] = array_unique(array_merge($modules['wxapp'], $package['wxapp']));
 				$modules['webapp'] = array_unique(array_merge($modules['webapp'], $package['webapp']));
 				$modules['phoneapp'] = array_unique(array_merge($modules['phoneapp'], $package['phoneapp']));
-				$modules['xzapp'] = array_unique(array_merge($modules['xzapp'], $package['xzapp']));
 			}
 			$lists[$key]['module_nums'] = count($modules['modules']);
 			$lists[$key]['wxapp_nums'] = count($modules['wxapp']);
 			$lists[$key]['webapp_nums'] = count($modules['webapp']);
 			$lists[$key]['phoneapp_nums'] = count($modules['phoneapp']);
-			$lists[$key]['xzapp_nums'] = count($modules['xzapp']);
 		}
 		$lists[$key]['packages'] = implode(',', $names);
 	}
@@ -1117,7 +1105,7 @@ function user_list_format($users, $founder_list = true) {
 		if ($user['endtime'] == USER_ENDTIME_GROUP_EMPTY_TYPE || $user['endtime'] == USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
 			$user['endtime'] = '永久有效';
 		} else {
-			$user['endtime'] = $user['endtime'] <= TIMESTAMP ? '服务已到期' : date('Y-m-d', $user['endtime']);
+			$user['endtime'] = $user['endtime'] <= TIMESTAMP ? '服务已到期' : date('Y-m-d', intval($user['endtime']));
 		}
 
 		$user['module_num'] =array();

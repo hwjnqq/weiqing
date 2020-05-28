@@ -12,8 +12,8 @@ class WebappAccount extends WeAccount {
 	protected $typeName = 'PC';
 	protected $typeTempalte = '-webapp';
 
-	protected function getAccountInfo($acid) {
-		$account = table('account')->getWebappAccount($acid);
+	protected function getAccountInfo($uniacid) {
+		$account = table('account_webapp')->getAccount($uniacid);
 
 		return $account;
 	}

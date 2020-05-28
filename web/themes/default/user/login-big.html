@@ -1,11 +1,5 @@
 {template 'common/header-base'}
 <div class="system-login-new" style="background-image: url({if !empty($_W['setting']['copyright']['background_img'])} {php echo to_global_media($_W['setting']['copyright']['background_img']);} {else} './resource/images/bg-login-full.jpg' {/if});">
-	<!-- {if !empty($_W['setting']['copyright']['background_img'])}
-		<img src="{php echo to_global_media($_W['setting']['copyright']['background_img']);}" class="bg-img" width="100%"/>
-	{else}
-		<img src="./resource/images/bg-login.png" class="bg-img"/>
-	{/if} -->
-
 	<div class="head">
 		<a href="/" class="logo-version">
 			<img src="{if !empty($_W['setting']['copyright']['flogo'])}{php echo to_global_media($_W['setting']['copyright']['flogo'])}{else}./resource/images/logo/login-logo.png{/if}" class="logo">
@@ -91,7 +85,7 @@
 				</div>
 			</div>
 			{/if}
-		</r>
+		</form>
 	</div>
 	<div class="modal fade" id="show-code" tabindex="-1" role="dialog" aria-hidden="true">
 		<div class="we7-modal-dialog modal-dialog we7-form">
@@ -144,10 +138,7 @@
 						<p class="content"></p>
 					</div>
 					<div class="clearfix"></div></div>
-				<div class="modal-footer">
-					<a href="{php echo url('home/welcome/ext', array('m' => 'store'))}"class="btn btn-primary">去续费</a>
-					<a href="{php echo url('user/profile')}" class="btn btn-default">取消</a>
-				</div>
+				<div class="modal-footer"></div>
 			</div>
 		</div>
 	</div>
@@ -203,8 +194,17 @@
 			}
 			if(data.message.errno === 0) {
 				if (data.message.message.status == -1) {
+					var showLabel = '';
+					if (data.message.message.extend_buttons.status_store_button) {
+						showLabel += '<a href="'+data.message.message.extend_buttons.status_store_button.url+'"class="btn btn-primary">去续费</a>';
+					}
+					showLabel += '<a href="'+data.message.message.extend_buttons.cancel.url+'" class="btn btn-default">取消</a>';
+					$('#user-expired').find('.modal-footer').html(showLabel);
 					$('#user-expired').find('.content').html(data.message.message.message);
 					$('#user-expired').modal('show')
+					if (data.message.message.redirect) {
+						setTimeout(function(){ window.location.href = data.message.message.redirect; }, 5000);
+					}
 					return;
 				}
 				util.message(data.message.message, data.redirect, 'success')
@@ -255,7 +255,6 @@
 	$('#show-code').on('hide.bs.modal', function (e) {
 		$('input[name="smscode"]').val('')
 	})
-	// document.getElementById('password').onkeypress = detectCapsLock;
 
 	function formcheck() {
 		if($('#remember:checked').length == 1) {

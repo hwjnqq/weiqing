@@ -497,9 +497,16 @@ class DB {
 	 * @return boolean
 	 */
 	public function fieldexists($tablename, $fieldname) {
-		$isexists = $this->fetch('DESCRIBE ' . $this->tablename($tablename) . " `{$fieldname}`", array());
-
-		return !empty($isexists) ? true : false;
+		$fields = $this->fetchall("SHOW COLUMNS FROM" . $this->tablename($tablename));
+		if (empty($fields)) {
+			return false;
+		}
+		foreach ($fields as $field) {
+			if ($fieldname == $field['Field']) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

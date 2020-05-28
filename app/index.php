@@ -71,7 +71,7 @@ if(is_array($multi['site_info'])) {
 unset($multi, $styleid, $style, $templateid, $template, $templates);
 
 if ($controller == 'wechat' && $action == 'card' && $do == 'use') {
-	header("location: index.php?i={$_W['uniacid']}&c=entry&m=paycenter&do=consume&encrypt_code={$_GPC['encrypt_code']}&card_id={$_GPC['card_id']}&openid={$_GPC['openid']}&source={$_GPC['source']}");
+	header("location: index.php?i={$_W['uniacid']}&c=entry&m=paycenter&do=consume&encrypt_code=" . safe_gpc_string($_GPC['encrypt_code']) . "&card_id=" . intval($_GPC['card_id']) . "&openid=" . safe_gpc_string($_GPC['openid']) . "&source=" . safe_gpc_string($_GPC['source']));
 	exit;
 }
 $controllers = array();
@@ -103,11 +103,7 @@ if(!empty($handle)) {
 }
 
 if(empty($actions)) {
-	$str = '';
-	if(uni_is_multi_acid()) {
-		$str = "&j={$_W['acid']}";
-	}
-	header("location: index.php?i={$_W['uniacid']}{$str}&c=home?refresh");
+	header("location: index.php?i={$_W['uniacid']}&c=home?refresh");
 }
 if(!in_array($action, $actions)) {
 	$action = $acl[$controller]['default'];

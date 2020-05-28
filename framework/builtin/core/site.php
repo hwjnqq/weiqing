@@ -12,8 +12,8 @@ class CoreModuleSite extends WeModuleSite {
 		global $_W, $_GPC;
 		$params = array(
 			'fee' => floatval($_GPC['fee']),
-			'tid' => $_GPC['tid'],
-			'module' => $_GPC['module'],
+			'tid' => safe_gpc_string($_GPC['tid']),
+			'module' => safe_gpc_string($_GPC['module']),
 		);
 		if (empty($params['tid']) || empty($params['fee']) || empty($params['module'])) {
 			message(error(1, '支付参数不完整'));

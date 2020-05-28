@@ -127,7 +127,7 @@ if ($do == 'page') {
 if ($do == 'news') {
 	$result = array();
 	$psize = 10;
-	$pindex = max(1, intval($_GPC['page']));
+	$pindex = max(1, safe_gpc_int($_GPC['page']));
 	$sql = "SELECT n.id, n.title FROM ". tablename('rule')."AS r,". tablename('news_reply'). " AS n WHERE r.id = n.rid AND r.module = :news AND r.uniacid = :uniacid ORDER BY n.displayorder DESC LIMIT ". ($pindex - 1) * $psize . ',' . $psize;
 	$result['list'] = pdo_fetchall($sql, array(':news' => 'news', ':uniacid' => $_W['uniacid']), 'id');
 	if (!empty($result['list'])) {

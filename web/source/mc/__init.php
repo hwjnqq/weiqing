@@ -9,7 +9,7 @@ if (!empty($version_id)) {
 }
 $account_api = WeAccount::createByUniacid();
 if (is_error($account_api)) {
-	message($account_api['message'], url('account/display'));
+	message($account_api['message'], $_W['siteroot'] . 'web/home.php');
 }
 $check_manange = $account_api->checkIntoManage();
 

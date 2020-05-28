@@ -145,10 +145,6 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinf
 		if (empty($_SESSION['dest_url'])) {
 			$_SESSION['dest_url'] = urlencode($_W['siteurl']);
 		}
-		$str = '';
-		if(uni_is_multi_acid()) {
-			$str = "&j={$_W['acid']}";
-		}
 		$oauth_type = 'snsapi_base';
 		if ($controller == 'entry' && !empty($_GPC['m'])) {
 			$module_info = module_fetch($_GPC['m']);
@@ -156,8 +152,12 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinf
 				$oauth_type = 'snsapi_userinfo';
 			}
 		}
+		//网页授权获取用户基本信息，只有认证服务号才有此权限，故其他不可静默
+		if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY)  {
+			$oauth_type = 'snsapi_userinfo';
+		}
 		$oauth_url = uni_account_oauth_host();
-		$url = $oauth_url . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=" . $oauth_type;
+		$url = $oauth_url . "app/index.php?i={$_W['uniacid']}&c=auth&a=oauth&scope=" . $oauth_type;
 		$callback = urlencode($url);
 		$oauth_account = WeAccount::create($_W['account']['oauth']);
 		if ($oauth_type == 'snsapi_base') {

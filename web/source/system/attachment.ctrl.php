@@ -12,6 +12,7 @@ $do = in_array($do, $dos) ? $do : 'global';
 
 if ('upload_remote' == $do) {
 	if (!empty($_W['setting']['remote_complete_info']['type'])) {
+		$_W['setting']['remote'] = $_W['setting']['remote_complete_info'];
 		$result = file_dir_remote_upload(ATTACHMENT_ROOT . 'images');
 		if (is_error($result)) {
 			iajax(-1, $result['message']);

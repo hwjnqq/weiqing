@@ -342,7 +342,7 @@ if ('sync' == $do) {
 	if ('all' == $type) {
 		$pageindex = $_GPC['pageindex'];
 		++$pageindex;
-		$sync_fans = pdo_getslice('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'follow' => '1'), array($pageindex, 100), $total, array(), 'openid', 'fanid DESC');
+		$sync_fans = pdo_getslice('mc_mapping_fans', array('uniacid' => $_W['uniacid'], 'follow' => '1'), array($pageindex, 100), $total, array(), 'openid', 'fanid ASC');
 		$total = ceil($total / 100);
 		$start = time();
 		if (!empty($sync_fans)) {

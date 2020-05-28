@@ -11,7 +11,13 @@ if ('detail' == $do) {
 	$id = intval($_GPC['id']);
 	$news = article_news_info($id);
 	if (is_error($news)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, '新闻不存在或已删除');
+		}
 		itoast('新闻不存在或已删除', referer(), 'error');
+	}
+	if ($_W['isw7_request']) {
+		iajax(0, $news);
 	}
 }
 

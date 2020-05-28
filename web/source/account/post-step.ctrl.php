@@ -22,7 +22,6 @@ if ('check_account_limit' == $do) {
 	if ($user_create_account_info['account_limit'] <= 0 && !$_W['isfounder']) {
 		iajax(-1, '创建公众号已达上限！');
 	}
-
 	if (!empty($_W['setting']['platform']['authstate'])) {
 		$account_platform = new WeixinPlatform();
 		$authurl = $account_platform->getAuthLoginUrl();
@@ -47,7 +46,7 @@ if (1 == $step) {
 		itoast('非法访问');
 	}
 	$owner_info = account_owner($uniacid);
-	if (!(user_is_founder($_W['uid'], true) || $_W['uid'] == $owner_info['uid'])) {
+	if (!($_W['isadmin'] || $_W['uid'] == $owner_info['uid'])) {
 		if ($_W['isajax']) {
 			iajax(-1, '非法访问');
 		}

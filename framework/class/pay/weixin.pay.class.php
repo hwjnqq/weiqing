@@ -256,7 +256,6 @@ class WeiXinPay extends pay {
 			return array('errno' => -1, 'message' => '交易订单不存在');
 		}
 		$data = array(
-			//'transaction_id' => $result['transaction_id'],
 			'status' => 1,
 			'openid' => $result['openid'],
 		);
@@ -287,7 +286,6 @@ class WeiXinPay extends pay {
 			}
 		}
 		pdo_update('paycenter_order', array('credit_status' => 1), array('id' => $order['id']));
-
 		return true;
 	}
 

@@ -38,14 +38,6 @@ if ('special' == $m) {
 		'WifiConnected' => 'Wifi连接成功消息',
 		'qr' => '二维码',
 	);
-
-	if (in_array($_W['account']['type'], array(ACCOUNT_TYPE_XZAPP_NORMAL, ACCOUNT_TYPE_XZAPP_AUTH))) {
-		$mtypes = array(
-			'image' => '图片消息',
-			'voice' => '语音消息',
-			'video' => '视频消息',
-		);
-	}
 }
 
 //功能模块用
@@ -101,7 +93,7 @@ if ('display' == $do) {
 					$params = array();
 					$params[':rid'] = $item['id'];
 					$item['keywords'] = reply_keywords_search($condition, $params);
-					$item['allreply'] = reply_contnet_search($item['id']);
+					$item['allreply'] = reply_content_search($item['id']);
 					$entries = module_entries($item['module'], array('rule'), $item['id']);
 					if (!empty($entries)) {
 						$item['options'] = $entries['rule'];
@@ -185,9 +177,9 @@ if ('post' == $do) {
 			if (!empty($result)) {
 				$keywords = array();
 				foreach ($result as $reply) {
-					$keywords[] = $reply['rid'];
+					$keywords[] = intval($reply['rid']);
 				}
-				$rids = implode($keywords, ',');
+				$rids = implode(',', $keywords);
 				$sql = 'SELECT `id`, `name` FROM ' . tablename('rule') . " WHERE `id` IN ($rids)";
 				$rules = pdo_fetchall($sql);
 				iajax(-1, $rules, '');
@@ -268,7 +260,6 @@ if ('post' == $do) {
 
 			if (!empty($rid)) {
 				pdo_delete('rule_keyword', array('rid' => $rid, 'uniacid' => $_W['uniacid']));
-
 				$rowtpl = array(
 					'rid' => $rid,
 					'uniacid' => $_W['uniacid'],

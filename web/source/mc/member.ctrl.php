@@ -135,7 +135,7 @@ if ('display' == $do) {
 		echo $html;
 		exit();
 	}
-	$sql = 'SELECT uid, uniacid, groupid, realname, nickname, email, mobile, credit1, credit2, credit6, createtime  FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid ' . $condition . ' ORDER BY createtime DESC LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
+	$sql = 'SELECT uid, uniacid, groupid, realname, nickname, email, mobile, credit1, credit2, credit6, createtime  FROM ' . tablename('mc_members') . ' WHERE uniacid = :uniacid ' . $condition . ' ORDER BY `uid` DESC LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
 	$list = pdo_fetchall($sql, $params);
 	if (!empty($list)) {
 		foreach ($list as &$li) {
@@ -259,7 +259,7 @@ if ('add' == $do) {
 		);
 		table('mc_members')->fill($data)->save();
 		$uid = pdo_insertid();
-		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid)), 'success');
+		itoast('添加会员成功,将进入编辑页面', url('mc/member/post', array('uid' => $uid, 'version_id' => intval($_GPC['version_id']))), 'success');
 	}
 	template('mc/member-add');
 }

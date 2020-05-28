@@ -11,7 +11,9 @@ load()->func('cache');
 load()->model('visit');
 load()->model('module');
 
-$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline', 'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group', 'edit_uni_groups', 'edit_extra_modules', 'delete_user_group', 'operators');
+$dos = array('edit_base', 'edit_modules_tpl', 'edit_account', 'edit_users_permission', 'edit_account_dateline',
+			'edit_create_account_list', 'edit_user_group', 'edit_user_extra_limit', 'edit_user_extra_group',
+			'edit_uni_groups', 'edit_extra_modules', 'delete_user_group', 'operators');
 $do = in_array($do, $dos) ? $do : 'edit_base';
 
 $uid = intval($_GPC['uid']);
@@ -33,7 +35,6 @@ $profile = pdo_get('users_profile', array('uid' => $uid));
 if (!empty($profile)) {
 	$profile['avatar'] = tomedia($profile['avatar']);
 }
-
 //编辑用户基础信息
 if ('edit_base' == $do) {
 	$account_num = permission_user_account_num($uid);
@@ -57,7 +58,7 @@ if ('edit_base' == $do) {
 	template('user/edit-base');
 
 }
-
+//应用模板权限
 if ('edit_modules_tpl' == $do) {
 	$modules = user_modules($_W['uid']);
 	$groups = user_group();
@@ -158,7 +159,7 @@ if ('edit_modules_tpl' == $do) {
 	}
 	template('user/edit-modules-tpl');
 }
-
+//使用账号列表
 if ('edit_account' == $do) {
 	$account_detail = user_account_detail_info($uid);
 	$account_list = array();
@@ -210,7 +211,7 @@ if ('edit_users_permission' == $do) {
 		iajax(0, '修改成功', '');
 	}
 }
-
+//账号使用期限
 if ('edit_account_dateline' == $do) {
 	if (user_is_vice_founder($uid)) {
 		$groups = user_founder_group();
@@ -251,7 +252,7 @@ if ('edit_account_dateline' == $do) {
 	}
 	template('user/edit-account-dateline');
 }
-
+//账号创建权限
 if ('edit_create_account_list' == $do) {
 	$uid = intval($_GPC['uid']);
 	$user_permission_account = permission_user_account_num($uid);
@@ -341,7 +342,6 @@ if ('edit_user_group' == $do) {
 		iajax(-1, '更改失败！', '');
 	}
 }
-
 //修改用户账号使用期限
 if ('edit_user_extra_limit' == $do) {
 	$extra_limit_table = table('users_extra_limit');
@@ -376,7 +376,7 @@ if ('edit_user_extra_limit' == $do) {
 		}
 	}
 }
-
+//修改用户附加组
 if ('edit_user_extra_group' == $do) {
 	$operate = safe_gpc_string($_GPC['operate']);
 	if (!in_array($operate, array('delete', 'extend_group', 'extend_numbers'))) {
@@ -424,10 +424,7 @@ if ('edit_user_extra_group' == $do) {
 	}
 	iajax(0, '修改成功', referer());
 }
-
-/*
- * 修改用户权限组
- */
+//修改用户权限组
 if ('edit_uni_groups' == $do) {
 	$uni_group_ids = safe_gpc_array($_GPC['uni_groups']);
 	$ext_group_table = table('users_extra_group');
@@ -442,10 +439,7 @@ if ('edit_uni_groups' == $do) {
 	cache_clean(cache_system_key('user_modules', array('uid' => $_W['uid'])));
 	iajax(0, '修改成功!', referer());
 }
-
-/*
- * 修改用户附加权限
- * */
+//修改用户附加权限
 if ('edit_extra_modules' == $do) {
 	$extra_modules = safe_gpc_array($_GPC['extra_modules']);
 	$extra_modules_table = table('users_extra_modules');
@@ -465,11 +459,11 @@ if ('edit_extra_modules' == $do) {
 	cache_clean(cache_system_key('user_modules', array('uid' => $_W['uid'])));
 	iajax(0, '修改成功!', referer());
 }
-
+//删除用户所在用户组
 if ('delete_user_group' == $do) {
 	$groupid = intval($_GPC['groupid']);
 
-	if (!user_is_founder($_W['uid'])) {
+	if (!$_W['isfounder']) {
 		iajax(-1, '权限错误');
 	}
 
@@ -513,7 +507,7 @@ if ('delete_user_group' == $do) {
 		iajax(-1, '删除失败');
 	}
 }
-
+//操作应用列表
 if ('operators' == $do) {
 	$page = max(1, intval($_GPC['page']));
 	$page_size = 15;

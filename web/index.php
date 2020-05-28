@@ -135,7 +135,7 @@ if (is_array($acl[$controller]['direct']) && in_array($action, $acl[$controller]
 	exit();
 }
 
-checklogin();
+checklogin($_W['siteurl']);
 // 判断非创始人是否拥有目标权限
 if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['highest_role']) {
 	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['highest_role']) {

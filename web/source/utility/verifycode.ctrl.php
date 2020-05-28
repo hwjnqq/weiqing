@@ -12,7 +12,7 @@ $do = in_array($do, $dos) ? $do : 'send_code';
 
 $custom_sign = safe_gpc_string($_GPC['custom_sign']);
 $need_checkcaptcha = true;
-if (isset($_GPC['need_checkcaptcha']) && empty(safe_gpc_int($_GPC['need_checkcaptcha']))) {
+if (isset($_GPC['need_checkcaptcha']) && intval($_GPC['need_checkcaptcha']) > 0) {
 	$need_checkcaptcha = false;
 }
 $_W['uniacid'] = intval($_GPC['uniacid']);

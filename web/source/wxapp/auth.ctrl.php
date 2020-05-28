@@ -61,7 +61,7 @@ if ('forward' == $do) {
 		itoast('授权登录新建小程序失败，请重试', url('account/manage'), 'error');
 	}
 	cache_build_account($uniacid);
-	itoast('授权登录成功', url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type' => 2)), 'success');
+	itoast('授权登录成功', url('miniapp/post', array('uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_AUTH)), 'success');
 }
 
 if ('confirm' == $do) {
@@ -70,7 +70,7 @@ if ('confirm' == $do) {
 	$level = intval($_GPC['level']);
 	$uniacid = intval($_GPC['uniacid']);
 
-	if (user_is_founder($_W['uid'])) {
+	if ($_W['isfounder']) {
 		$user_accounts = table('account')->getAll();
 	} else {
 		$user_accounts = uni_user_accounts($_W['uid'], 'wxapp');
@@ -101,7 +101,7 @@ if ('confirm' == $do) {
 	cache_delete(cache_system_key('uniaccount', array('uniacid' => $uniacid)));
 	cache_delete(cache_system_key('accesstoken', array('uniacid' => $uniacid)));
 	cache_delete(cache_system_key('account_auth_refreshtoken', array('uniacid' => $uniacid)));
-	$url = url('wxapp/post/design_method', array('uniacid' => $uniacid, 'choose_type' => 2));
+	$url = url('miniapp/post', array('uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_AUTH));
 
 	itoast('更改小程序授权接入成功', $url, 'success');
 }

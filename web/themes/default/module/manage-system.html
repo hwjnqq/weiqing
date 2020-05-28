@@ -6,9 +6,14 @@
 			<option value="{{item == '按字母筛选(全部)' ? '全部' : item}}"  ng-repeat="item in letters">{{item}}</option>
 		</select>
 		<select name="" id="" class="we7-margin-right">
-			<option data-url="{php echo filter_url('support:all');}" {if $_GPC['support'] == ''} selected {/if}>按应用类型筛选</option>
+			<option data-url="{php echo filter_url('support:all,application_type:0');}" {if $_GPC['support'] == ''} selected {/if}>按应用类型筛选</option>
 			{loop $module_all_support $type_sign}
+			{if ($type_sign['type'] == 'account')}
+			<option data-url="{php echo filter_url('support:' . $type_sign['type'] . '_support,application_type: 1');}" {if ($_GPC['support'] == $type_sign['type']. '_support') && $_GPC['application_type'] == 1} selected {/if}>{$type_sign['type_name']}应用</option>
+			<option data-url="{php echo filter_url('support:' . $type_sign['type'] . '_support,application_type: 2');}" {if ($_GPC['support'] == $type_sign['type']. '_support') && $_GPC['application_type'] == 2} selected {/if}>{$type_sign['type_name']}模板</option>
+			{else}
 			<option data-url="{php echo filter_url('support:' . $type_sign['type'] . '_support');}" {if $_GPC['support'] == $type_sign['type']. '_support'} selected {/if}>{$type_sign['type_name']}</option>
+			{/if}
 			{/loop}
 		</select>
 		<div class="search-form">
@@ -18,16 +23,47 @@
 			</div>
 		</div>
 		{if permission_check_account_user('see_module_manage_system_ugrade')}
-		<div class="we7-form" ng-show="checkUpgradeSuccess">
+		<div class="we7-form we7-flex" ng-show="checkUpgradeSuccess" ng-init="showMore = false">
 			<input type="checkbox" name="" ng-click="filter()"  ng-model="search.newBranch" id="filter-1" value="1">
-			<label class="checkbox-inline" for="filter-1">
+			<label class="checkbox-inline we7-margin-right" for="filter-1">
 				新分支
 			</label>
-			<span class="we7-margin-right"></span>
 			<input type="checkbox" name="" ng-click="filter()" ng-model="search.newVersion" id="filter-2" value="1">
-			<label class="checkbox-inline" for="filter-2">
+			<label class="checkbox-inline we7-margin-right" for="filter-2">
 				新版本
 			</label>
+			<div class="more-filter-box color-default">
+				<span ng-click="showMore = true">更多 <i class="wi wi-angle-down"></i></span>
+				<div class="more-filter-list" ng-show="showMore">
+					<div class="more-filter-item">
+						<input type="checkbox" name="" ng-model="search.newBranch" id="filter-3" value="1">
+						<label class="checkbox-inline we7-margin-right" for="filter-3">
+							新分支
+						</label>
+					</div>
+					<div class="more-filter-item">
+						<input type="checkbox" name="" ng-model="search.newVersion" id="filter-4" value="1">
+						<label class="checkbox-inline we7-margin-right" for="filter-4">
+							新版本
+						</label>
+					</div>
+					<div class="more-filter-item">
+						<input type="checkbox" name="" ng-model="search.serviceExpire" id="filter-5" value="1">
+						<label class="checkbox-inline" for="filter-5">
+							升级服务到期
+						</label>
+					</div>
+					<div class="more-filter-item">
+						<input type="checkbox" name="" ng-model="search.offSell" id="filter-6" value="1">
+						<label class="checkbox-inline" for="filter-6">
+							应用下架
+						</label>
+					</div>
+					<div class="more-filter-item">
+						<button class="btn btn-primary" ng-click="showMore = false;filter()">确定</button>
+					</div>
+				</div>
+			</div>
 		</div>
 		{/if}
 	</div>
@@ -46,7 +82,6 @@
 				<th></th>
 				<th class="text-left bg-light-gray">支持</th>
 				<th class="text-left bg-light-gray">来源</th>
-				<th class="text-left bg-light-gray"></th>
 				<th class="text-right bg-light-gray">操作</th>
 			</tr>
 			<tr ng-repeat="module in moduleList">
@@ -61,7 +96,15 @@
 					</div>
 				</td>
 				<td class="text-left">
-					<p>{{ module.title }}</p>
+					<p>
+						{{ module.title }}
+						<i class="wi wi-info color-red" data-toggle="popover" data-trigger="hover" data-container="body" ng-show="module.system_shutdown == 2 && !module.can_update" data-placement="bottom" data-content="该应用因违反平台规定已于<span class='color-red'>{{module.system_shutdown_delay_time}}</span>下架，无法购买和更新版本" data-html="true"></i>
+
+						<i class="wi wi-info color-red" data-toggle="popover" data-trigger="hover" data-container="body" ng-show="module.system_shutdown == 2 && module.can_update" data-placement="bottom" data-content="该应用因违反平台规定已于<span class='color-red'>{{module.system_shutdown_delay_time}}</span>下架，无法购买但可以更新版本，一个月后将无法更新，如有疑问请及时反馈" data-html="true"></i>
+						
+						<i class="wi wi-info color-red" data-toggle="popover" data-trigger="hover" data-container="body" ng-show="module.system_shutdown == 3 && module.can_update" data-placement="bottom" data-content="该应用因违反平台规定将于<span class='color-red'>{{module.system_shutdown_delay_time}}</span>下架，目前不影响版本升级，<span class='color-red'>下架后将无法购买和升级版本</span>，如有疑问请及时反馈" data-html="true"></i>
+					
+					</p>
 					{if permission_check_account_user('see_module_manage_system_newversion')}
 					<span>版本：{{ module.version }} </span><span class="color-red" ng-if="module.new_version && module.can_update && isFounder == 1">发现新版本</span>
 
@@ -74,12 +117,6 @@
 					<span ng-switch-when="cloud">商城</span>
 					<span ng-switch-when="">商城</span>
 					<span ng-switch-when="local">本地</span>
-				</td>
-				<td class="text-left">
-					<span ng-show="module.system_shutdown == 2 && !module.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="module.system_shutdown_delay_time"></span>下架，无法购买和更新版本</span></span>
-					<span ng-show="module.system_shutdown == 2 && module.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="module.system_shutdown_delay_time"></span>下架，无法购买但可以更新版本，一个月后将无法更新，如有疑问请及时反馈</span></span>
-					<span ng-show="module.system_shutdown == 3 && module.can_update">该应用因违反平台规定将于<span class="color-red" ng-bind="module.system_shutdown_delay_time"></span>下架，目前不影响版本升级，<span class="color-red">下架后将无法购买和升级版本</span>，如有疑问请及时反馈</span>
-					<span ng-show="!module.system_shutdown || module.system_shutdown == 1"></span>
 				</td>
 				<td class="vertical-middle table-manage-td">
 					<div class="link-group">
@@ -112,7 +149,7 @@
 					</div>
 				</td>
 			</tr>
-			<tr style="height: 52px;"></tr>
+			<tr style="height: 52px;" ng-if="!(moduleList | we7IsEmpty)"></tr>
 			<tr ng-if="moduleList | we7IsEmpty">
 				<td colspan="100">
 					<div class="we7-empty-block">暂无</div>
@@ -142,7 +179,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="select-all" ng-hide="search.moduleName || (search.letter && search.letter != '全部') || search.newVersion || search.newBranch">
+		<div class="select-all" ng-hide="search.moduleName || (search.letter && search.letter != '全部') || search.newVersion || search.newBranch || search.serviceExpire">
 			<div class="we7-form text-right js-pager">
 				{$pager}
 			</div>
@@ -314,7 +351,7 @@
 	</div>
 	<div class="alert we7-page-alert" ng-if="moduleinfo.system_shutdown == 2 || moduleinfo.system_shutdown == 3">
 		<p class="text-danger"><i class="wi wi-info-sign"></i>
-			<span ng-show="moduleinfo.system_shutdown == 2 && !moduleinfo.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，无法购买和更新版本</span></span>
+			<span ng-show="!moduleinfo.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，无法购买和更新版本</span></span>
 			<span ng-show="moduleinfo.system_shutdown == 2 && moduleinfo.can_update">该应用因违反平台规定已于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，无法购买但可以更新版本，一个月后将无法更新，如有疑问请及时反馈</span></span>
 			<span ng-show="moduleinfo.system_shutdown == 3 && moduleinfo.can_update">该应用因违反平台规定将于<span class="color-red" ng-bind="moduleinfo.system_shutdown_delay_time"></span>下架，目前不影响版本升级，<span class="color-red">下架后将无法购买和升级版本</span>，如有疑问请及时反馈</span>
 		</p>
@@ -484,7 +521,7 @@
 			</td>
 		</tr>
 	</table>
-	<table class="table we7-table table-hover vertical-middle" ng-show="show == 'upgrade'" ng-if="isFounder == 1 && upgradeInfo.from == 'cloud' && branch.displayorder >= upgradeInfo.site_branch.displayorder" ng-repeat="branch in upgradeInfo.branches">
+	<table class="table we7-table table-hover vertical-middle" ng-show="show == 'upgrade'" ng-if="isFounder == 1 && upgradeInfo.from == 'cloud' && ((branch.displayorder >= upgradeInfo.site_branch.displayorder && moduleinfo.application_type != 2) || moduleinfo.application_type == 2)" ng-repeat="branch in upgradeInfo.branches">
 		<col width="300px"/>
 		<col />
 		<col />
@@ -498,13 +535,16 @@
 		<tbody>
 		<tr>
 			<td class="text-left">{{ branch.name }}</td>
-			<td>{{ upgradeInfo.site_branch.id == branch.id ? moduleinfo.version : ''}}</td>
+			<td ng-if="moduleinfo.application_type != 2">{{ upgradeInfo.site_branch.id == branch.id ? moduleinfo.version : ''}}</td>
+			<td ng-if="moduleinfo.application_type == 2">{{moduleinfo.version}}</td>
 			<td>线上：{{ branch.version.version }}<br><span ng-if="localUpgradeInfo">本地：{{localUpgradeInfo.best_version}}</span></td>
 			<td class="text-right">
 				<span class="text text-success" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version ==  moduleinfo.version">无需升级</span>
 				{if permission_check_account_user('see_module_manage_system_ugrade')}
+				<a href="javascript:;" ng-click="downgrade(upgradeInfo.name)" class="btn btn-danger" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version ==  moduleinfo.version && !moduleinfo.service_expire && moduleinfo.is_encryption">降低版本</a>
 				<a ng-if="localUpgradeInfo" href="{php echo url('module/manage-system/upgrade')}module_name={{ moduleinfo.name }}" class="btn btn-primary">本地升级</a>
-				<a href="javascript:;" ng-click="notice(service_expire, upgradeInfo.id, upgradeInfo.name)" ng-if="branch.id == upgradeInfo.site_branch.id && branch.version.version !=  moduleinfo.version && upgradeInfo.can_update" class="btn btn-primary">升级</a>
+				<a href="javascript:;" ng-click="notice(service_expire, upgradeInfo.id, upgradeInfo.name)" ng-if="moduleinfo.application_type != 2 && branch.id == upgradeInfo.site_branch.id && branch.version.version !=  moduleinfo.version && upgradeInfo.can_update" class="btn btn-primary">升级</a>
+				<a href="javascript:;" ng-click="notice(service_expire, upgradeInfo.id, upgradeInfo.name)" ng-if="moduleinfo.application_type == 2 && branch.version.version !=  moduleinfo.version && upgradeInfo.can_update" class="btn btn-primary">升级</a>
 				{/if}
 				<a href="javascript:;" ng-click="upgrade(branch.upgrade_price, upgradeInfo.name, upgradeInfo.id)" ng-if="upgradeInfo.can_update && (branch.displayorder > upgradeInfo.site_branch.displayorder || (branch.displayorder == upgradeInfo.site_branch.displayorder && branch.id > upgradeInfo.site_branch.id))" class="btn btn-danger">购买</a>
 			</td>
@@ -693,7 +733,8 @@
 			'checkReceiveUrl' : "{php echo url('module/manage-system/check_subscribe')}",
 			'getUpgradeInfoUrl' : "{php echo url('module/manage-system/get_upgrade_info')}",
 			'getLocalUpgradeInfoUrl' : "{php echo url('module/manage-system/get_local_upgrade_info')}",
-			'getWorkorderIframeUrl' : "{php echo url('system/workorder/module')}"
+			'getWorkorderIframeUrl' : "{php echo url('system/workorder/module')}",
+            'downgradeUrl': "{php echo url('module/manage-system/downgrade')}",
 		});
 		angular.bootstrap($('.js-system-module-detail'), ['moduleApp']);
 	});

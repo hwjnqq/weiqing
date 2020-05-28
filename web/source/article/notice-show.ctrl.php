@@ -15,16 +15,26 @@ if ('detail' == $do) {
 	if (is_error($notice)) {
 		itoast('公告不存在或已删除', referer(), 'error');
 	}
+	if (!empty($notice)) {
+		$notice['style'] = iunserializer($notice['style']);
+		$notice['group'] = empty($notice['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice['group']);
+	}
 	$comment_status = setting_load('notice_comment_status');
 	$comment_status = empty($comment_status['notice_comment_status']) ? 0 : 1;
 
-	if (checksubmit('submit')) {
+	if ($_W['ispost']) {
 		$comment_table = table('article_comment');
 		if (empty($comment_status)) {
+			if ($_W['isw7_request']) {
+				iajax(-1, '未开启评论功能！');
+			}
 			itoast('未开启评论功能！', referer(), 'error');
 		}
 		$content = safe_gpc_string($_GPC['content']);
 		if (empty($content)) {
+			if ($_W['isw7_request']) {
+				iajax(-1, '评论内容不能为空！');
+			}
 			itoast('评论内容不能为空！', referer(), 'error');
 		}
 		$result = $comment_table->addComment(array(
@@ -32,11 +42,15 @@ if ('detail' == $do) {
 			'content' => $content,
 			'uid' => $_W['uid'],
 		));
+		if ($_W['isw7_request']) {
+			iajax($result? 0 :1, $result? '评论成功':'评论失败');
+		}
 		itoast($result ? '评论成功' : '评论失败', url('article/notice-show/detail', array('id' => $id, 'page' => 1)), $result ? 'success' : 'error');
 	}
-
+	if ($_W['isw7_request']) {
+		iajax(0, array('notice' => $notice, 'comment_status' => $comment_status));
+	}
 	pdo_update('article_notice', array('click +=' => 1), array('id' => $id));
-
 	if (!empty($_W['uid'])) {
 		pdo_update('article_unread_notice', array('is_new' => 0), array('notice_id' => $id, 'uid' => $_W['uid']));
 	}
@@ -65,6 +79,9 @@ if ('more_comments' == $do) {
 		}
 	}
 	iajax(0, array(
+		'total' => $total,
+		'page' => $pageindex,
+		'page_size' => $pagesize,
 		'list' => array_values($comments),
 		'pager' => pagination($total, $pageindex, $pagesize, '', array('ajaxcallback' => true, 'callbackfuncname' => 'changePage')),
 	));
@@ -103,6 +120,13 @@ if ('list' == $do) {
 	$total = intval($notices['total']);
 	$data = $notices['notice'];
 	$pager = pagination($total, $pindex, $psize);
+	if ($_W['isw7_request']) {
+		$message = array(
+			'notice'	=> $notice,
+			'comment_status' => $comment_status,
+		);
+		iajax(0, $message);
+	}
 }
 
 template('article/notice-show');

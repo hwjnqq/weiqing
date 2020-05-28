@@ -308,12 +308,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function fetchSameAccountExist() {
-		return table($this->tablename)
-			->where(array(
-			'key' => $this->account['key'],
-			'uniacid <>' => $this->uniacid
-			))
-			->getall('uniacid');
+		return pdo_getall($this->tablename, array('key' => $this->account['key'], 'uniacid <>' => $this->uniacid), array(), 'uniacid');
 	}
 
 	protected function fetchIsStar() {
@@ -1160,20 +1155,10 @@ abstract class WeBase {
 		$pars = array('module' => $this->modulename, 'uniacid' => $_W['uniacid']);
 		$row = array();
 		$row['settings'] = iserializer($settings);
-		if (table('uni_account_modules')->where(array('module' => $this->modulename, 'uniacid' => $_W['uniacid']))->getcolumn('module')){
-			$result = false !== table('uni_account_modules')
-				->where($pars)
-				->fill($row)
-				->save();
+		if (pdo_fetchcolumn('SELECT module FROM ' . tablename('uni_account_modules') . ' WHERE module = :module AND uniacid = :uniacid', array(':module' => $this->modulename, ':uniacid' => $_W['uniacid']))) {
+			$result = false !== pdo_update('uni_account_modules', $row, $pars);
 		} else {
-			$result = false !== table('uni_account_modules')
-				->fill(array(
-					'settings' => iserializer($settings),
-					'module' => $this->modulename,
-					'uniacid' => $_W['uniacid'],
-					'enabled' => 1
-				))
-				->save();
+			$result = false !== pdo_insert('uni_account_modules', array('settings' => iserializer($settings), 'module' => $this->modulename, 'uniacid' => $_W['uniacid'], 'enabled' => 1));
 		}
 		cache_build_module_info($this->modulename);
 
@@ -1746,13 +1731,11 @@ abstract class WeModuleProcessor extends WeBase {
 			$pass = array();
 			$pass['openid'] = $this->message['from'];
 			$pass['acid'] = $_W['acid'];
-			$fan = table('mc_mapping_fans')
-				->where(array(
-					'acid' => $_W['acid'],
-					'openid' => $pass['openid']
-				))
-				->select(array('fanid', 'salt', 'uid'))
-				->get();
+			$sql = 'SELECT `fanid`,`salt`,`uid` FROM ' . tablename('mc_mapping_fans') . ' WHERE `acid`=:acid AND `openid`=:openid';
+			$pars = array();
+			$pars[':acid'] = $_W['acid'];
+			$pars[':openid'] = $pass['openid'];
+			$fan = pdo_fetch($sql, $pars);
 			if (empty($fan) || !is_array($fan) || empty($fan['salt'])) {
 				$fan = array('salt' => '');
 			}
@@ -1917,13 +1900,7 @@ abstract class WeModuleSite extends WeBase {
 				exit($site->$method($pars));
 			}
 		}
-		$log = table('core_paylog')
-			->where(array(
-				'uniacid' => $_W['uniacid'],
-				'module' => $params['module'],
-				'tid' => $params['tid']
-			))
-			->get();
+		$log = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $params['module'], 'tid' => $params['tid']));
 		if (empty($log)) {
 			$log = array(
 				'uniacid' => $_W['uniacid'],
@@ -1936,9 +1913,7 @@ abstract class WeModuleSite extends WeBase {
 				'status' => '0',
 				'is_usecard' => '0',
 			);
-			table('core_paylog')
-				->fill($log)
-				->save();
+			pdo_insert('core_paylog', $log);
 		}
 		if ('1' == $log['status']) {
 			message('这个订单已经支付成功, 不需要重复支付.', '', 'info');
@@ -2047,12 +2022,11 @@ abstract class WeModuleSite extends WeBase {
 	 *               $ret['tag'] 订单附加信息, 根据支付类型不同, 所包含数据不同
 	 */
 	protected function payResultQuery($tid) {
-		$log = table('core_paylog')
-			->where(array(
-				'module' => $this->module['name'],
-				'tid' => $tid
-			))
-			->get();
+		$sql = 'SELECT * FROM ' . tablename('core_paylog') . ' WHERE `module`=:module AND `tid`=:tid';
+		$params = array();
+		$params[':module'] = $this->module['name'];
+		$params[':tid'] = $tid;
+		$log = pdo_fetch($sql, $params);
 		$ret = array();
 		if (!empty($log)) {
 			$ret['uniacid'] = $log['uniacid'];
@@ -2147,9 +2121,7 @@ abstract class WeModuleCron extends WeBase {
 			'note' => $note,
 			'createtime' => TIMESTAMP,
 		);
-		table('core_cron_record')
-			->fill($data)
-			->save();
+		pdo_insert('core_cron_record', $data);
 		iajax($errno, $note, '');
 	}
 }
@@ -2237,13 +2209,7 @@ abstract class WeModuleWxapp extends WeBase {
 		}
 		$moduleid = empty($this->module['mid']) ? '000000' : sprintf('%06d', $this->module['mid']);
 		$uniontid = date('YmdHis') . $moduleid . random(8, 1);
-		$paylog = table('core_paylog')
-			->where(array(
-				'uniacid' => $_W['uniacid'],
-				'module' => $this->module['name'],
-				'tid' => $order['tid']
-			))
-			->get();
+		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $order['tid']));
 		if (empty($paylog)) {
 			$paylog = array(
 				'uniacid' => $_W['uniacid'],
@@ -2259,18 +2225,16 @@ abstract class WeModuleWxapp extends WeBase {
 				'is_usecard' => '0',
 				'tag' => iserializer(array('acid' => $_W['acid'], 'uid' => $_W['member']['uid'])),
 			);
-			table('core_paylog')->fill($paylog)->save();
+			pdo_insert('core_paylog', $paylog);
 			$paylog['plid'] = pdo_insertid();
 		}
 		if (!empty($paylog) && '0' != $paylog['status']) {
 			return error(1, '这个订单已经支付成功, 不需要重复支付.');
 		}
 		if (!empty($paylog) && empty($paylog['uniontid'])) {
-			table('core_paylog')
-				->where(array('plid' => $paylog['plid']))
-				->fill( array('uniontid' => $uniontid))
-				->save();
-
+			pdo_update('core_paylog', array(
+				'uniontid' => $uniontid,
+			), array('plid' => $paylog['plid']));
 			$paylog['uniontid'] = $uniontid;
 		}
 		$_W['openid'] = $paylog['openid'];
@@ -2306,13 +2270,7 @@ abstract class WeModuleWxapp extends WeBase {
 	protected function creditExtend($params) {
 		global $_W;
 		$credtis = mc_credit_fetch($_W['member']['uid']);
-		$paylog = table('core_paylog')
-			->where(array(
-				'uniacid' => $_W['uniacid'],
-				'module' => $this->module['name'],
-				'tid' => $params['tid']
-			))
-			->get();
+		$paylog = pdo_get('core_paylog', array('uniacid' => $_W['uniacid'], 'module' => $this->module['name'], 'tid' => $params['tid']));
 		if (empty($_GPC['notify'])) {
 			if (!empty($paylog) && '0' != $paylog['status']) {
 				return error(-1, '该订单已支付');
@@ -2325,10 +2283,7 @@ abstract class WeModuleWxapp extends WeBase {
 			if (is_error($result)) {
 				return error(-1, $result['message']);
 			}
-			table('core_paylog')
-				->where(array('plid' => $paylog['plid']))
-				->fill(array('status' => 1))
-				->save();
+			pdo_update('core_paylog', array('status' => '1'), array('plid' => $paylog['plid']));
 			$site = WeUtility::createModuleWxapp($paylog['module']);
 			if (is_error($site)) {
 				return error(-1, '参数错误');

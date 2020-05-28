@@ -17,6 +17,19 @@ function cloud_client_define() {
 	);
 }
 
+function cloud_not_must_authorization_method() {
+	return array(
+		'module/setting/index',
+		'module/setting/save',
+		'sms/info',
+		'sms/sign',
+		'site/cron/save',
+		'site/cron/remove',
+		'site/cron/get',
+		'site/cron/status'
+	);
+}
+
 /**
  * @param bool $must_authorization_host 是否校验授权域名请求接口
  * @return array
@@ -150,7 +163,8 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 		return $cache;
 	}
 	$api_url = 'http://api.w7.cc/%s';
-	$must_authorization_host = !in_array($method, array('module/setting/index', 'module/setting/save', 'sms/info', 'sms/sign'));
+	$not_must_authorization_method = cloud_not_must_authorization_method();
+	$must_authorization_host = !in_array($method, $not_must_authorization_method);
 	$pars = _cloud_build_params($must_authorization_host);
 	if ($method != 'site/token/index') {
 		$pars['token'] = cloud_build_transtoken();
@@ -351,7 +365,7 @@ function cloud_download($path, $type = '') {
 				return error(-1, '写入失败，请检查是否有写入权限或是否磁盘已满！');
 			}
 		}
-		return error(-1, '写入失败！');
+		return error(-1, '与云服务校验失败，更新缓存后重试！');
 	}
 }
 
@@ -383,21 +397,14 @@ function cloud_m_build($modulename, $type = '') {
 	if (empty($modulename)) {
 		return array();
 	}
-	if ($type == 'upgrade') {
-		$module_info = cloud_m_info($modulename);
-		if (is_error($module_info)) {
-			return $module_info['message'];
-		}
-		$module = array('version' => $module_info['version']['version']);
-	} else {
-		$module = table('modules')->getByName($modulename);
+	$module_info = cloud_m_info($modulename);
+	if (is_error($module_info)) {
+		return $module_info['message'];
 	}
+
 	$pars['module'] = $modulename;
 	$pars['type'] = $type;
-	if (!empty($module)) {
-		$pars['module_version'] = $module['version'];
-	}
-	
+	$pars['module_version'] = $module_info['version']['version'];
 	$pars['file'] = 'module.build';
 	$ret = cloud_api('module/build', $pars);
 
@@ -438,6 +445,7 @@ function cloud_m_build($modulename, $type = '') {
 		$ret['type'] = 'module';
 		$ret['schemas'] = $schemas;
 		//如果是安装模块,根据这个标志不处理script
+		$module = table('modules')->getByName($modulename);
 		if (empty($module)) {
 			$ret['install'] = 1;
 		}
@@ -466,7 +474,7 @@ function cloud_m_query($module = array(), $page = 1) {
 	if (!is_error($ret)) {
 		$pirate_apps = $ret['pirate_apps'];
 		unset($ret['pirate_apps']);
-		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp');
+		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'aliapp', 'baiduapp', 'toutiaoapp');
 		$record_module = array();
 		foreach ($ret['data'] as $modulename => &$info) {
 			if ($info['is_record']) {
@@ -586,6 +594,9 @@ function cloud_t_build($module_name) {
 		$files = array();
 		if(!empty($ret['files'])) {
 			foreach($ret['files'] as $file) {
+				if ($file['path'] == '/map.json') {
+					continue;
+				}
 				$entry = $dir . $file['path'];
 				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
 					$files[] = '/'. $module_name . $file['path'];
@@ -593,7 +604,11 @@ function cloud_t_build($module_name) {
 			}
 		}
 		$ret['files'] = $files;
-		$ret['upgrade'] = true;
+		if (!empty($theme) && version_compare($theme['version'], $ret['version']) == -1) {
+			$ret['upgrade'] = true;
+		} else {
+			$ret['upgrade'] = false;
+		}
 		$ret['type'] = 'theme';
 		//如果是安装模块,根据这个标志不处理script
 		if(empty($theme)) {
@@ -659,7 +674,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$account_name .= empty($_W['account']['name']) ? '' : " [{$_W['account']['name']}] ";
 	}
 	if(empty($sign) || $sign == 'null') {
-		$sign = '涛盛微擎团队';
+		$sign = '微擎';
 	}
 	if ($balance < 1) {
 		return error(-1, '短信不足');
@@ -696,6 +711,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 			if ($row['notify']['sms']['balance'] < 0) {
 				$row['notify']['sms']['balance'] = 0;
 			}
+
 			pdo_update('uni_settings', array('notify' => iserializer($row['notify'])), array('uniacid' => $uniacid));
 			uni_setting_save('notify', $row['notify']);
 		} else {
@@ -854,20 +870,6 @@ function cloud_extra_theme() {
 	}
 }
 
-/**
- * 获取当前站点所有本地后台皮肤
- * @return string 后台皮肤标识序列化
- */
-function cloud_extra_webtheme() {
-	$sql = 'SELECT `name` FROM ' . tablename('webtheme_templates') . ' WHERE `name` <> :name';
-	$themes = pdo_fetchall($sql, array(':name' => 'default'), 'name');
-	if (!empty($themes)) {
-		return base64_encode(iserializer(array_keys($themes)));
-	} else {
-		return '';
-	}
-}
-
 function cloud_module_setting($acid, $module) {
 	$pars = array(
 		'acid' => $acid,
@@ -883,7 +885,7 @@ function cloud_module_setting_save($acid, $module_name, $setting) {
 		'module_name' => $module_name,
 		'setting' => $setting,
 	);
-	return cloud_api('module/setting/save', $pars);
+	return cloud_api('module/setting/save', $pars, array('nocache' => STATUS_ON));
 }
 
 function cloud_module_list($title, $support_type, $page = 1, $per_page = 20) {

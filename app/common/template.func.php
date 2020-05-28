@@ -383,7 +383,7 @@ function site_navs($params = array()) {
 
 function site_article($params = array()) {
 	global $_GPC, $_W;
-	extract($params);
+	extract($params, EXTR_SKIP);
 	$pindex = max(1, intval($_GPC['page']));
 	if (!isset($limit)) {
 		$psize = 10;
@@ -440,7 +440,7 @@ function site_article($params = array()) {
 function site_article_comment($params = array()) {
 	global $_GPC, $_W;
 	load()->model('article');
-	extract($params);
+	extract($params, EXTR_SKIP);
 	$pindex = max(1, intval($_GPC['page']));
 	if (!isset($limit)) {
 		$psize = 10;
@@ -465,7 +465,7 @@ function site_article_comment($params = array()) {
 
 function site_category($params = array()) {
 	global $_GPC, $_W;
-	extract($params);
+	extract($params, EXTR_SKIP);
 	$where['uniacid'] = $_W['uniacid'];
 	$where['enabled'] = 1;
 	if (isset($parentid)) {

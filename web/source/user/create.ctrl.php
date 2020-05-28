@@ -38,12 +38,6 @@ if ('post' == $do) {
 			}
 		}
 	}
-	$source_templates = table('modules')->getAllTemplates();
-	if (!empty($source_templates)) {
-		foreach ($source_templates as &$source_template) {
-			$source_template['checked'] = 0;
-		}
-	}
 
 	//应用权限组
 	$modules_group_list = uni_groups();
@@ -99,6 +93,7 @@ if ('save' == $do) {
 		$vice_founder_uid = !user_is_vice_founder($_W['uid']) ? 0 : $_W['uid'];
 	}
 
+	/*关闭副创始人添加用户时重复添加数据
 	if (!empty($vice_founder_uid)) {
 		$founder_own_user_table = table('users_founder_own_users');
 		$founder_own_add_res = $founder_own_user_table->addOwnUser($uid, $vice_founder_uid);
@@ -106,6 +101,7 @@ if ('save' == $do) {
 			iajax('-1', '添加副创始人失败', 'user/display');
 		}
 	}
+	*/
 
 	$user_update['groupid'] = intval($_GPC['groupid']) ? intval($_GPC['groupid']) : 0;
 	$user_update['uid'] = $uid;

@@ -33,4 +33,12 @@ class Keyword extends \We7Table {
 			'status' => $status,
 		))->get();
 	}
+
+	public function searchWithCoverReply() {
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('cover_reply', 'b')
+			->on(array(
+				'a.rid' => 'b.rid'
+			));
+	}
 }

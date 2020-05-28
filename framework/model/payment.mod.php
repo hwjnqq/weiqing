@@ -316,7 +316,7 @@ function payment_setting() {
 		$user_account_list = pdo_getall('uni_account_users', array('uid' => $_W['uid']), array(), 'uniacid');
 		$param['uniacid'] = array_keys($user_account_list);
 	}
-	$pay_setting['unionpay']['signcertexists'] = file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx');
+	$pay_setting['unionpay']['signcertexists'] = file_exists(IA_ROOT . '/attachment/unionpay/PM_'. md5(complex_authkey() . $_W['uniacid']).'_acp.pfx');
 	$no_recharge_types = array('delivery', 'credit', 'mix', 'line');
 	$has_config_keys = array('pay_switch', 'recharge_switch', 'has_config', 'recharge_set', 'signcertexists', 'support_set');
 	if ($pay_setting['wechat']['switch'] == 1) {

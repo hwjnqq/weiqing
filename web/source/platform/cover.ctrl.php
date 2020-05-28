@@ -47,7 +47,8 @@ if ('module' == $do) {
 	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
 
 	foreach ($entries['cover'] as $key => &$cover) {
-		$cover['url'] = ltrim($cover['url'], './');
+		$module_url = module_entry($cover['eid']);
+		$cover['url'] = !empty($module_url['url_show']) ? $module_url['url_show'] : '';
 		$permission_name = $modulename . '_cover_' . trim($cover['do']);
 		if ('all' != $module_permission[0] && !in_array($permission_name, $module_permission)) {
 			unset($entries['cover'][$key]);
@@ -67,8 +68,8 @@ if ('module' == $do) {
 		itoast('模块菜单不存在或是模块已经被删除', '', '');
 	}
 	$module = $_W['current_module'] = module_fetch($entry['module']);
-	$reply = pdo_get('cover_reply', array('module' => $entry['module'], 'do' => $entry['do'], 'uniacid' => $_W['uniacid']));
 
+	$reply = pdo_get('cover_reply', array('module' => $entry['module'], 'do' => $entry['do'], 'uniacid' => $_W['uniacid']));
 	if (checksubmit('submit')) {
 		$keywords = @json_decode(safe_gpc_html(htmlspecialchars_decode($_GPC['keywords'])), true);
 		$rule = array(

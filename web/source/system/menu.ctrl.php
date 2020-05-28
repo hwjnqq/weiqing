@@ -82,7 +82,6 @@ if ('display' == $do) {
 	}
 	$permission_name = $menu['permission_name'];
 	$menu_db = pdo_get('core_menu', array('permission_name' => $permission_name));
-
 	if (!empty($menu_db)) {
 		unset($menu['permission_name']);
 		$menu['group_name'] = $menu_db['group_name'];
@@ -113,7 +112,6 @@ if ('display' == $do) {
 } elseif ('delete' == $do) {
 	$permission_name = $_GPC['permission_name'];
 	$menu_db = pdo_get('core_menu', array('permission_name' => $permission_name));
-
 	if (!empty($menu_db['is_system'])) {
 		iajax(-1, '系统菜单不能删除', referer());
 	}

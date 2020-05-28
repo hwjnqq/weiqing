@@ -40,8 +40,6 @@ function setting_load($key = '') {
 	$cachekey = cache_system_key('setting');
 	$settings = cache_load($cachekey);
 	if (empty($settings)) {
-		//todo 2.0内测升级文件顺序不可调整,table暂时改成pdo
-		//$settings = table('core_settings')->getall('key');
 		$settings = pdo_getall('core_settings', array(), array(), 'key');
 		if (is_array($settings)) {
 			foreach ($settings as $k => &$v) {

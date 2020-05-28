@@ -103,13 +103,6 @@ function module_support_type() {
 			'not_support' => MODULE_NOSUPPORT_PHONEAPP,
 			'store_type' => STORE_TYPE_PHONEAPP_MODULE,
 		),
-		'xzapp_support' => array(
-			'type' => XZAPP_TYPE_SIGN,
-			'type_name' => '熊掌号',
-			'support' => MODULE_SUPPORT_XZAPP,
-			'not_support' => MODULE_NOSUPPORT_XZAPP,
-			'store_type' => STORE_TYPE_XZAPP_MODULE,
-		),
 		'aliapp_support' => array(
 			'type' => ALIAPP_TYPE_SIGN,
 			'type_name' => '支付宝小程序',
@@ -392,14 +385,7 @@ function module_fetch($name, $enabled = true) {
 		if (empty($module_info)) {
 			return array();
 		}
-		if (!empty($module_info['subscribes'])) {
-			$module_info['subscribes'] = (array)unserialize ($module_info['subscribes']);
-		}
-		if (!empty($module_info['handles'])) {
-			$module_info['handles'] = (array)unserialize ($module_info['handles']);
-		}
 		$module_info['isdisplay'] = 1;
-
 		$module_info['logo'] = tomedia($module_info['logo']);
 		$module_info['preview'] = tomedia(IA_ROOT . '/addons/' . $module_info['name'] . '/preview.jpg', '', true);
 		if (file_exists(IA_ROOT . '/addons/' . $module_info['name'] . '/preview-custom.jpg')) {
@@ -408,18 +394,17 @@ function module_fetch($name, $enabled = true) {
 		if (APPLICATION_TYPE_TEMPLATES == $module_info['application_type']) {
 			$module_info['preview'] = tomedia(IA_ROOT . '/app/themes/' . $module_info['name'] . '/preview-custom.jpg', '', true);
 		}
-		$module_info['main_module'] = pdo_getcolumn ('modules_plugin', array ('name' => $module_info['name']), 'main_module');
-		if (!empty($module_info['main_module'])) {
-			$main_module_info = module_fetch ($module_info['main_module']);
+		$modules_plugin = table('modules_plugin')->getAllByNameOrMainModule($module_info['name']);
+		$main_module = array_column($modules_plugin, 'main_module');
+		if (in_array($module_info['name'], $main_module)) {
+			$module_info['plugin_list'] = array_column($modules_plugin, 'name');
+		} else {
+			$module_info['main_module'] = current($main_module);
+			$main_module_info = module_fetch($module_info['main_module']);
 			$module_info['main_module_logo'] = $main_module_info['logo'];
 			$module_info['main_module_title'] = $main_module_info['title'];
-		} else {
-			$module_info['plugin_list'] = pdo_getall ('modules_plugin', array ('main_module' => $module_info['name']), array (), 'name');
-			if (!empty($module_info['plugin_list'])) {
-				$module_info['plugin_list'] = array_keys ($module_info['plugin_list']);
-			}
 		}
-
+		//禁用订阅
 		$module_receive_ban = (array)setting_load('module_receive_ban');
 		if (is_array($module_receive_ban['module_receive_ban']) && in_array($name, $module_receive_ban['module_receive_ban'])) {
 			$module_info['is_receive_ban'] = true;
@@ -429,7 +414,6 @@ function module_fetch($name, $enabled = true) {
 		if (is_array($module_ban['module_ban']) && in_array($name, $module_ban['module_ban'])) {
 			$module_info['is_ban'] = true;
 		}
-
 		$module_upgrade = (array)setting_load('module_upgrade');
 		if (is_array($module_upgrade['module_upgrade']) && in_array($name, array_keys($module_upgrade['module_upgrade']))) {
 			$module_info['is_upgrade'] = true;
@@ -469,11 +453,11 @@ function module_fetch($name, $enabled = true) {
 		$setting_cachekey = cache_system_key('module_setting', array('module_name' => $name, 'uniacid' => $_W['uniacid']));
 		$setting = cache_load($setting_cachekey);
 		if (empty($setting)) {
-			$setting = pdo_get('uni_account_modules', array('module' => $name, 'uniacid' => $_W['uniacid']));
+			$setting = table('uni_account_modules')->getByUniacidAndModule($name, $_W['uniacid']);
 			$setting = empty($setting) ? array('module' => $name) : $setting;
 			cache_write($setting_cachekey, $setting);
 		}
-		$module['config'] = !empty($setting['settings']) ? iunserializer($setting['settings']) : array();
+		$module['config'] = $setting['settings'];
 		$module['enabled'] = $module['issystem'] || !isset($setting['enabled']) ? 1 : $setting['enabled'];
 		$module['displayorder'] = $setting['displayorder'];
 		$module['shortcut'] = $setting['shortcut'];
@@ -539,7 +523,6 @@ function module_permission_fetch($name) {
 	return $data;
 }
 
-
 /**
  *  获取指定模块在当前公众号安装的插件
  * @param string $module_name 模块标识
@@ -596,37 +579,15 @@ function module_status($module) {
  * @return boolean
  */
 function module_exist_in_account($module_name, $uniacid) {
-	global $_W;
-	$result = false;
+	load()->model('user');
 	$module_name = trim($module_name);
 	$uniacid = intval($uniacid);
 	if (empty($module_name) || empty($uniacid)) {
-		return $result;
+		return false;
 	}
-	$founders = explode(',', $_W['config']['setting']['founder']);
-	$owner_uid = pdo_getcolumn('uni_account_users',  array('uniacid' => $uniacid, 'role' => 'owner'), 'uid');
-	if (!empty($owner_uid) && !in_array($owner_uid, $founders)) {
-		if (IMS_FAMILY == 'x') {
-			$account_info = uni_fetch($uniacid);
-			if (in_array($account_info['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH))) {
-				$site_store_buy_goods = uni_site_store_buy_goods($uniacid, STORE_TYPE_WXAPP_MODULE);
-			} else {
-				$site_store_buy_goods = uni_site_store_buy_goods($uniacid);
-			}
-		} else {
-			$site_store_buy_goods = array();
-		}
-		$account_table = table('account');
-		$uni_modules = $account_table->accountGroupModules($uniacid);
-		$user_modules = user_modules($owner_uid);
-		$modules = array_merge(array_keys($user_modules), $uni_modules, $site_store_buy_goods);
-		$result = in_array($module_name, $modules) ? true : false;
-	} else {
-		$result = true;
-	}
-	return $result;
+	$result = table('uni_modules')->where(array('uniacid' => $uniacid, 'module_name' => $module_name))->getcolumn('id');
+	return $result ? true : false;
 }
-
 
 /**
  * 获取操作员有某一模块权限的所有公众号和小程序
@@ -658,8 +619,6 @@ function module_get_user_account_list($uid, $module_name) {
 		if (($account['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) && $module_info[MODULE_SUPPORT_ACCOUNT_NAME] == MODULE_SUPPORT_ACCOUNT) {
 			$uniacid = $account['uniacid'];
 		} elseif ($account['type'] == ACCOUNT_TYPE_APP_NORMAL && $module_info['wxapp_support'] == MODULE_SUPPORT_WXAPP) {
-			$uniacid = $account['uniacid'];
-		} elseif (($account['type'] == ACCOUNT_TYPE_XZAPP_NORMAL || $account['type'] == ACCOUNT_TYPE_XZAPP_AUTH) && $module_info[MODULE_SUPPORT_XZAPP_NAME] == MODULE_SUPPORT_XZAPP) {
 			$uniacid = $account['uniacid'];
 		} elseif (($account['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL && $module_info[MODULE_SUPPORT_WEBAPP_NAME] == MODULE_SUPPORT_WEBAPP)) {
 			$uniacid = $account['uniacid'];
@@ -730,7 +689,7 @@ function module_link_uniacid_fetch($uid, $module_name) {
 				}
 
 			}
-		} elseif ($account_value['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account_value['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH || $account_value['type']== ACCOUNT_TYPE_XZAPP_NORMAL || $account_value['type'] == ACCOUNT_TYPE_XZAPP_AUTH) {
+		} elseif ($account_value['type'] == ACCOUNT_TYPE_OFFCIAL_NORMAL || $account_value['type'] == ACCOUNT_TYPE_OFFCIAL_AUTH) {
 			if (empty($accounts_link_result[$key])) {
 				$accounts_link_result[$key] = $account_value;
 			} else {
@@ -753,11 +712,9 @@ function module_link_uniacid_fetch($uid, $module_name) {
 				$link_value['type_name'] = WXAPP_TYPE_SIGN;
 			} elseif ($link_value['type'] == ACCOUNT_TYPE_WEBAPP_NORMAL) {
 				$link_value['type_name'] = WEBAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
+			} elseif ($link_value['type'] == ACCOUNT_TYPE_PHONEAPP_NORMAL) {
 				$link_value['type_name'] = PHONEAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_XZAPP_NORMAL) {
-				$link_value['type_name'] = XZAPP_TYPE_SIGN;
-			}elseif ($link_value['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL) {
+			} elseif ($link_value['type'] == ACCOUNT_TYPE_ALIAPP_NORMAL) {
 				$link_value['type_name'] = ALIAPP_TYPE_SIGN;
 			}
 
@@ -977,6 +934,10 @@ function module_upgrade_info($modulelist = array()) {
 	if (is_error($cloud_m_query_module_pageinfo)) {
 		return $cloud_m_query_module_pageinfo;
 	}
+	$cloud_t_query_module = cloud_t_query();
+	if (is_error($cloud_t_query_module)){
+		return $cloud_t_query_module;
+	}
 	$cloud_m_query_module = $cloud_m_query_module_pageinfo['data'];
 	if ($cloud_m_query_module_pageinfo['page'] > 1) {
 		for($i = 2;$i <= $cloud_m_query_module_pageinfo['page']; $i++) {
@@ -987,7 +948,6 @@ function module_upgrade_info($modulelist = array()) {
 	$pirate_apps = $cloud_m_query_module['pirate_apps'];
 	unset($cloud_m_query_module['pirate_apps']);
 	//模板的处理
-	$cloud_t_query_module = cloud_t_query();
 	foreach ($cloud_t_query_module as $template_name => $template_manifest_cloud) {
 		if (empty($template_manifest_cloud)) {
 			continue;
@@ -1059,6 +1019,7 @@ function module_upgrade_info($modulelist = array()) {
 		if (empty($manifest['platform']['supports'])) {
 			continue;
 		}
+		$manifest['status'] = $manifest_cloud['status'];
 		$manifest['branches'] = $manifest_cloud['branches'];
 		$manifest['site_branch'] = $manifest_cloud['site_branch'];
 		$manifest['cloud_id'] = $manifest_cloud['id'];
@@ -1108,7 +1069,7 @@ function module_upgrade_info($modulelist = array()) {
 			$module_upgrade_data['install_status'] = MODULE_LOCAL_INSTALL;
 		}
 
-		$module_upgrade_data['logo'] = $manifest['application']['logo'];
+		$module_upgrade_data['logo'] = !empty($module['logo']) ? tomedia($module['logo']) : $manifest['application']['logo'];
 		$module_upgrade_data['version'] = $manifest['application']['version'];
 		$module_upgrade_data['title'] = $manifest['application']['title'];
 		$module_upgrade_data['title_initial'] = get_first_pinyin($manifest['application']['title']);
@@ -1121,35 +1082,43 @@ function module_upgrade_info($modulelist = array()) {
 			'name' => $modulename,
 			'best_version' => $manifest['application']['version'],
 		);
+		$result[$modulename]['new_version'] = STATUS_OFF;
 		if (version_compare($module['version'], $manifest['application']['version']) == '-1') {
 				$module_upgrade_data['has_new_version'] = 1;
 				$module_upgrade_data['lastupdatetime'] = TIMESTAMP;
-				$result[$modulename]['new_version'] = 1;
+				$result[$modulename]['new_version'] = STATUS_ON;
 		}
 
 		//本地已安装，没有更新的模块不入表，防止无用数据太多
 		if ($module_upgrade_data['install_status'] == MODULE_LOCAL_INSTALL && empty($module_upgrade_data['has_new_version'])) {
 			continue;
 		}
-
-		if (!empty($manifest['branches'])) {
+		$result[$modulename]['new_branch'] = STATUS_OFF;
+		if (!empty($manifest['branches']) && $manifest['application_type'] == APPLICATION_TYPE_MODULE) {
 			foreach ($manifest['branches'] as &$branch) {
 				if ($branch['displayorder'] > $manifest['site_branch']['displayorder'] || ($branch['displayorder'] == $manifest['site_branch']['displayorder'] && $manifest['site_branch']['id'] < intval($branch['id']))) {
 					$module_upgrade_data['has_new_branch'] = 1;
-					$result[$modulename]['new_branch'] = 1;
+					$result[$modulename]['new_branch'] = STATUS_ON;
 				}
 			}
 		}
 		if (!empty($manifest['system_shutdown'])) {
 			$result[$modulename]['system_shutdown'] = $manifest['system_shutdown'];
 			$result[$modulename]['system_shutdown_delay_time'] = date('Y-m-d', $manifest['system_shutdown_delay_time']);
-			$result[$modulename]['can_update'] = $manifest['can_update'] ? 1 : 0;
 		}
+		$result[$modulename]['can_update'] = $manifest['can_update'] ? 1 : 0;
 		if (!empty($manifest['service_expiretime'])) {
 			$result[$modulename]['service_expiretime'] = date('Y-m-d H:i:s', $manifest['service_expiretime']);
 			if ($manifest['service_expiretime'] < time()) {
-				$result[$modulename]['service_expire'] = 1;
+				$result[$modulename]['service_expire'] = STATUS_ON;
 			}
+		} else {
+			$result[$modulename]['service_expire'] = STATUS_OFF;
+		}
+		if (!$manifest['status'] || $manifest['system_shutdown'] == 2) {
+			$result[$modulename]['offsell'] = STATUS_ON;
+		} else {
+			$response[$modulename]['offsell'] = STATUS_OFF;
 		}
 
 		if (!empty($manifest['platform']['supports'])) {
@@ -1292,6 +1261,7 @@ function module_recycle($modulename, $type, $support) {
 
 	# 停用模块时,删除相关权限和记录
 	if ($type == MODULE_RECYCLE_INSTALL_DISABLED) {
+		table('system_welcome_binddomain')->where(array('module_name' => $modulename))->delete();
 		$uni_modules_table = table('uni_modules');
 		$uni_accounts = $uni_modules_table->where('module_name', $modulename)->getall('uniacid');
 		if (!empty($uni_accounts)) {

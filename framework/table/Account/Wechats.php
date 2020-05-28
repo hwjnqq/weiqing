@@ -51,5 +51,20 @@ class Wechats extends \We7Table {
 		'subscribeurl' => '',
 		'createtime' => '',
 	);
+	public function getAccount($uniacid) {
+		return $this->query->where('uniacid', $uniacid)->get();
+	}
+	public function searchWithAccount() {
+		return $this->query->from($this->tableName, 't')
+			->leftjoin('account', 'a')
+			->on(array('t.uniacid' => 'a.uniacid'));
+	}
 
+	public function searchWithsearchWithAccountAndUniAccountUsers() {
+		return $this->query->from($this->tableName, 't')
+			->leftjoin('account', 'a')
+			->on(array('t.uniacid' => 'a.uniacid'))
+			->leftjoin('uni_account_users', 'u')
+			->on(array('u.uniacid' => 't.uniacid'));
+	}
 }

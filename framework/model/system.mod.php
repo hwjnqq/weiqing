@@ -18,10 +18,9 @@ function system_shortcut_menu() {
 	if (empty($shortcut_menu)) {
 		$shortcut_menu = array();
 		$system_menu = system_menu();
-		$is_main_founder = user_is_founder($_W['uid'], true);
+		$is_main_founder = $_W['isadmin'];
 		$is_vice_founder = user_is_vice_founder();
 		$hidden_menu = array_keys((array) pdo_getall('core_menu', array('is_display' => 0), array('id', 'permission_name'), 'permission_name'));
-
 		foreach (array('system', 'site') as $top_menu) {
 			if (!empty($system_menu[$top_menu]['founder']) && !$is_main_founder) {
 				continue;
@@ -137,7 +136,7 @@ function system_database_backup() {
 						if ($filename == '.' || $filename == '..') {
 							continue;
 						}
-						if (preg_match('/^volume-(?P<prefix>[a-z\d]{10})-\d{1,}\.sql$/i', $filename, $match1)) {
+						if (preg_match('/^volume-(?P<prefix>[a-z\d]{32})-\d{1,}\.sql$/i', $filename, $match1)) {
 							$volume_prefix = $match1['prefix'];
 							if (!empty($volume_prefix)) {
 								break;
@@ -239,6 +238,7 @@ function system_template_ch_name() {
  */
 function system_login_template_ch_name() {
 	$result = array(
+		'half-auto' => '兼容版',
 		'big' => '大图版',
 		'half' => '半屏图版',
 		'base' => '基础版'
@@ -457,6 +457,8 @@ function system_scrap_file() {
 		'/framework/module/app.mod.php',
 		'/framework/module/frame.mod.php',
 		'/framework/module/platform.mod.php',
+		'/web/source/advertisement/__init.php',
+		'/web/source/advertisement/content-provider.ctrl.php',
 		'/web/source/phoneapp/version.ctrl.php',
 		'/web/themes/2.0/common/footer-base.html',
 		'/web/themes/black/common/footer-base.html',
@@ -469,7 +471,7 @@ function system_scrap_file() {
 		'/web/themes/default/account/manage-base-toutiaoapp.html',
 		'/web/themes/default/account/manage-base-webapp.html',
 		'/web/themes/default/account/manage-base-wxapp.html',
-		'/web/themes/default/account/manage-base-xzapp.html',
+		'/web/themes/default/advertisement/content-provider.html',
 		'/web/themes/default/phoneapp/version-home.html',
 	);
 	return $scrap_file;

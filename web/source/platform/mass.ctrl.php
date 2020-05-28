@@ -17,7 +17,6 @@ $do = in_array($do, $dos) ? $do : 'post';
 if ('list' == $do) {
 	$time = strtotime(date('Y-m-d'));
 	$record = pdo_getall('mc_mass_record', array('uniacid' => $_W['uniacid'], 'sendtime >=' => $time), array(), 'sendtime', 'sendtime ASC', array(1, 7));
-
 	$days = array();
 	for ($i = 0; $i < 8; ++$i) {
 		$day_info = array();
@@ -27,7 +26,6 @@ if ('list' == $do) {
 		$endtime = $i + 1;
 		$endtime = strtotime("+{$endtime} days", $time);
 		$massdata = pdo_fetch('SELECT id, `groupname`, `msgtype`, `group`, `attach_id`, `media_id`, `sendtime` FROM ' . tablename('mc_mass_record') . ' WHERE uniacid = :uniacid AND sendtime BETWEEN :starttime AND :endtime AND status = 1', array(':uniacid' => $_W['uniacid'], ':starttime' => $starttime, ':endtime' => $endtime));
-
 		if (!empty($massdata)) {
 			$massdata['media'] = pdo_get('wechat_attachment', array('id' => $massdata['attach_id']));
 			$massdata['media']['attach'] = tomedia($massdata['media']['attachment']);

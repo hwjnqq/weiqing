@@ -395,12 +395,7 @@ if ('card' == $do) {
 if ('cardconsume' == $do) {
 	load()->model('activity');
 	$code = trim($_GPC['code']);
-	$coupon_record = table('coupon_record')
-		->where(array(
-			'code' => $code,
-			'status' => '1'
-		))
-		->get();
+	$coupon_record = pdo_get('coupon_record', array('code' => $code, 'status' => '1'));
 	if (!empty($coupon_record)) {
 		$status = activity_coupon_use($coupon_record['couponid'], $coupon_record['id'], 'paycenter');
 		if (is_error($status)) {

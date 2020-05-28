@@ -90,7 +90,6 @@ if ('installed' == $do) {
 		}
 		$param['id'] = $templates;
 	}
-
 	$template_list = pdo_getslice('site_templates', $param, array($pindex, $pagesize), $total, array(), 'name');
 	$pager = pagination($total, $pindex, $pagesize);
 	$temtypes = ext_template_type();
@@ -165,6 +164,7 @@ if ('install' == $do) {
 		itoast('您没有安装模块的权限', url('system/template/not_install'), 'error');
 	}
 	$template_name = $_GPC['templateid'];
+
 	if (pdo_get('site_templates', array('name' => $template_name))) {
 		itoast('模板已经安装或是唯一标识已存在！', url('system/template/not_install'), 'error');
 	}

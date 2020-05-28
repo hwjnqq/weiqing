@@ -21,6 +21,7 @@ if ('keyword' == $do) {
 	$psize = 24;
 
 	$rule_keyword = pdo_getslice('rule_keyword', $condition, array($pindex, $psize), $total, array(), 'id');
+
 	$result = array(
 		'items' => $rule_keyword,
 		'pager' => pagination($total, $pindex, $psize, '', array('before' => '2', 'after' => '3', 'ajaxcallback' => 'null')),

@@ -16,6 +16,8 @@ class Account extends \We7Table {
 		'createtime',
 		'title_initial',
 		'create_uid',
+		'logo',
+		'qrcode'
 	);
 	protected $default = array(
 		'groupid' => '0',
@@ -26,6 +28,8 @@ class Account extends \We7Table {
 		'createtime' => '',
 		'title_initial' => '',
 		'create_uid' => '0',
+		'logo' => '',
+		'qrcode' => ''
 	);
 	public function searchWithAccount() {
 		return $this->query->from($this->tableName, 'a')

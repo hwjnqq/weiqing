@@ -31,4 +31,10 @@ class Bind extends \We7Table {
 	public function getAllByUid($uid) {
 		return $this->query->where('uid', $uid)->getall('bind_sign');
 	}
+
+	public function searchWithUsers() {
+		return $this->query->from($this->tableName, 'b')
+			->leftjoin('users', 'u')
+			->on(array('b.uid' => 'u.uid'));
+	}
 }

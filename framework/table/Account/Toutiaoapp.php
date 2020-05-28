@@ -23,7 +23,12 @@ class Toutiaoapp extends \We7Table {
 		'secret' => '',
 		'description' => '',
 	);
-	public function getAccount($acid) {
-		return $this->query->where('acid', $acid)->get();
+	public function getAccount($uniacid) {
+		return $this->query->where('uniacid', $uniacid)->get();
+	}
+	public function searchWithAccount() {
+		return $this->query->from($this->tableName, 't')
+			->leftjoin('account', 'a')
+			->on(array('t.uniacid' => 'a.uniacid'));
 	}
 }

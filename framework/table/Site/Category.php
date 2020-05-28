@@ -46,4 +46,10 @@ class Category extends \We7Table {
 	public function getBySnake($fields = '*', $where = array(), $order = array('id' => 'DESC')) {
 		return $this->query()->select($fields)->where($where)->orderBy($where);
 	}
+
+	public function searchWithSiteArticle() {
+		return $this->query->from($this->tableName, 'a')
+			->leftjoin('site_article', 'b')
+			->on(array('a.id' => 'b.pcate'));
+	}
 }

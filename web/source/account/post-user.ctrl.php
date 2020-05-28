@@ -36,6 +36,7 @@ if (is_error($account)) {
 }
 
 if ('edit' == $do) {
+	$account_belong_user = pdo_getcolumn('uni_account_users', array('uniacid' => $uniacid,'role' => 'owner'), 'uid');
 	$permissions = pdo_fetchall('SELECT id, uid, role FROM ' . tablename('uni_account_users') . " WHERE uniacid = '$uniacid' ORDER BY uid ASC, role DESC", array(), 'uid');
 	if (!empty($permissions)) {
 		$member = pdo_fetchall('SELECT username, uid FROM ' . tablename('users') . ' WHERE uid IN (' . implode(',', array_keys($permissions)) . ')', array(), 'uid');
@@ -109,10 +110,12 @@ if ('delete' == $do) {
 if ('set_manager' == $do) {
 	$username = safe_gpc_string($_GPC['username']);
 	$user = user_single(array('username' => $username));
+
 	if (!empty($user)) {
 		if (2 != $user['status']) {
 			iajax(3, '用户未通过审核或不存在！', '');
 		}
+
 		
 		if (ACCOUNT_OPERATE_CLERK == $user['type']) {
 			iajax(-1, '该用户是应用操作员，不能成为账号的操作员!', '');
@@ -164,7 +167,7 @@ if ('set_manager' == $do) {
 						//设置主管理员后，删除该用户在该公众号下设置的权限（即主管理员拥有该公众号所有权限）
 						pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $user['uid']));
 						cache_clean(cache_system_key('user_accounts'));
-						cache_build_account_modules($uniacid);
+						cache_build_account_modules($uniacid, $user['uid']);
 						iajax(0, '修改成功！', '');
 					} else {
 						iajax(1, '修改失败！', '');
@@ -179,7 +182,6 @@ if ('set_manager' == $do) {
 			} elseif (ACCOUNT_MANAGE_TYPE_OPERATOR == $addtype) {
 				$data['role'] = ACCOUNT_MANAGE_NAME_OPERATOR;
 			}
-
 			pdo_delete('uni_account_users', array('uniacid' => $uniacid, 'uid' => $user['uid']));
 			$result = pdo_insert('uni_account_users', $data);
 
@@ -191,7 +193,7 @@ if ('set_manager' == $do) {
 					permission_account_user_init($user['uid'], $uniacid);
 				}
 				cache_clean(cache_system_key('user_accounts'));
-				cache_build_account_modules($uniacid);
+				cache_build_account_modules($uniacid, $user['uid']);
 				iajax(0, '添加成功！', '');
 			} else {
 				iajax(1, '添加失败！', '');
@@ -259,8 +261,23 @@ if ('set_permission' == $do || 'save_permission' == $do) {
 		$module_permission_all = 0;
 	}
 	$user_all_module_permission = table('users_permission')->getAllUserModulePermission($uid, $uniacid);
-
-	$module = uni_modules_by_uniacid($uniacid);
+	//对于各种小程序（他们支持版本），只显示版本里的模块，没有在版本里的模块不显示，设置了也无效
+	if ($account->supportVersion) {
+		$version_modules = array();
+		$version_all = miniapp_version_all($uniacid);
+		if (!empty($version_all)) {
+			foreach ($version_all as $key => $version) {
+				if (!empty($version['modules'])) {
+					$version_modules = array_merge($version_modules, array_keys($version['modules']));
+				}
+			}
+		}
+		foreach ($version_modules as $version_module) {
+			$module[$version_module] = module_fetch($version_module);
+		}
+	} else {
+		$module = uni_modules_by_uniacid($uniacid);
+	}
 	//模块所有菜单权限和各模块菜单权限
 	$user_modules_permissions = array();
 	if (!empty($module)) {
@@ -301,7 +318,7 @@ if ('set_permission' == $do || 'save_permission' == $do) {
 
 	permission_account_user_init($user['uid'], $uniacid);
 
-	if (in_array($account['type_sign'], array(ACCOUNT_TYPE_SIGN, XZAPP_TYPE_SIGN, WEBAPP_TYPE_SIGN))) {
+	if (in_array($account['type_sign'], array(ACCOUNT_TYPE_SIGN, WEBAPP_TYPE_SIGN))) {
 		$account_type_menu = ACCOUNT_TYPE_SIGN;
 	} elseif (in_array($account['type_sign'], array(ALIAPP_TYPE_SIGN, BAIDUAPP_TYPE_SIGN, TOUTIAOAPP_TYPE_SIGN))) {
 		$account_type_menu = WXAPP_TYPE_SIGN;
@@ -390,7 +407,7 @@ if ('save_permission' == $do) {
 	// pdo_delete('users_permission', array('uniacid' => $uniacid, 'uid' => $uid, 'type <>' => PERMISSION_ACCOUNT, 'type <>' => PERMISSION_WXAPP));
 	//	不支持，会丢失一个 “type ！=”，sql语句为：DELETE FROM `ims_users_permission` WHERE `uniacid` = :__uniacid_324 AND `uid` = :__uid_325 AND `type` <> :__type_326
 	
-	$permission_names = "'" . implode(array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM), "','") . "'";
+	$permission_names = "'" . implode(array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM), "','") . "'";
 	pdo_query('DELETE FROM ' . tablename('users_permission') . ' WHERE uniacid = :uniacid AND uid = :uid AND type not in (' . $permission_names . ')', array(':uniacid' => $uniacid, ':uid' => $uid));
 	if (!empty($_GPC['module'])) {
 		foreach ($_GPC['module'] as $module_val) {
@@ -439,8 +456,7 @@ if ('module' == $do) {
 	if (empty($user)) {
 		iajax(-1, '访问错误, 未找到指定操作用户.', '');
 	}
-	$founders = explode(',', $_W['config']['setting']['founder']);
-	$isfounder = in_array($user['uid'], $founders);
+	$isfounder = user_is_founder($uid, true);
 	if ($isfounder) {
 		iajax(-1, '访问错误, 无法编辑站长.', '');
 	}

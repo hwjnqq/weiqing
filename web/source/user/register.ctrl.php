@@ -41,6 +41,14 @@ if ('valid_mobile' == $do || 'register' == $do && 'mobile' == $register_type) {
 if ('register' == $do) {
 	if (checksubmit() || $_W['ispost'] && $_W['isajax']) {
 		$register_user = OAuth2Client::create($register_type)->setUserType($user_type)->register();
+		if (is_error($register_user)) {
+			if ('system' == $register_type) {
+				itoast($register_user['message']);
+			}
+			if ('mobile' == $register_type) {
+				iajax(-1, $register_user['message']);
+			}
+		}
 		$redirect = url('user/login');
 
 		$module_name = safe_gpc_string($_GPC['m']);
@@ -59,19 +67,10 @@ if ('register' == $do) {
 		}
 
 		if ('system' == $register_type) {
-			if (is_error($register_user)) {
-				itoast($register_user['message']);
-			} else {
-				itoast($register_user['message'], $redirect);
-			}
+			itoast($register_user['message'], $redirect);
 		}
-
 		if ('mobile' == $register_type) {
-			if (is_error($register_user)) {
-				iajax(-1, $register_user['message']);
-			} else {
-				iajax(0, $register_user['message'], $redirect);
-			}
+			iajax(0, $register_user['message'], $redirect);
 		}
 	}
 }

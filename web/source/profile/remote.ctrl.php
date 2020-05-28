@@ -8,7 +8,7 @@ load()->func('communication');
 load()->model('attachment');
 load()->model('miniapp');
 
-$dos = array('display', 'save', 'test_setting', 'upload_remote');
+$dos = array('display', 'save', 'test_setting', 'upload_remote', 'buckets');
 $do = in_array($do, $dos) ? $do : 'display';
 
 permission_check_account_user('profile_setting_remote');
@@ -232,6 +232,23 @@ if ('save' == $do || 'test_setting' == $do) {
 		uni_setting_save('remote', $remote);
 		iajax(0, '保存成功', url('profile/remote'));
 	}
+}
+
+if ('buckets' == $do) {
+	$key = $_GPC['key'];
+	$secret = $_GPC['secret'];
+	$buckets = attachment_alioss_buctkets($key, $secret);
+	if (is_error($buckets)) {
+		iajax(-1, '');
+	}
+	$bucket_datacenter = attachment_alioss_datacenters();
+	$bucket = array();
+	foreach ($buckets as $key => $value) {
+		$value['bucket_key'] = $value['name'] . '@@' . $value['location'];
+		$value['loca_name'] = $key . '@@' . $bucket_datacenter[$value['location']];
+		$bucket[] = $value;
+	}
+	iajax(0, $bucket);
 }
 
 template('profile/remote');

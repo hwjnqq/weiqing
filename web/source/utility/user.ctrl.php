@@ -10,9 +10,9 @@ $do = in_array($do, $dos) ? $do: 'browser';
 
 if ('browser' == $do) {
 	$mode = in_array($_GPC['mode'], array('invisible','visible')) ? $_GPC['mode'] : 'visible';
-	
+
 	$callback = $_GPC['callback'];
-	
+
 	$uids = $_GPC['uids'];
 	$uidArr = array();
 	if(empty($uids)){
@@ -30,13 +30,15 @@ if ('browser' == $do) {
 	$params = array();
 	if(!empty($_GPC['keyword'])) {
 		$where .= ' AND `username` LIKE :username';
-		$params[':username'] = "%{$_GPC['keyword']}%";
+		$params[':username'] = '%' . safe_gpc_string($_GPC['keyword']) . '%';
 	}
 	if (user_is_vice_founder()) {
 		$founder_users = table('users_founder_own_users')->getFounderOwnUsersList($_W['uid']);
 		if (!empty($founder_users)) {
 			$founder_users = implode(',', array_keys($founder_users));
 			$where .= " AND `uid` in ($founder_users)";
+		} else {
+			exit('暂无用户');
 		}
 	}
 	$page = max(1, intval($_GPC['page']));
@@ -45,6 +47,7 @@ if ('browser' == $do) {
 
 	$list = pdo_fetchall("SELECT uid, groupid, username, remark FROM ".tablename('users')." {$where} ORDER BY `uid` LIMIT ".(($page - 1) * $page_size).",{$page_size}", $params);
 	$total = pdo_fetchcolumn("SELECT COUNT(*) FROM ".tablename('users'). $where , $params);
+
 	$pager = pagination($total, $page, $page_size, '', array('ajaxcallback'=>'null','mode'=>$mode,'uids'=>$uids));
 	if (!empty($list)) {
 		$usergroups = array();
@@ -74,7 +77,7 @@ if ('browser' == $do) {
 }
 
 if ('detail_info' == $do) {
-	if (!user_is_founder($_W['uid'])) {
+	if (!$_W['isfounder']) {
 		iajax(-1, '非法请求数据！');
 	}
 	$sign = $_GPC['sign'];

@@ -8,14 +8,22 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 load()->model('reply');
 load()->model('miniapp');
+load()->model('phoneapp');
 load()->model('welcome');
 load()->model('cache');
 
 $dos = array('display', 'welcome_display', 'get_module_info', 'get_module_replies', 'get_module_accounts', 'get_module_covers', 'change_enter_status');
-$do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
+$do = !empty($_GPC['do']) ? safe_gpc_string($_GPC['do']) : 'display';
 
-$module_name = trim($_GPC['m']);
-$uniacid = intval($_GPC['uniacid']);
+$module_name = safe_gpc_string($_GPC['m']);
+$uniacid = $_W['uniacid'];
+$uni_modules = uni_modules();
+if(!in_array($module_name, array_keys($uni_modules))) {
+	if ($_W['isajax']) {
+		iajax(-1, '无法访问该模块，该模块已经删除或者停用');
+	}
+	itoast('无法访问该模块，该模块已经删除或者停用');
+}
 $module = $_W['current_module'] = module_fetch($module_name, false);
 $type = $_W['account']->typeSign;
 if (!empty($module) && empty($module['is_delete']) && !empty($module['recycle_info'])) {
@@ -36,6 +44,10 @@ if (empty($module) || !empty($module['is_delete'])) {
 	$_W['current_module'] = array();
 	cache_build_account_modules($uniacid);
 	itoast('抱歉，你操作的模块不能被访问！', url('home/welcome'), 'info');
+}
+$module_cloud_ban = module_cloud_ban($module['name'], $module['application_type']);
+if ($module_cloud_ban) {
+	itoast($module_cloud_ban);
 }
 
 if ('display' == $do) {
@@ -91,7 +103,7 @@ if ('get_module_replies' == $do) {
 			$params = array();
 			$params[':rid'] = $item['id'];
 			$item['keywords'] = reply_keywords_search($condition, $params);
-			$item['allreply'] = reply_contnet_search($item['id']);
+			$item['allreply'] = reply_content_search($item['id']);
 			$entries = module_entries($item['module'], array('rule'), $item['id']);
 
 			if (!empty($entries)) {
@@ -119,6 +131,21 @@ if ('get_module_accounts' == $do) {
 	if (!empty($sub_account_uniacids)) {
 		foreach ($sub_account_uniacids as $sub_uniacid) {
 			$sub_account_info = uni_fetch($sub_uniacid);
+			if ($sub_account_info->supportVersion) {
+				if (ACCOUNT_TYPE_PHONEAPP_NORMAL == $type) {
+					$versions = phoneapp_get_some_lastversions($sub_uniacid);
+				} else {
+					$versions = miniapp_get_some_lastversions($sub_uniacid);
+				}
+				foreach ($versions as $val) {
+					if ($val['current']) {
+						$version_id = $val['id'];
+					}
+				}
+				$sub_account_info['unbindurl'] = url('wxapp/module-link-uniacid', array('uniacid' => $sub_uniacid, 'version_id' => $version_id));
+			} else {
+				$sub_account_info['unbindurl'] = url('profile/module-link-uniacid', array('uniacid' => $sub_uniacid));
+			}
 			if (ACCOUNT_MANAGE_NAME_CLERK == $sub_account_info['current_user_role']) {
 				unset($sub_account_info['switchurl']);
 			}

@@ -10,7 +10,6 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_WXAPP_MODULE => array('title' => '微信小程序应用', 'type' => STORE_TYPE_WXAPP_MODULE, 'sign' => WXAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_WEBAPP_MODULE => array('title' => 'PC应用', 'type' => STORE_TYPE_WEBAPP_MODULE, 'sign' => WEBAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_PHONEAPP_MODULE => array('title' => 'APP应用', 'type' => STORE_TYPE_PHONEAPP_MODULE, 'sign' => PHONEAPP_TYPE_SIGN, 'group' => 'module'),
-		STORE_TYPE_XZAPP_MODULE => array('title' => '熊掌号应用', 'type' => STORE_TYPE_XZAPP_MODULE, 'sign' => XZAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_ALIAPP_MODULE => array('title' => '支付宝小程序应用', 'type' => STORE_TYPE_ALIAPP_MODULE, 'sign' => ALIAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_BAIDUAPP_MODULE => array('title' => '百度小程序应用', 'type' => STORE_TYPE_BAIDUAPP_MODULE, 'sign' => BAIDUAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_TOUTIAOAPP_MODULE => array('title' => '头条小程序应用', 'type' => STORE_TYPE_TOUTIAOAPP_MODULE, 'sign' => TOUTIAOAPP_TYPE_SIGN, 'group' => 'module'),
@@ -23,7 +22,6 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_WXAPP => array('title' => '微信小程序平台', 'type' => STORE_TYPE_WXAPP, 'group' => 'account_num'),
 		STORE_TYPE_WEBAPP => array('title' => 'PC平台', 'type' => STORE_TYPE_WEBAPP, 'group' => 'account_num'),
 		STORE_TYPE_PHONEAPP => array('title' => 'APP平台', 'type' => STORE_TYPE_PHONEAPP, 'group' => 'account_num'),
-		STORE_TYPE_XZAPP => array('title' => '熊掌号平台', 'type' => STORE_TYPE_XZAPP, 'group' => 'account_num'),
 		STORE_TYPE_ALIAPP => array('title' => '支付宝小程序平台', 'type' => STORE_TYPE_ALIAPP, 'group' => 'account_num'),
 		STORE_TYPE_BAIDUAPP => array('title' => '百度小程序平台', 'type' => STORE_TYPE_BAIDUAPP, 'group' => 'account_num'),
 		STORE_TYPE_TOUTIAOAPP => array('title' => '头条小程序平台', 'type' => STORE_TYPE_TOUTIAOAPP, 'group' => 'account_num'),
@@ -32,10 +30,11 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_WXAPP_RENEW => array('title' => '微信小程序', 'type' => STORE_TYPE_WXAPP_RENEW, 'num_sign' => 'wxapp_num', 'group' => 'renew'),
 		STORE_TYPE_WEBAPP_RENEW => array('title' => 'PC', 'type' => STORE_TYPE_WEBAPP_RENEW, 'num_sign' => 'webapp_num', 'group' => 'renew'),
 		STORE_TYPE_PHONEAPP_RENEW => array('title' => 'APP', 'type' => STORE_TYPE_PHONEAPP_RENEW, 'num_sign' => 'phoneapp_num', 'group' => 'renew'),
-		STORE_TYPE_XZAPP_RENEW => array('title' => '熊掌号', 'type' => STORE_TYPE_XZAPP_RENEW, 'num_sign' => 'xzapp_num', 'group' => 'renew'),
 		STORE_TYPE_ALIAPP_RENEW => array('title' => '支付宝小程序', 'type' => STORE_TYPE_ALIAPP_RENEW, 'num_sign' => 'aliapp_num', 'group' => 'renew'),
 		STORE_TYPE_BAIDUAPP_RENEW => array('title' => '百度小程序', 'type' => STORE_TYPE_BAIDUAPP_RENEW, 'num_sign' => 'baiduapp_num', 'group' => 'renew'),
 		STORE_TYPE_TOUTIAOAPP_RENEW => array('title' => '头条小程序', 'type' => STORE_TYPE_TOUTIAOAPP_RENEW, 'num_sign' => 'toutiaoapp_num', 'group' => 'renew'),
+
+		STORE_TYPE_USER_RENEW => array('title' => '账号有效期', 'type' => STORE_TYPE_USER_RENEW, 'num_sign' => 'account_num', 'group' => 'user_renew')
 	);
 	if (!empty($group)) {
 		foreach ($data as $k => $item) {
@@ -98,7 +97,6 @@ function update_wish_goods_info($update_data, $module_name) {
 	if (!empty($update_data['logo'])) {
 		$data['logo'] = $update_data['logo'];
 	}
-
 	$store_goods_exists = pdo_get('site_store_goods', array('module' => $module_name));
 	$store_goods_cloud_exists = pdo_get('site_store_goods_cloud', array('name' => $module_name));
 	$module_exists = pdo_get('modules', array('name' => $module_name));
@@ -156,7 +154,6 @@ function store_goods_post($data) {
 	$post['wxapp_num'] = $data['wxapp_num'];
 	$post['webapp_num'] = $data['webapp_num'];
 	$post['phoneapp_num'] = $data['phoneapp_num'];
-	$post['xzapp_num'] = $data['xzapp_num'];
 	$post['aliapp_num'] = $data['aliapp_num'];
 	$post['baiduapp_num'] = $data['baiduapp_num'];
 	$post['toutiaoapp_num'] = $data['toutiaoapp_num'];

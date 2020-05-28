@@ -11,15 +11,16 @@ $eid = intval($_GPC['eid']);
 if (!empty($eid)) {
 	$entry = module_entry($eid);
 } else {
+	$entry_module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 	$entry = table('modules_bindings')
 		->where(array(
-			'module' => trim($_GPC['m']),
+			'module' => $entry_module_name,
 			'do' => trim($_GPC['do'])
 		))
 		->get();
 	if (empty($entry)) {
 		$entry = array(
-			'module' => $_GPC['m'],
+			'module' => $entry_module_name,
 			'do' => $_GPC['do'],
 			'state' => $_GPC['state'],
 			'direct' => $_GPC['direct'],
@@ -36,7 +37,6 @@ if (empty($module)) {
 	
 	itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
 }
-
 if (!$entry['direct']) {
 	checklogin();
 	$referer = (url_params(referer()));
@@ -50,11 +50,7 @@ if (!$entry['direct']) {
 	
 	
 		if (empty($_W['uniacid'])) {
-			if (!empty($_GPC['version_id'])) {
-				itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
-			} else {
-				itoast('', url('account/display'));
-			}
+			itoast('', $_W['siteroot'] . 'web/home.php');
 		}
 	
 
@@ -73,12 +69,6 @@ if (!$entry['direct']) {
 
 	$_W['page']['title'] = $entry['title'];
 	define('ACTIVE_FRAME_URL', url('site/entry/', array('eid' => $entry['eid'], 'version_id' => $_GPC['version_id'])));
-}
-
-if (!empty($entry['module']) && !empty($_W['founder'])) {
-	if (ext_module_checkupdate($entry['module'])) {
-		itoast('系统检测到该模块有更新，请点击“<a href="' . url('extension/module/upgrade', array('m' => $entry['module'])) . '">更新模块</a>”后继续使用！', '', 'error');
-	}
 }
 
 $_GPC['__entry'] = $entry['title'];

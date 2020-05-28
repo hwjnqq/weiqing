@@ -53,7 +53,6 @@ if ('wechat' == $do) {
 //系统日志
 if ('system' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
-	//分页每页显示条数
 	$psize = 10;
 	$where .= " WHERE `type` = '1'";
 	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize . ',' . $psize;
@@ -62,7 +61,6 @@ if ('system' == $do) {
 		$list[$key]['type'] = '系统日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
-	//将数据进行分页
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 	if ($_W['isajax']) {
@@ -79,7 +77,6 @@ if ('system' == $do) {
 //数据库日志
 if ('database' == $do) {
 	$pindex = max(1, intval($_GPC['page']));
-	//分页每页显示条数
 	$psize = 10;
 	$where .= " WHERE `type` = '2'";
 	$sql = 'SELECT * FROM ' . tablename('core_performance') . " $where $timewhere $order LIMIT " . ($pindex - 1) * $psize . ',' . $psize;
@@ -88,7 +85,6 @@ if ('database' == $do) {
 		$list[$key]['type'] = '数据库日志';
 		$list[$key]['createtime'] = date('Y-m-d H:i:s', $value['createtime']);
 	}
-	//将数据进行分页
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('core_performance') . $where . $timewhere, $params);
 	$pager = pagination($total, $pindex, $psize);
 	if ($_W['isajax']) {
@@ -140,7 +136,7 @@ if ('attachment' == $do) {
 	if (!empty($_GPC['keyword'])) {
 		$where['c.name LIKE'] = '%' . safe_gpc_string($_GPC['keyword']) . '%';
 	}
-	$pindex = max(1, intval($_GPC['page']));
+	$pindex = max(1, safe_gpc_int($_GPC['page']));
 	$psize = 20;
 	$core_attachment_table = table('core_attachment');
 	$core_list = $core_attachment_table

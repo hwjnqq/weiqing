@@ -17,7 +17,7 @@ class AliappAccount extends WeAccount {
 	protected $typeSign = ALIAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;
 
-	protected function getAccountInfo($acid) {
-		return table('account_aliapp')->getAccount($acid);
+	protected function getAccountInfo($uniacid) {
+		return table('account_aliapp')->getAccount($uniacid);
 	}
 }

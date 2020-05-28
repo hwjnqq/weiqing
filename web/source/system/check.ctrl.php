@@ -99,5 +99,12 @@ foreach ($system_check_items as $check_key => $check_val) {
 }
 
 cache_write(cache_system_key('system_check'), array('check_items' => $system_check_items, 'check_num' => $check_num, 'check_wrong_num' => $check_wrong_num));
-
+if ($_W['isw7_request']) {
+	$message = array(
+		'check_num' => $check_num,
+		'check_wrong_num' => $check_wrong_num,
+		'system_check_items' => $system_check_items
+	);
+	iajax(0, $message);
+}
 template('system/check');

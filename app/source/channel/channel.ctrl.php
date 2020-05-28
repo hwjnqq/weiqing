@@ -6,8 +6,8 @@
 
 defined('IN_IA') or exit('Access Denied');
 if (!empty($_GPC['styleid'])) {
-	$_W['account']['styleid'] = $_GPC['styleid'];
-	$_W['account']['template'] = table('modules')->where('mid', $_W['account']['styleid'])->getcolumn('name')
+	$_W['account']['styleid'] = intval($_GPC['styleid']);
+	$_W['account']['template'] = table('modules')->where('mid', $_W['account']['styleid'])->getcolumn('name');
 }
 load()->model('site');
 

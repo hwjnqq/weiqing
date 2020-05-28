@@ -71,7 +71,6 @@
 		if (file) {
 			require(['jszip', 'fileSaver'], function(JSZip, fileSaver){
 				JSZip.loadAsync(file).then(function(zip){
-					console.log(zip.comment);
 					zip.generateAsync({comment: siteinfo,type:"blob"})
 					.then(function (blob) {
 						saveAs(blob, "配置.apk");

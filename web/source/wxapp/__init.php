@@ -11,7 +11,7 @@ if (!empty($version_id)) {
 	$account = table('account')->getUniAccountByUniacid($_W['uniacid']);
 	$version_info = miniapp_version($version_id);
 	if ($version_info['uniacid'] != $_W['uniacid']) {
-		itoast('', url('account/display/all'));
+		itoast('', $_W['siteroot'] . 'web/home.php');
 	}
 }
 
@@ -24,7 +24,7 @@ if (in_array($action, array('manage', 'post', 'register'))) {
 if (!in_array($action, array('post', 'manage', 'auth'))) {
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
-		itoast('', url('account/display', array('type' => WXAPP_TYPE_SIGN)));
+		itoast('', $_W['siteroot'] . 'web/home.php');
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {

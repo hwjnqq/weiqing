@@ -168,13 +168,14 @@ function itoast($message, $redirect = '', $type = '', $extend = array()) {
  *
  * @return boolean
  */
-function checklogin() {
+function checklogin($url = '') {
 	global $_W;
 	if (empty($_W['uid'])) {
+		$url = safe_gpc_url($url);
 		if (!empty($_W['setting']['copyright']['showhomepage'])) {
 			itoast('', url('account/welcome'), 'warning');
 		} else {
-			itoast('', url('user/login'), 'warning');
+			itoast('', url('user/login', $url ? array('referer' => urlencode($url)) : ''), 'warning');
 		}
 	}
 	$cookie = json_decode(authcode(igetcookie('__session'), 'DECODE'), true);

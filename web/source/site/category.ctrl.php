@@ -199,7 +199,7 @@ if ($do == 'display') {
 } elseif ($do == 'delete') {
 	$owner_info = account_owner($_W['uniacid']);
 	if (checksubmit('submit')) {
-		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
+		if ($_W['isfounder'] || $_W['uid'] == $owner_info['uid']) {
 			foreach ($_GPC['rid'] as $key => $id) {
 				$category_delete = article_category_delete($id);
 				if (empty($category_delete)) {
@@ -212,7 +212,7 @@ if ($do == 'display') {
 		}
 	} else {
 		$id = intval($_GPC['id']);
-		if (user_is_founder($_W['uid']) || $_W['uid'] == $owner_info['uid']) {
+		if ($_W['isfounder'] || $_W['uid'] == $owner_info['uid']) {
 			$category_delete = article_category_delete($id);
 			if (empty($category_delete)) {
 				itoast('抱歉，分类不存在或是已经被删除！', referer(), 'error');

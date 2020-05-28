@@ -90,10 +90,7 @@ if ('display' == $do) {
 	$info['operators'] = array('侯琪琪 (琪琪)', '杨欣雨 (小雨)', '赵小雷 (擎擎)', '蔡帅帅 (小帅)', '朱传宝 (阿宝)', '蒋康康 (阿康)', '王鹏 (鹏鹏)');
 	$info['exchange_group'] = array('link' => 'https://jq.qq.com/?_wv=1027&k=5NzXzQ3', 'title' => '547025486');
 	if ($_W['isajax']) {
-		$message = array(
-			'info' => $info
-		);
-		iajax(0, $message);
+		iajax(0, $info);
 	}
 	template('system/systeminfo');
 }

@@ -97,7 +97,6 @@ if ('bind_oauth' == $do) {
 		$member['salt'] = random(8);
 		$member['password'] = user_hash($member['password'], $member['salt']);
 		$result = pdo_update('users', $member, array('uid' => $uid, 'openid' => $openid, 'register_type' => $register_type));
-
 		if ($result) {
 			itoast('注册绑定成功!', url('user/login'), '');
 		} else {

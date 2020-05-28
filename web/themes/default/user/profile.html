@@ -172,6 +172,7 @@
 			<col width="160px " />
 			<col />
 			<col width="100px" />
+			{if empty($_W['isadmin'])}
 			<tr>
 				<th class="text-left" colspan="3">用户首页设置</th>
 			</tr>
@@ -185,6 +186,7 @@
 					<we7-modal-form type="'select'" label="'跳转链接'" key="'name'" value="user_welcome_link" on-confirm="saveSetting(formValue, 'welcome_link')" options="redirect_urls"></we7-modal-form>
 				</td>
 			</tr>
+			{/if}
 		</table>
 		{/if}
 

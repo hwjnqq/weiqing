@@ -82,7 +82,7 @@ if ('save_setting' == $do) {
 	if ('unionpay' == $type) {
 		$unionpay = $_GPC['unionpay'];
 		$switch_status = ($unionpay['pay_switch'] || $unionpay['recharge_switch']) ? true : false;
-		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx')) {
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . md5(complex_authkey() . $_W['uniacid']) . '_acp.pfx')) {
 			itoast('请上联银商户私钥证书.', referer(), 'error');
 		}
 		$param = array(
@@ -92,13 +92,13 @@ if ('save_setting' == $do) {
 		if ($switch_status && (empty($param['merid']) || empty($param['signcertpwd']))) {
 			itoast('请输入完整的银联支付接口信息.', referer(), 'error');
 		}
-		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx')) {
+		if ($switch_status && empty($_FILES['unionpay']['tmp_name']['signcertpath']) && !file_exists(IA_ROOT . '/attachment/unionpay/PM_' . md5(complex_authkey() . $_W['uniacid']) . '_acp.pfx')) {
 			itoast('请上传银联商户私钥证书.', referer(), 'error');
 		}
 		if ($switch_status && !empty($_FILES['unionpay']['tmp_name']['signcertpath'])) {
 			load()->func('file');
 			mkdirs(IA_ROOT . '/attachment/unionpay/');
-			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_' . $_W['uniacid'] . '_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
+			file_put_contents(IA_ROOT . '/attachment/unionpay/PM_' . md5(complex_authkey() . $_W['uniacid']) . '_acp.pfx', file_get_contents($_FILES['unionpay']['tmp_name']['signcertpath']));
 			$public_rsa = '-----BEGIN CERTIFICATE-----
 MIIEIDCCAwigAwIBAgIFEDRVM3AwDQYJKoZIhvcNAQEFBQAwITELMAkGA1UEBhMC
 Q04xEjAQBgNVBAoTCUNGQ0EgT0NBMTAeFw0xNTEwMjcwOTA2MjlaFw0yMDEwMjIw
@@ -131,7 +131,10 @@ MFF/yA==
 	$payment = iserializer($pay_setting);
 	uni_setting_save('payment', $payment);
 	
-	iajax(0, '设置成功！', referer());
+	if ($_W['isajax']) {
+		iajax(0, '设置成功！', referer());
+	}
+	itoast('设置成功！', referer(), 'success');
 }
 
 if ('change_status' == $do) {

@@ -114,12 +114,22 @@ if ('post' == $do) {
 		cache_write(cache_system_key('scan_badfile'), iserializer($badfiles));
 		itoast('扫描完成。。。', url('system/scan', array('do' => 'display')), 'success');
 	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'safe' => $safe,
+			'list' => $list
+		);
+		iajax(0, $message);
+	}
 }
 
 //查杀报告
 if ('display' == $do) {
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
 	if (empty($badfiles)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, '没有找到扫描结果，请重新扫描');
+		}
 		itoast('没有找到扫描结果，请重新扫描', url('system/scan'), 'error');
 	}
 	unset($badfiles['data/config.php']);
@@ -142,6 +152,13 @@ if ('display' == $do) {
 			$d1 = array_unique($d1);
 			$v['code_str'] = implode(', ', $d1);
 		}
+		$v['authcode_file'] = authcode($k, 'ENCODE');
+	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'badfiles' => $badfiles
+		);
+		iajax(0, $message);
 	}
 }
 
@@ -149,8 +166,11 @@ if ('display' == $do) {
 if ('view' == $do) {
 	$file = authcode(trim($_GPC['file'], 'DECODE'));
 	$file_tmp = $file;
-	$file = str_replace('//', '', $file);
-	if (empty($file) || !parse_path($file) || preg_match('/data.*config\.php/', $file)) {
+	$file = preg_replace('/(\&lt;|\&gt;|\/\/)/', '', $file);
+	if (empty($file) || !parse_path($file) || preg_match('/data.*config\.php/i', $file)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, '文件不存在');
+		}
 		itoast('文件不存在', referer(), 'error');
 	}
 	//设置过滤文件
@@ -158,10 +178,16 @@ if ('view' == $do) {
 	$ignore = array('payment');
 
 	if (is_array($file_arr) && in_array($file_arr[0], $ignore)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, '系统不允许查看当前文件');
+		}
 		itoast('系统不允许查看当前文件', referer(), 'error');
 	}
 	$file = IA_ROOT . '/' . $file;
 	if (!is_file($file)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, '文件不存在');
+		}
 		itoast('文件不存在', referer(), 'error');
 	}
 	$badfiles = iunserializer(cache_read(cache_system_key('scan_badfile')));
@@ -189,6 +215,14 @@ if ('view' == $do) {
 		}
 	}
 	$data = file_get_contents($file);
+	if ($_W['isw7_request']) {
+		$message = array(
+			'file_tmp' => $file_tmp,
+			'info' => $info,
+			'data' => $data
+		);
+		iajax(0, $message);
+	}
 }
 
 template('system/scan');

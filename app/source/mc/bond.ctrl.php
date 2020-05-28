@@ -138,7 +138,7 @@ if ($do == 'credits') {
 	$type = trim($_GPC['type']);
 	if ($type == 'recorddetail') {
 		$id = intval($_GPC['id']);
-		$credittype = $_GPC['credittype'];
+		$credittype = safe_gpc_string($_GPC['credittype']);
 		$data = table('mc_credits_record')
 			->searchWithUsers()
 			->select(array('r.*', 'u.username'))

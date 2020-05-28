@@ -12,7 +12,7 @@ if (strexists($_W['siteurl'], 'c=profile&a=module&do=setting')) {
 
 $account_api = WeAccount::createByUniacid();
 if (is_error($account_api)) {
-	itoast('', url('account/display'));
+	itoast('', $_W['siteroot'] . 'web/home.php');
 }
 $check_manange = $account_api->checkIntoManage();
 

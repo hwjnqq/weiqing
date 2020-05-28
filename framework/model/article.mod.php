@@ -16,6 +16,7 @@ function article_news_info($id) {
 	if(empty($news)) {
 		return error(-1, '新闻不存在或已经删除');
 	}else {
+		$news['thumburl'] = tomedia($news['thumb']);
 		pdo_update('article_news',array('click' => $news['click']+1),array('id' => $id));
 	}
 	return $news;
@@ -38,7 +39,6 @@ function article_news_home($limit = 5) {
 
 function article_notice_home($limit = 5) {
 	$limit = intval($limit);
-
 	$notice = pdo_fetchall("SELECT * FROM " . tablename('article_notice') . " WHERE is_display = 1 AND is_show_home = 1 ORDER BY displayorder DESC,id DESC LIMIT " . $limit, array(), 'id');
 	foreach ($notice as $key => $notice_val) {
 		$notice[$key]['style'] = iunserializer($notice_val['style']);
@@ -90,7 +90,7 @@ function article_notice_all($filter = array(), $pindex = 1, $psize = 10) {
 		$notice[$key]['createtime'] = date('Y-m-d H:i:s', $notice_val['createtime']);
 		$notice[$key]['style'] = iunserializer($notice_val['style']);
 		$notice[$key]['group'] = empty($notice_val['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice_val['group']);
-		if (user_is_founder($_W['uid'], true)) {
+		if ($_W['isadmin']) {
 			continue;
 		}
 		if (empty($_W['user']) && !empty($notice_val['group']) || !empty($_W['user']['groupid']) && !empty($notice_val['group']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notice[$key]['group']['normal'])) {

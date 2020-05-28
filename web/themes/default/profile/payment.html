@@ -9,133 +9,207 @@
 </ul>
 <div class="js-profile-payment" ng-controller="paymentCtrl" ng-cloak>
 	<table class="table we7-table table-hover table-form">
-		<col width="140px " />
-		<col width="400px"/>
+		<col width="240px " />
 		<col />
-		<col width="140px" />
+		<col />
+		<col />
+		<col width="100px" />
 		<tr>
-			<th colspan="2" >支付参数</th>
-			<th colspan="1" >参数配置状态</th>
-			<th colspan="1" >支持状态</th>
+			<th colspan="1" >支付参数</th>
+			<th colspan="1" >充值</th>
+			<th colspan="1" >支付</th>
+			<th colspan="1" >参数配置</th>
+			<th colspan="1" >支付/充值支持</th>
 			<th colspan="1" >操作</th>
 		</tr>
 		<tr>
-			<td colspan="2">
+			<td colspan="1">
 				货到支付
 			</td>
-			<td>无需配置</td>
 			<td>
-				{{  paysetting.delivery.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" ng-disabled="paysetting['delivery'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('delivery', 'recharge_switch')" ng-if="paysetting['delivery'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('delivery', 'recharge_switch')" ng-class="paysetting['delivery'].recharge_switch === true || paysetting['delivery'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['delivery'].recharge_set === true"></div>
+				<div ng-class="paysetting['delivery'].recharge_switch === true || paysetting['delivery'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['delivery'].recharge_set == false"></div>
+			</td>
+			<td>
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('delivery', 'pay_switch')">
+				<div ng-click="switchStatus('delivery', 'pay_switch')" ng-class="paysetting['delivery'].pay_switch === true || paysetting['delivery'].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
+			</td>
+			<td>
+				<span class="we7-circle"></span>无需配置
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
-					<a href="{php echo url('profile/payment/switch', array('type' => 'delivery'))}">支付支持</a>
-				</div>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="2">
-				余额支付
-			</td>
-			<td>无需配置</td>
-			<td>
-				{{  paysetting.credit.support_set === true ? '未设置' : '已设置'  }}
-			</td>
-			<td >
-				<div class="link-group">
-					<a href="{php echo url('profile/payment/switch', array('type' => 'credit'))}">支付支持</a>
+					<a href="javascript:;">— —</a>
 				</div>
 			</td>
 		</tr>
 		<tr>
 			<td colspan="1">
-				混合支付
+				余额支付
 			</td>
 			<td>
-				<span class="related-info">
-					余额不足时，可用剩余余额付部分，用其它支付付剩余部分
-				</span>
+				<input name="" ng-disabled="paysetting['credit'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('credit', 'recharge_switch')" ng-if="paysetting['credit'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('credit', 'recharge_switch')" ng-class="paysetting['credit'].recharge_switch === true || paysetting['credit'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['credit'].recharge_set === true"></div>
+				<div ng-class="paysetting['credit'].recharge_switch === true || paysetting['credit'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['credit'].recharge_set == false"></div>
 			</td>
-			<td>无需配置</td>
 			<td>
-				{{  paysetting.mix.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('credit', 'pay_switch')">
+				<div ng-click="switchStatus('credit', 'pay_switch')" ng-class="paysetting['credit'].pay_switch === true || paysetting['credit'].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
+			</td>
+			<td>
+				<span class="we7-circle"></span>无需配置
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
-					<a href="{php echo url('profile/payment/switch', array('type' => 'mix'))}">支付支持</a>
+					<a href="javascript:;" >— —</a>
 				</div>
 			</td>
 		</tr>
 		<tr>
-			<td>
-				支付宝支付
+			<td colspan="1">
+				混合支付<i class="wi wi-info color-red" data-trigger="click" data-title="混合支付说明" data-toggle="popover" data-placement="bottom" data-content="余额不足时，可用剩余余额付部分，用其它支付付剩余部分"></i>
 			</td>
 			<td>
-				<div class="related-info">
-					开启支付宝支付
+				<input name="" ng-disabled="paysetting['mix'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('mix', 'recharge_switch')" ng-if="paysetting['mix'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('mix', 'recharge_switch')" ng-class="paysetting['mix'].recharge_switch === true || paysetting['mix'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['mix'].recharge_set === true"></div>
+				<div ng-class="paysetting['mix'].recharge_switch === true || paysetting['mix'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['mix'].recharge_set == false"></div>
+			</td>
+			<td>
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('mix', 'pay_switch')">
+				<div ng-click="switchStatus('mix', 'pay_switch')" ng-class="paysetting['mix'].pay_switch === true || paysetting['mix'].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
+			</td>
+			<td>
+				<span class="we7-circle"></span>无需配置
+			</td>
+			<td>
+				支付/充值
+			</td>
+			<td >
+				<div class="link-group">
+					<a href="javascript:;" >— —</a>
 				</div>
 			</td>
-			<td>
-				{{  paysetting.alipay.has_config === true ? '已配置' : '未配置'  }}
+		</tr>
+		<tr>
+			<td colspan="1">
+				支付宝支付<i class="wi wi-info color-red" data-trigger="click" data-title="支付宝支付说明" data-toggle="popover" data-placement="bottom" data-content="开启支付宝支付"></i>
 			</td>
 			<td>
-				{{  paysetting.alipay.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" ng-disabled="paysetting['alipay'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('alipay', 'recharge_switch')" ng-if="paysetting['alipay'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+
+				<div ng-click="switchStatus('alipay', 'recharge_switch')" ng-class="paysetting['alipay'].recharge_switch === true || paysetting['alipay'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['alipay'].recharge_set === true"></div>
+				<div ng-class="paysetting['alipay'].recharge_switch === true || paysetting['alipay'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" style="cursor:no-drop"  ng-if="paysetting['alipay'].recharge_set == false"></div> <!--此处改成elseif-->
+			</td>
+			<td>
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('alipay', 'pay_switch')">
+				<div ng-click="switchStatus('alipay', 'pay_switch')" ng-class="paysetting['alipay'].pay_switch === true || paysetting['alipay'].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
+			</td>
+			<td>
+				<span ng-class="paysetting['alipay'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['alipay'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#zhifubao">
 						{{  paysetting.alipay.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'alipay'))}">支付支持</a>
 				</div>
 			</td>
 		</tr>
 		<tr>
-			<td>
-				微信支付
+			<td colspan="1">
+				微信支付<i class="wi wi-info color-red" data-trigger="click" data-title="微信支付说明" data-toggle="popover" data-placement="bottom" data-content="接口类型:新版(2014年9月之后申请的)。支付账号:微擎开发团队。"></i>
 			</td>
 			<td>
-				<div class="related-info">
-					<div>接口类型:新版(2014年9月之后申请的)</div>
-					<div>支付账号:{$_W['uniaccount']['name']}</div>
-				</div>
-			</td>
-			<td >
-				{{  paysetting.wechat.has_config  === true  ? '已配置' : '未配置'  }}
+				<input name="" ng-disabled="paysetting['wechat'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('wechat', 'recharge_switch')" ng-if="paysetting['wechat'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('wechat', 'recharge_switch')" ng-class="paysetting['wechat'].recharge_switch === true || paysetting['wechat'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['wechat'].recharge_set === true"></div>
+				<div ng-class="paysetting['wechat'].recharge_switch === true || paysetting['wechat'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['wechat'].recharge_set == false"></div>
 			</td>
 			<td>
-				{{  paysetting.wechat.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('wechat', 'pay_switch')">
+				<div ng-click="switchStatus('wechat', 'pay_switch')" ng-class="paysetting['wechat'].pay_switch === true || paysetting['wechat'].pay_switch === 'true' ? 'switch switchOn' : 'switch'"></div>
+			</td>
+			<td>
+				<span ng-class="paysetting['wechat'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['wechat'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" ng-click="check_wechat()">
 						{{  paysetting.wechat.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'wechat'))}" ng-if="paysetting.wechat.has_config === true">支付支持</a>
 				</div>
 			</td>
 		</tr>
-		
+		<!-- sxstart -->
+		{if IMS_FAMILY == 's' || IMS_FAMILY == 'x'}
+		<tr>
+			<td>
+				服务商支付
+			</td>
+			<td>
+				<input name="" class="form-control" type="checkbox"  style="display: none;">
+				<div class="switch" style="cursor:no-drop"></div>
+			</td>
+			<td>
+				<input name="" class="form-control" type="checkbox"  style="display: none;">
+				<div class="switch" style="cursor:no-drop"></div>
+			</td>
+			<td>
+				<span ng-class="paysetting['wechat_facilitator'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['wechat_facilitator'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>不支持</td>
+			<td >
+				<div class="link-group">
+					<a href="javascript:;" class="color-default" data-toggle="modal" data-target="#wechat_fa">
+						{{  paysetting.wechat_facilitator.has_config === true ? '修改配置' : '去配置'  }}
+					</a>
+				</div>
+			</td>
+		</tr>
+		{/if}
 		<tr>
 			<td>
 				一码支付
 			</td>
 			<td>
-				<div class="related-info">
-				</div>
-			</td>
-			<td >
-				{{  paysetting.jueqiymf.has_config === true ? '已配置' : '未配置'  }}
+				<input name="" ng-disabled="paysetting['jueqiymf'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('jueqiymf', 'recharge_switch')" ng-if="paysetting['jueqiymf'].has_config === true && paysetting['jueqiymf'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('jueqiymf', 'recharge_switch')" ng-class="paysetting['jueqiymf'].recharge_switch === true || paysetting['jueqiymf'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['jueqiymf'].has_config === true && paysetting['jueqiymf'].recharge_set === true"></div>
+				<div ng-class="paysetting['jueqiymf'].recharge_switch === true || paysetting['jueqiymf'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['jueqiymf'].has_config === false || paysetting['jueqiymf'].recharge_set == false"></div>
 			</td>
 			<td>
-				{{  paysetting.jueqiymf.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('jueqiymf', 'pay_switch')">
+				<div ng-click="switchStatus('jueqiymf', 'pay_switch')" ng-class="paysetting['jueqiymf'].pay_switch === true || paysetting['jueqiymf'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['jueqiymf'].has_config === true "></div>
+				<div ng-class="paysetting['jueqiymf'].pay_switch === true || paysetting['jueqiymf'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" style="cursor:no-drop" ng-if="paysetting['jueqiymf'].has_config === false "></div>
+			</td>
+			<td >
+				<span ng-class="paysetting['jueqiymf'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['jueqiymf'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#jueqiymf">
 						{{  paysetting.jueqiymf.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'jueqiymf'))}" ng-if="paysetting.jueqiymf.has_config === true">支付支持</a>
 				</div>
 			</td>
 		</tr>
@@ -144,21 +218,27 @@
 				银联支付
 			</td>
 			<td>
-				<div class="related-info">
-				</div>
-			</td>
-			<td >
-				{{  paysetting.unionpay.has_config === true ? '已配置' : '未配置'  }}
+				<input name="" ng-disabled="paysetting['unionpay'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('unionpay', 'recharge_switch')" ng-if="paysetting['unionpay'].has_config === true && paysetting['unionpay'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('unionpay', 'recharge_switch')" ng-class="paysetting['unionpay'].recharge_switch === true || paysetting['unionpay'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['unionpay'].has_config === true && paysetting['unionpay'].recharge_set === true"></div>
+				<div ng-class="paysetting['unionpay'].recharge_switch === true || paysetting['unionpay'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['unionpay'].has_config === false || paysetting['unionpay'].recharge_set == false"></div>
 			</td>
 			<td>
-				{{  paysetting.unionpay.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('unionpay', 'pay_switch')">
+				<div ng-click="switchStatus('unionpay', 'pay_switch')" ng-class="paysetting['unionpay'].pay_switch === true || paysetting['unionpay'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['unionpay'].has_config === true"></div>
+				<div ng-class="paysetting['unionpay'].pay_switch === true || paysetting['unionpay'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" style="cursor:no-drop" ng-if="paysetting['unionpay'].has_config === false"></div>
+			</td>
+			<td >
+				<span ng-class="paysetting['unionpay'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['unionpay'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#yinlian">
 						{{  paysetting.unionpay.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'unionpay'))}" ng-if="paysetting.unionpay.has_config === true">支付支持</a>
 				</div>
 			</td>
 		</tr>
@@ -167,20 +247,27 @@
 				百度钱包支付
 			</td>
 			<td>
-				<div class="related-info"></div>
-			</td>
-			<td >
-				{{  paysetting.baifubao.has_config === true ? '已配置' : '未配置'  }}
+				<input name="" ng-disabled="paysetting['baifubao'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('baifubao', 'recharge_switch')" ng-if="paysetting['baifubao'].has_config === true && paysetting['baifubao'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('baifubao', 'recharge_switch')" ng-class="paysetting['baifubao'].recharge_switch === true || paysetting['baifubao'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['baifubao'].has_config === true && paysetting['baifubao'].recharge_set === true"></div>
+				<div ng-class="paysetting['baifubao'].recharge_switch === true || paysetting['baifubao'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['baifubao'].has_config === false || paysetting['baifubao'].recharge_set == false"></div>
 			</td>
 			<td>
-				{{  paysetting.baifubao.support_set === true ? '未设置' : '已设置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('baifubao', 'pay_switch')">
+				<div ng-click="switchStatus('baifubao', 'pay_switch')" ng-class="paysetting['baifubao'].pay_switch === true || paysetting['baifubao'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['baifubao'].has_config === true"></div>
+				<div ng-class="paysetting['baifubao'].pay_switch === true || paysetting['baifubao'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" style="cursor:no-drop" ng-if="paysetting['baifubao'].has_config === false"></div>
+			</td>
+			<td >
+				<span ng-class="paysetting['baifubao'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['baifubao'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#baidu">
 						{{  paysetting.baifubao.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'baifubao'))}" ng-if="paysetting.baifubao.has_config === true">支付支持</a>
 				</div>
 			</td>
 		</tr>
@@ -189,20 +276,27 @@
 				汇款支付
 			</td>
 			<td>
-				<div class="related-info"></div>
+				<input name="" ng-disabled="paysetting['line'].recharge_set !== true" class="form-control" type="checkbox" style="display: none;" ng-click="switchStatus('line', 'recharge_switch')" ng-if="paysetting['line'].has_config === true && paysetting['line'].recharge_set === true">
+				<input name="" class="form-control" type="checkbox" style="display: none;" ng-else>
+				<div ng-click="switchStatus('line', 'recharge_switch')" ng-class="paysetting['line'].recharge_switch === true || paysetting['line'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['line'].has_config === true && paysetting['line'].recharge_set === true"></div>
+				<div ng-class="paysetting['line'].recharge_switch === true || paysetting['line'].recharge_switch === 'true' ? 'switch switchOn' : 'switch'" ng-disabled="true" style="cursor:no-drop" ng-if="paysetting['line'].has_config === false || paysetting['line'].recharge_set == false"></div>
 			</td>
 			<td>
-				{{  paysetting.line.has_config === true ? '已配置' : '未配置'  }}
+				<input name="" class="form-control" type="checkbox"  style="display: none;" ng-click="switchStatus('line', 'pay_switch')">
+				<div ng-click="switchStatus('line', 'pay_switch')" ng-class="paysetting['line'].pay_switch === true || paysetting['line'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" ng-if="paysetting['line'].has_config === true"></div>
+				<div ng-class="paysetting['line'].pay_switch === true || paysetting['line'].pay_switch === 'true' ? 'switch switchOn' : 'switch'" style="cursor:no-drop" ng-if="paysetting['line'].has_config === false"></div>
 			</td>
 			<td>
-				{{  paysetting.line.support_set === true ? '未设置' : '已设置'  }}
+				<span ng-class="paysetting['line'].has_config === true ? 'we7-circle success' : 'we7-circle '"></span>{{  paysetting['line'].has_config === true ? '已配置' : '未配置'  }}
+			</td>
+			<td>
+				支付/充值
 			</td>
 			<td >
 				<div class="link-group">
 					<a href="javascript:;" data-toggle="modal" data-target="#huikuan">
 						{{  paysetting.line.has_config === true ? '修改配置' : '去配置'  }}
 					</a>
-					<a href="{php echo url('profile/payment/switch', array('type' => 'line'))}" ng-if="paysetting.line.has_config === true">支付支持</a>
 				</div>
 			</td>
 		</tr>
@@ -216,7 +310,7 @@
 					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 					<div class="modal-title">支付宝支付</div>
 				</div>
-				<div class="modal-body">
+				<div class="modal-body overflow-auto">
 					<div class="we7-form">
 						<div class="form-group">
 							<label for="" class="control-label col-sm-2">支付宝无线支付</label>
@@ -505,8 +599,9 @@
 				</div>
 				<div class="modal-body">
 					<div class="we7-form">
+						<div class="we7-margin-bottom color-gray">参数设置</div>
 						<div class="form-group">
-							<label for="" class="control-label col-sm-2">一码付后台地址</label>
+							<label for="" class="control-label col-sm-2">后台地址</label>
 							<div class="form-controls col-sm-10">
 								<input type="text"ng-model="paysetting.jueqiymf.url" name="" class="form-control" placeholder="">
 							</div>
@@ -515,6 +610,26 @@
 							<label for="" class="control-label col-sm-2">商户号</label>
 							<div class="form-controls col-sm-10">
 								<input type="text"ng-model="paysetting.jueqiymf.mchid" name="" class="form-control" placeholder="">
+							</div>
+						</div>
+						<div class="border-top border-bottom we7-margin-horizontal-exceed we7-padding-top we7-padding-horizontal">
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2 color-gray we7-padding-vertical-none">支付参数</label>
+								<div class="form-controls col-sm-10">
+									<input type="checkbox" id="zhifu-1" name="zhifu" />
+									<label class="checkbox-inline we7-margin-right" for="zhifu-1">支付</label>
+									<input type="checkbox" id="zhifu-2" name="zhifu" />
+									<label class="checkbox-inline" for="zhifu-2">充值</label>
+								</div>
+							</div>
+							<div class="form-group">
+								<label for="" class="control-label col-sm-2 color-gray we7-padding-vertical-none">支付参数</label>
+								<div class="form-controls col-sm-10">
+									<input type="radio" id="status-1" name="status" />
+									<label class="radio-inline we7-margin-right" for="status-1">开启</label>
+									<input type="radio" id="status-2" name="status" />
+									<label class="radio-inline" for="status-2">关闭</label>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -649,6 +764,7 @@
 			'getAccountWechatProxy': "{php echo url('profile/payment/get_account_wechatpay_proxy')}",
 		}
 	});
+
 	angular.bootstrap($('.js-profile-payment'), ['profileApp']);
 </script>
 {template 'common/footer'}

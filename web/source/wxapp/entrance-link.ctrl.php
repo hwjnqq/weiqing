@@ -15,18 +15,19 @@ permission_check_account_user('wxapp_entrance_link');
 $wxapp_info = miniapp_fetch($_W['uniacid']);
 
 if ('entrance_link' == $do) {
-	$wxapp_modules = table('wxapp_versions')
-		->where(array('id' => $version_id))
-		->getcolumn('modules');
 	$module_info = array();
-	if (!empty($wxapp_modules)) {
-		$module_info = iunserializer($wxapp_modules);
-		$module_info = table('modules_bindings')
-			->where(array(
-				'module' => array_keys($module_info),
-				'entry' => 'page'
-			))
-			->getall();
+
+	if (in_array($version_info['type'], array(WXAPP_CREATE_MODULE, WXAPP_CREATE_MUTI_MODULE))) {
+		$module_info = array(array('eid' => '1', 'do' => 'wxapp_web/pages/view/index', 'title' => '入口'));
+	} else {
+		if (!empty($version_info['modules'])) {
+			$module_info = table('modules_bindings')
+				->where(array(
+					'module' => array_keys($version_info['modules']),
+					'entry' => 'page'
+				))
+				->getall();
+		}
 	}
 	template('wxapp/version-entrance');
 }

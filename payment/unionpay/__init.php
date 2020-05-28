@@ -26,10 +26,10 @@ if (!empty($_W['config']['setting']['development'])) {
 } else {
 	define('SDK_LOG_LEVEL', PhpLog::OFF);
 }
-if (!file_exists(IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx')) {
+if (!file_exists(IA_ROOT . '/attachment/unionpay/PM_'. md5(complex_authkey() . $_W['uniacid']) .'_acp.pfx')) {
 	message('缺少支付证书，请联系管理员！');
 }
-define('SDK_SIGN_CERT_PATH', IA_ROOT . '/attachment/unionpay/PM_'.$_W['uniacid'].'_acp.pfx');
+define('SDK_SIGN_CERT_PATH', IA_ROOT . '/attachment/unionpay/PM_'. md5(complex_authkey() . $_W['uniacid']) .'_acp.pfx');
 define('SDK_SIGN_CERT_PWD', $payment['signcertpwd']);
 define('SDK_ENCRYPT_CERT_PATH', IA_ROOT . '/attachment/unionpay/encrypt.cer');
 define('SDK_VERIFY_CERT_DIR', IA_ROOT . '/attachment/unionpay/');

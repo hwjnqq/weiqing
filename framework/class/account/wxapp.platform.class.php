@@ -25,7 +25,6 @@ class WxappPlatform extends WeixinPlatform {
 	protected $typeName = '微信小程序';
 	protected $typeSign = WXAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;
-	protected $typeTempalte = '-wxapp';
 
 	public function __construct($uniaccount = array()) {
 		$setting = setting_load('platform');
@@ -36,12 +35,12 @@ class WxappPlatform extends WeixinPlatform {
 		parent::__construct($uniaccount);
 	}
 
-	protected function getAccountInfo($acid) {
-		if ('wx570bc396a51b8ff8' == $this->account['key']) {
+	protected function getAccountInfo($uniacid) {
+		if ('wxd101a85aa106f53e' == $this->account['key']) {
 			$this->account['key'] = $this->appid;
 			$this->openPlatformTestCase();
 		}
-		$account = table('account_wxapp')->getAccount($acid);
+		$account = table('account_wxapp')->getAccount($uniacid);
 		$account['encrypt_key'] = $this->appid;
 
 		return $account;
@@ -423,14 +422,14 @@ class WxappPlatform extends WeixinPlatform {
 	}
 
 	//为授权的小程序帐号上传小程序代码
-	public function commit($template_id, $version, $desc = '') {
+	public function commit($template_id, $ext_json, $version, $desc = '') {
 		$token = $this->getAccessToken();
 		if (is_error($token)) {
 			return $token;
 		}
 		$data = array(
 			'template_id' => $template_id,
-			'ext_json' => '{}',
+			'ext_json' => !empty($ext_json) ? json_encode($ext_json) : '',
 			'user_version' => $version,
 			'user_desc' => $desc,
 		);
@@ -497,7 +496,19 @@ class WxappPlatform extends WeixinPlatform {
 
 		return $this->request($url);
 	}
-
+	
+	//查询指定发布审核单的审核状态
+	public function getAuditStatus($auditid) {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$data = array('auditid' => $auditid);
+		$url = "https://api.weixin.qq.com/wxa/get_auditstatus?access_token={$token}";
+		
+		return $this->request($url, $data);
+	}
+	
 	//发布已通过审核的小程序
 	public function release() {
 		$token = $this->getAccessToken();
@@ -522,6 +533,15 @@ class WxappPlatform extends WeixinPlatform {
 		}
 		$url = "https://api.weixin.qq.com/wxa/undocodeaudit?access_token={$token}";
 
+		return $this->request($url);
+	}
+	//小程序版本回退
+	public function revertCodeRelease() {
+		$token = $this->getAccessToken();
+		if (is_error($token)) {
+			return $token;
+		}
+		$url = "https://api.weixin.qq.com/wxa/revertcoderelease?access_token={$token}";
 		return $this->request($url);
 	}
 }

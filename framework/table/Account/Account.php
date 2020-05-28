@@ -79,6 +79,7 @@ class Account extends \We7Table {
 			->on(array('a.uniacid' => 'b.uniacid', 'a.default_acid' => 'b.acid'))
 			->where('b.isdeleted !=', $isdeleted)
 			->where('a.default_acid !=', '0')
+			->where('b.type <>', array(9, 10))
 			->leftjoin('uni_account_users', 'c')
 			->on(array('a.uniacid' => 'c.uniacid'))
 			->leftjoin('users', 'u')
@@ -143,10 +144,10 @@ class Account extends \We7Table {
 		if (empty($title)) {
 			return $this;
 		}
-		if ($title == 'admin' && user_is_founder($_W['uid'], true)) {
+		if ($title == 'admin' && $_W['isadmin']) {
 			$this->query->where('ISNULL(c.uid)', true);
 		} else {
-			if (user_is_founder($_W['uid'], true) || user_is_vice_founder($_W['uid'])){
+			if ($_W['isfounder']){
 				$user = table('uni_account_users')
 					->searchWithUsers()
 					->where('a.role', 'owner')
@@ -184,7 +185,7 @@ class Account extends \We7Table {
 
 	public function accountRankOrder() {
 		global $_W;
-		if (!user_is_founder($_W['uid'], true)) {
+		if (!$_W['isadmin']) {
 			$this->query->orderby('c.rank', 'desc');
 		} else {
 			$this->query->orderby('a.rank', 'desc');
@@ -196,6 +197,12 @@ class Account extends \We7Table {
 		$order = !empty($order) ? $order : 'desc';
 		$this->query->orderby('a.uniacid', $order);
 		return $this;
+	}
+
+	public function accountEndtimeOrder($order) {
+		$order = $order == 'endtime_asc' ? 'asc' : 'desc';
+		return $this->query->orderby('b.endtime', $order)
+			->where('b.endtime >', 2);
 	}
 
 	public function accountInitialsOrder($order = 'asc') {
@@ -226,13 +233,15 @@ class Account extends \We7Table {
 		}
 		$uni_modules = array();
 		
-		$uni_groups = $this->query->from('uni_group')->where('uniacid', $uniacid)->whereor('id', $packageids)->getall('modules');
-		if (!empty($uni_groups)) {
+		$uni_groups = $this->query->from('uni_group')->where('id', $packageids)->getall();
+		$uni_account_extra_modules = table('uni_account_extra_modules')->where('uniacid', $uniacid)->getall();
+		$acount_modules = array_merge($uni_groups, $uni_account_extra_modules);
+		if (!empty($acount_modules)) {
 			if (empty($type)) {
 				$account = table('account')->getByUniacid($uniacid);
 				$type = $account['type'];
 			}
-			foreach ($uni_groups as $group) {
+			foreach ($acount_modules as $group) {
 				$group_module = (array)iunserializer($group['modules']);
 				if (empty($group_module)) {
 					continue;
@@ -249,10 +258,6 @@ class Account extends \We7Table {
 						break;
 					case ACCOUNT_TYPE_WEBAPP_NORMAL:
 						$uni_modules = is_array($group_module['webapp']) ? array_merge($group_module['webapp'], $uni_modules) : $uni_modules;
-						break;
-					case ACCOUNT_TYPE_XZAPP_NORMAL:
-					case ACCOUNT_TYPE_XZAPP_AUTH:
-						$uni_modules = is_array($group_module['xzapp']) ? array_merge($group_module['xzapp'], $uni_modules) : $uni_modules;
 						break;
 					case ACCOUNT_TYPE_PHONEAPP_NORMAL:
 						$uni_modules = is_array($group_module['phoneapp']) ? array_merge($group_module['phoneapp'], $uni_modules) : $uni_modules;

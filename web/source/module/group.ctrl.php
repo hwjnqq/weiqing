@@ -10,7 +10,7 @@ load()->model('module');
 
 $dos = array('display', 'del', 'post', 'save', 'edit');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
-if (!user_is_founder($_W['uid'])) {
+if (!$_W['isfounder']) {
 	if ($_W['isajax']) {
 		iajax(-1, '无权限操作！');
 	}
@@ -22,7 +22,7 @@ if ('display' == $do) {
 	$pagesize = 10;
 
 	$uni_group_table = table('uni_group');
-	$uni_group_table->searchWithUniacidAndUid();
+	$uni_group_table->searchWithUid();
 
 	$name = safe_gpc_string($_GPC['name']);
 	if (!empty($name)) {

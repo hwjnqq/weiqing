@@ -129,7 +129,6 @@ class Wechat extends OAuth2Client {
 			if (!empty($user['unionid'])) {
 				pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['unionid'], 'third_type' => USER_REGISTER_TYPE_OPEN_WECHAT, 'third_nickname' => ''));
 			}
-
 			return $user_id;
 		}
 

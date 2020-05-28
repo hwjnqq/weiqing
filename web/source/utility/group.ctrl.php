@@ -8,13 +8,13 @@ defined('IN_IA') or exit('Access Denied');
 load()->model('module');
 
 $dos = array('module_groups', 'user_groups', 'get_module_group_detail_info', 'get_user_group_detail_info', 'get_users_create_group_detail_info', 'account_groups');
-if (!in_array($do, $dos) || !user_is_founder($_W['uid'], true)) {
+if (!in_array($do, $dos) || !$_W['isadmin']) {
 	iajax(-1, '没有权限');
 }
 
 $keyword = safe_gpc_string($_GPC['keyword']);
 $type = !empty($_GPC['type']) ? safe_gpc_string($_GPC['type']) : '';
-if ($type == 'vice_founder' && !user_is_founder($_W['uid'], true)) {
+if ($type == 'vice_founder' && !$_W['isadmin']) {
 	iajax('-1', '权限不足');
 }
 //应用权限组

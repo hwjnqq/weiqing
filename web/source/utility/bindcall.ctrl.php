@@ -8,7 +8,6 @@ defined('IN_IA') or exit('Access Denied');
 
 load()->model('module');
 
-error_reporting(E_ALL ^ E_NOTICE ^ E_WARNING);
 $modulename = trim($_GPC['modulename']);
 $callname = trim($_GPC['callname']);
 $uniacid = intval($_GPC['uniacid']);

@@ -267,6 +267,27 @@ if ('own' == $do) {
 			}
 			$uni_modules_table->where('uniacid IN', array_keys($owned_account_list));
 			$uni_modules_list = $uni_modules_table->getall();
+			//对于支持版本的平台账号，只显示版本里的模块（平台账号可用的其他模块因为没有加到版本里，故不显示）
+			foreach ($owned_account_list as $account) {
+				if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_ALIAPP_NORMAL, ACCOUNT_TYPE_BAIDUAPP_NORMAL, ACCOUNT_TYPE_TOUTIAOAPP_NORMAL))) {
+					$version_uniacid[] = $account['uniacid'];
+				}
+			}
+			$wxapp_versions_module = pdo_fetchall("SELECT uniacid, modules FROM ".tablename('wxapp_versions'). " WHERE uniacid IN (".implode(',', $version_uniacid).")");
+			if (!empty($wxapp_versions_module)) {
+				foreach ($wxapp_versions_module as $version) {
+					$version_module = array_keys(iunserializer($version['modules']));
+					foreach ($uni_modules_list as $key => $module_list) {
+						if ($module_list['uniacid'] != $version['uniacid']) {
+							continue;
+						}
+						if (!in_array($module_list['module_name'], $version_module)) {
+							unset($uni_modules_list[$key]);
+						}
+					}
+				}
+			}
+
 			$clerk_modules_list = pdo_fetchall("SELECT uau.id, uau.uniacid, up.type module_name FROM " . tablename('uni_account_users') . " as uau LEFT JOIN " . tablename('users_permission') . " as up ON uau.uniacid=up.uniacid AND uau.uid=up.uid WHERE uau.role IN ('" . ACCOUNT_MANAGE_NAME_MANAGER . "', '" . ACCOUNT_MANAGE_NAME_OPERATOR . "', '" . ACCOUNT_MANAGE_NAME_CLERK . "') AND uau.uid=" . $_W['uid']);
 			$modules_list_all = array_merge($uni_modules_list, $clerk_modules_list);
 			$modules_list = array_slice($modules_list_all, ($pageindex - 1) * $pagesize, $pagesize);

@@ -33,6 +33,12 @@ if ($_W['ispost'] && $_W['token'] == safe_gpc_string($_GPC['token'])) {
 			}
 		}
 		cache_write(cache_system_key('bomtree'), $bomtree);
+		if ($_W['isw7_request']) {
+			$message = array(
+				'bomtree' => $bomtree
+			);
+			iajax(0, $message);
+		}
 	}
 	//处理BOM异常
 	if (!empty($_GPC['dispose'])) {
@@ -48,6 +54,9 @@ if ($_W['ispost'] && $_W['token'] == safe_gpc_string($_GPC['token'])) {
 			}
 		}
 		cache_delete(cache_system_key('bomtree'));
+		if ($_W['isw7_request']) {
+			iajax(0, '操作成功');
+		}
 	}
 }
 

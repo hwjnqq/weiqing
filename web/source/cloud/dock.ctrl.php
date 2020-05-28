@@ -136,7 +136,7 @@ if ('module.setting.cloud' == $do) {
 	$module = WeUtility::createModule($data['module']);
 	$module->saveSettings($setting);
 	cache_delete(cache_system_key('module_info', array('module_name' => $data['module'])));
-	cache_delete(cache_system_key('module_setting', array('module_name' => $data['module'], 'uniacid' => $_W['uniacid'])), $setting);
+	cache_delete(cache_system_key('module_setting', array('module_name' => $data['module'], 'uniacid' => $_W['uniacid'])));
 	echo 'success';
 	exit;
 }

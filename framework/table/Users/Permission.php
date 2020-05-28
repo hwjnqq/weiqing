@@ -27,7 +27,6 @@ class Permission extends \We7Table {
 		PERMISSION_WXAPP,
 		PERMISSION_WEBAPP,
 		PERMISSION_PHONEAPP,
-		PERMISSION_XZAPP,
 		PERMISSION_ALIAPP,
 		PERMISSION_BAIDUAPP,
 		PERMISSION_TOUTIAOAPP,
@@ -56,10 +55,8 @@ class Permission extends \We7Table {
 			$this->query->where('uniacid', $uniacid);
 		}
 		return $this->query->where('uid', $uid)
-			->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_XZAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
+			->where('type !=', array(PERMISSION_ACCOUNT, PERMISSION_WXAPP, PERMISSION_WEBAPP, PERMISSION_PHONEAPP, PERMISSION_ALIAPP, PERMISSION_BAIDUAPP, PERMISSION_TOUTIAOAPP, PERMISSION_SYSTEM))->getall('type');
 	}
-
-	public function getUserExtendPermission() {}
 
 	public function getClerkPermission($module) {
 		global $_W;
@@ -90,5 +87,14 @@ class Permission extends \We7Table {
 			$this->query->where('p.type', $module);
 		}
 		return $this->query->getall();
+	}
+
+	public function searchWithUniAccountUsers() {
+		return $this->query->from($this->tableName, 'p')
+			->leftjoin('uni_account_users', 'u')
+			->on(array(
+				'p.uid' => 'u.uid',
+				'p.uniacid' => 'u.uniacid'
+			));
 	}
 }

@@ -11,8 +11,6 @@ load()->model('message');
 $dos = array('display', 'operate');
 $do = in_array($do, $dos) ? $do : 'display';
 
-$founders = explode(',', $_W['config']['setting']['founder']);
-
 if ('display' == $do) {
 	$message_id = intval($_GPC['message_id']);
 	message_notice_read($message_id);
@@ -49,7 +47,7 @@ if ('display' == $do) {
 
 		$search = safe_gpc_string($_GPC['search']);
 		if (!empty($search)) {
-			$search_uids = table('users_profile')->where('mobile like ', "%{$search}%")->getall('uid');
+			$search_uids = table('users_profile')->where('mobile LIKE', "%{$search}%")->getall('uid');
 			$users_table->searchWithNameOrMobile($search, false, is_array($search_uids) ? array_keys($search_uids) : array());
 		}
 
@@ -109,32 +107,54 @@ if ('operate' == $do) {
 			permission_check_account_user('system_user_recycle');
 			break;
 	}
-	$uid = intval($_GPC['uid']);
-	$uid_user = user_single($uid);
-	if (in_array($uid, $founders)) {
-		iajax(-1, '访问错误, 无法操作站长.', url('user/display'));
-	}
-	if (empty($uid_user)) {
-		exit('未指定用户,无法删除.');
+	$uid = safe_gpc_int($_GPC['uid']);
+	if (!empty($uid)) {
+		$uids = array($uid);
+	} else {
+		$uids = safe_gpc_array($_GPC['uids']);
 	}
 	
+
+	if (isset($founder_own_uids) && empty($founder_own_uids)) {
+		iajax(-1, '非法操作');
+	}
+
+	foreach ($uids as $uid) {
+		
+		if (user_is_founder($uid, true)) {
+			iajax(-1, '访问错误, 无法操作站长.', url('user/display'));
+		}
+		$uid_user = user_single($uid);
+		if (empty($uid_user)) {
+			exit('未指定用户,无法删除.');
+		}
+		
+	}
 	switch ($type) {
 		case 'check_pass':
 			$data = array('status' => USER_STATUS_NORMAL);
-			pdo_update('users', $data, array('uid' => $uid));
+			foreach ($uids as $uid) {
+				pdo_update('users', $data, array('uid' => $uid));
+			}
 			iajax(0, '更新成功', referer());
 			break;
 		case 'recycle'://删除用户到回收站
-			user_delete($uid, true);
+			foreach ($uids as $uid) {
+				user_delete($uid, true);
+			}
 			iajax(0, '更新成功', referer());
 			break;
 		case 'recycle_delete'://永久删除用户
-			user_delete($uid);
+			foreach ($uids as $uid) {
+				user_delete($uid);
+			}
 			iajax(0, '删除成功', referer());
 			break;
 		case 'recycle_restore':
 			$data = array('status' => USER_STATUS_NORMAL);
-			pdo_update('users', $data, array('uid' => $uid));
+			foreach ($uids as $uid) {
+				pdo_update('users', $data, array('uid' => $uid));
+			}
 			iajax(0, '启用成功', referer());
 			break;
 	}

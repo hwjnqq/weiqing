@@ -195,8 +195,7 @@
 		<div class="form-group">
 			<label class="col-sm-2 control-label">FTP密码</label>
 			<div class="col-sm-9">
-				<input type="text" name="ftp[password]" class="form-control encrypt" value="{$remote['ftp']['password']}" />
-				<span class="help-block">基于安全考虑将只显示 FTP 密码的第一位和最后一位，中间显示八个 * 号</span>
+				<input type="password" name="ftp[password]" class="form-control encrypt" value="{$remote['ftp']['password']}" />
 			</div>
 		</div>
 		<div class="form-group">
@@ -617,7 +616,8 @@
 			}
 		});
 	});
-	var alibucket = '{$_W['setting']['remote']['alioss']['bucket']}';
+	var alibucket = '{$_W['setting']['remote_complete_info']['alioss']['bucket']}';
+
 	var buck =  function() {
 		var key = $(':text[name="alioss[key]"]').val();
 		var secret = $(':text[name="alioss[secret]"]').val();

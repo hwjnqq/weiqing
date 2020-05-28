@@ -170,7 +170,6 @@ class Mobile extends OAuth2Client {
 		if (is_error($param_validate)) {
 			return $param_validate;
 		}
-
 		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
 		pdo_update('users_profile', array('mobile' => ''), array('id' => $user_profile['id']));
 		pdo_delete('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $mobile, 'third_type' => USER_REGISTER_TYPE_MOBILE));

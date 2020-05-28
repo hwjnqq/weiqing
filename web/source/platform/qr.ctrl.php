@@ -55,7 +55,6 @@ if ('list' == $do) {
 	$total = pdo_fetchcolumn('SELECT COUNT(*) FROM ' . tablename('qrcode') . $wheresql, $param);
 	$pager = pagination($total, $pindex, $psize);
 
-	//删除过期二维码
 	pdo_query('UPDATE ' . tablename('qrcode') . " SET status = '0' WHERE uniacid = '{$_W['uniacid']}' AND model = '1' AND createtime < '{$_W['timestamp']}' - expire");
 	template('platform/qr-list');
 }

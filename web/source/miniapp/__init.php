@@ -9,17 +9,17 @@ load()->model('miniapp');
 if (in_array($action, array('post', 'manage'))) {
 	define('FRAME', '');
 } else {
-	if (!empty($_GPC['uniacid']) && intval($_GPC['uniacid']) != $_W['uniacid']) {
-		$params = array('uniacid' => intval($_GPC['uniacid']), 'version_id' => intval($_GPC['version_id']));
-		if ('version' == $action && 'display' == $do) {
-			$params['miniapp_version_referer'] = 1;
+	$version_id = intval($_GPC['version_id']);
+	if (!empty($version_id)) {
+		$account = table('account')->getUniAccountByUniacid($_W['uniacid']);
+		$version_info = miniapp_version($version_id);
+		if ($version_info['uniacid'] != $_W['uniacid']) {
+			itoast('', $_W['siteroot'] . 'web/home.php');
 		}
-
-		itoast('', url('account/display/switch', $params));
 	}
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
-		itoast('', url('account/display'));
+		itoast('', $_W['siteroot'] . 'web/home.php');
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {

@@ -142,53 +142,33 @@ if ($do == 'avatar') {
 if ($do == 'address') {
 	$address_id = intval($_GPC['id']);
 	if ($_GPC['op'] == 'default') {
-		table('mc_member_address')
-			->where(array(
-				'uniacid' => $_W['uniacid'],
-				'uid' => $_W['member']['uid']
-			))
-			->fill(array('isdefault' => 0))
-			->save();
-		table('mc_member_address')
-			->where(array(
-				'id' => $address_id,
-				'uniacid' => $_W['uniacid']
-			))
-			->fill(array('isdefault' => 1))
-			->save();
+		pdo_update('mc_member_address', array('isdefault' => 0), array('uniacid' => $_W['uniacid'], 'uid' => $_W['member']['uid']));
+		pdo_update('mc_member_address', array('isdefault' => 1), array('id' => $address_id, 'uniacid' => $_W['uniacid']));
 		mc_update($_W['member']['uid'], array('address' => safe_gpc_string($_GPC['address'])));
 	}
 	if ($_GPC['op'] == 'delete') {
 		if (!empty($profile) && !empty($_W['openid'])) {
-			table('mc_member_address')
-				->where(array(
-					'id' => $address_id,
-					'uid' => $_W['member']['uid'],
-					'uniacid' => $_W['uniacid']
-				))
-				->delete();
+			pdo_delete('mc_member_address', array('id' => $address_id, 'uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 		}
 	}
-	$where = array(
-		'uniacid' => $_W['uniacid'],
-		'uid' => $_W['member']['uid']
-	);
+	$where = ' WHERE 1';
+	$params = array(':uniacid' => $_W['uniacid'], ':uid' => $_W['member']['uid']);
 	if (!empty($_GPC['addid'])) {
-		$where['id'] = ntval($_GPC['addid']);
+		$where .= ' AND `id` = :id';
+		$params[':id'] = intval($_GPC['addid']);
 	}
+	$where .= ' AND `uniacid` = :uniacid AND `uid` = :uid';
+	$sql = 'SELECT * FROM ' . tablename('mc_member_address') . $where;
 	if (empty($params[':id'])) {
 		$psize = 10;
 		$pindex = max(1, intval($_GPC['page']));
-		$address = table('mc_member_address')
-			->where($where)
-			->limit(($pindex - 1) * $psize, $psize)
-			->getall();
-		$total = table('mc_member_address')
-			->where($where)
-			->getcolumn('COUNT(*)');
+		$sql .= ' LIMIT ' . ($pindex - 1) * $psize . ',' . $psize;
+		$addresses = pdo_fetchall($sql, $params);
+		$sql = 'SELECT COUNT(*) FROM ' . tablename('mc_member_address') . $where;
+		$total = pdo_fetchcolumn($sql, $params);
 		$pager = pagination($total, $pindex, $psize);
 	} else {
-		$address = table('mc_member_address')->where($where)->get();
+		$address = pdo_fetch($sql, $params);
 	}
 }
 /*添加或编辑地址*/
@@ -265,7 +245,7 @@ if ($do == 'addressadd') {
 		}
 	}
 	if (!empty($addid)) {
-		$address = table('mc_member_address')->getById($addid, $_W['uniacid']);
+		$address = pdo_get('mc_member_address', array('id' => $addid, 'uid' => $_W['member']['uid'], 'uniacid' => $_W['uniacid']));
 	}
 }
 template('mc/profile');

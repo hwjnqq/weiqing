@@ -14,7 +14,7 @@ class BaiduappAccount extends WeAccount {
 	protected $typeSign = BAIDUAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;
 
-	protected function getAccountInfo($acid) {
-		return table('account_baiduapp')->getAccount($acid);
+	protected function getAccountInfo($uniacid) {
+		return table('account_baiduapp')->getAccount($uniacid);
 	}
 }

@@ -35,7 +35,7 @@ function welcome_notices_get() {
 			$notices[$key]['createtime'] = date('Y-m-d', $notice_val['createtime']);
 			$notices[$key]['style'] = iunserializer($notice_val['style']);
 			$notices[$key]['group'] = empty($notice_val['group']) ? array('vice_founder' => array(), 'normal' => array()) : iunserializer($notice_val['group']);
-			if (!empty($_W['user']['groupid']) && !empty($notice_val['group']) && !in_array($_W['user']['groupid'], $notices[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notices[$key]['group']['normal'])) {
+			if (!empty($_W['user']['groupid']) && !empty($notice_val['group']) && !empty($notices[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notices[$key]['group']['vice_founder']) && !in_array($_W['user']['groupid'], $notices[$key]['group']['normal'])) {
 				unset($notices[$key]);
 			}
 		}

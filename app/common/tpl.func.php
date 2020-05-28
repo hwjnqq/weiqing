@@ -198,6 +198,12 @@ function tpl_app_form_field_district($name, $values = array()) {
 	return $html;
 }
 
+/**
+ * @param $name 表单字段的名称，同一页面不能为空
+ * @param string $value 用户的头像图片地址
+ * @param int $type 是否只显示图片：1是；0：否
+ * @return string
+ */
 function tpl_app_form_field_avatar($name, $value = '', $type = 0) {
 	$val = './resource/images/nopic.jpg';
 	if (!empty($value)) {

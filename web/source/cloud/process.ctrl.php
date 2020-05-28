@@ -33,9 +33,11 @@ if ('scripts' == $step && $_W['ispost']) {
 			cache_build_setting();
 			@unlink($entry);
 			$version_file = file_get_contents(IA_ROOT . '/framework/version.inc.php');
-			$match_version = strpos($version_file, $tipversion);
-			if ($tipversion && $match_version) {
-				exit('showtips');
+			if ($tipversion) {
+				$match_version = strpos($version_file, $tipversion);
+				if ($match_version) {
+					exit('showtips');
+				}
 			}
 			exit('success');
 		}
@@ -60,6 +62,7 @@ if (!empty($_GPC['m'])) {
 			itoast('模块安装脚本有代码错误，请联系开发者解决！', referer(), 'error');
 		}
 	}
+	$application_type = $module_info['application_type'];
 } elseif (!empty($_GPC['t'])) {
 	$m = $_GPC['t'];
 	$type = 'theme';

@@ -12,26 +12,32 @@ load()->func('file');
 load()->model('cloud');
 load()->func('db');
 load()->model('system');
-$dos = array('backup', 'restore', 'trim', 'optimize', 'run', 'scrap_table', 'delete_scrap_table', 'load_scrap_table_data', 'change_module_stutas');
+$dos = array('backup', 'restore', 'trim', 'optimize', 'scrap_table', 'delete_scrap_table', 'load_scrap_table_data', 'change_module_stutas');
 $do = in_array($do, $dos) ? $do : 'backup';
 
 //备份
 if ('backup' == $do) {
 	if ($_GPC['status']) {
 		if (empty($_W['setting']['copyright']['status'])) {
+			if ($_W['isw7_request']) {
+				iajax(-1, '为了保证备份数据完整请关闭站点后再进行此操作', url('system/site'));
+			}
 			itoast('为了保证备份数据完整请关闭站点后再进行此操作', url('system/site'), 'error');
 		}
 		$sql = "SHOW TABLE STATUS LIKE '{$_W['config']['db']['tablepre']}%'";
 		$tables = pdo_fetchall($sql);
 		if (empty($tables)) {
+			if ($_W['isw7_request']) {
+				$message = array(
+					'continue' => 0,
+					'message' => '数据已经备份完成'
+				);
+				iajax(0, $message);
+			}
 			itoast('数据已经备份完成', url('system/database/'), 'success');
 		}
 		$series = max(1, intval($_GPC['series']));
-		if (!empty($_GPC['volume_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['volume_suffix'])) {
-			$volume_suffix = $_GPC['volume_suffix'];
-		} else {
-			$volume_suffix = random(10);
-		}
+		$volume_suffix = md5(complex_authkey());
 		if (!empty($_GPC['folder_suffix']) && !preg_match('/[^0-9A-Za-z-_]/', $_GPC['folder_suffix'])) {
 			$folder_suffix = $_GPC['folder_suffix'];
 		} else {
@@ -87,11 +93,18 @@ if ('backup' == $do) {
 							'last_table' => $table,
 							'index' => $index,
 							'series' => $series,
-							'volume_suffix' => $volume_suffix,
 							'folder_suffix' => $folder_suffix,
 							'status' => 1,
 						);
 						$current_series = $series - 1;
+						if ($_W['isw7_request']) {
+							$message = array(
+								'continue' => 1,
+								'message' =>  '正在导出数据, 请不要关闭浏览器, 当前第 ' . $current_series . ' 卷.',
+								'url' => url('system/database/backup/', $current)
+							);
+							iajax(0, $message);
+						}
 						message('正在导出数据, 请不要关闭浏览器, 当前第 ' . $current_series . ' 卷.', url('system/database/backup/', $current), 'info');
 					}
 				}
@@ -105,6 +118,13 @@ if ('backup' == $do) {
 		$bakfile = $bakdir . "/volume-{$volume_suffix}-{$series}.sql";
 		$dump .= "\n\n----WeEngine MySQL Dump End";
 		file_put_contents($bakfile, $dump);
+		if ($_W['isw7_request']) {
+			$message = array(
+				'continue' => 0,
+				'message' => '数据已经备份完成'
+			);
+			iajax(0, $message);
+		}
 		itoast('数据已经备份完成', url('system/database/'), 'success');
 	}
 }
@@ -117,18 +137,29 @@ if ('restore' == $do) {
 		$restore_dirname = $_GPC['restore_dirname'];
 		$restore_dirname_list = array_keys($reduction);
 		if (!in_array($restore_dirname, $restore_dirname_list)) {
+			if ($_W['isw7_request']) {
+				iajax(-1, '非法访问');
+			}
 			itoast('非法访问', '', 'error');
 			exit;
 		}
 
 		$volume_list = $reduction[$restore_dirname]['volume_list'];
-		if (empty($_GPC['restore_volume_name'])) {
+		$restore_volume_sizes = max(1, intval($_GPC['restore_volume_sizes']));
+		if (1 == $restore_volume_sizes) {
 			$restore_volume_name = $volume_list[0];
 		} else {
-			$restore_volume_name = $_GPC['restore_volume_name'];
+			$listkey = $restore_volume_sizes - 1;
+			$restore_volume_name = $volume_list[$listkey];
 		}
-		$restore_volume_sizes = max(1, intval($_GPC['restore_volume_sizes']));
 		if ($reduction[$restore_dirname]['volume'] < $restore_volume_sizes) {
+			if ($_W['isw7_request']) {
+				$message = array(
+					'continue' => 0,
+					'message' => '成功恢复数据备份. 可能还需要你更新缓存.'
+				);
+				iajax(0, $message);
+			}
 			itoast('成功恢复数据备份. 可能还需要你更新缓存.', url('system/database/restore'), 'success');
 			exit;
 		}
@@ -137,18 +168,34 @@ if ('restore' == $do) {
 		$next_restore_volume_name = system_database_volume_next($restore_volume_name);
 		++$restore_volume_sizes ;
 		$restore = array(
-				'restore_volume_name' => $next_restore_volume_name,
 				'restore_volume_sizes' => $restore_volume_sizes,
 				'restore_dirname' => $restore_dirname,
 		);
+		if ($_W['isw7_request']) {
+			$message = array(
+				'continue' => 1,
+				'message' => '正在恢复数据备份, 请不要关闭浏览器, 当前第 ' . $volume_sizes . ' 卷.',
+				'url' => url('system/database/restore', $restore)
+			);
+			iajax(0, $message);
+		}
 		message('正在恢复数据备份, 请不要关闭浏览器, 当前第 ' . $volume_sizes . ' 卷.', url('system/database/restore', $restore), 'success');
 	}
 	//删除备份
 	if ($_GPC['delete_dirname']) {
 		$delete_dirname = $_GPC['delete_dirname'];
 		if (!empty($reduction[$delete_dirname]) && system_database_backup_delete($delete_dirname)) {
+			if ($_W['isw7_request']) {
+				iajax(0, '删除备份成功.');
+			}
 			itoast('删除备份成功.', url('system/database/restore'), 'success');
 		}
+	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'reduction' => $reduction
+		);
+		iajax(0, $message);
 	}
 }
 
@@ -174,6 +221,9 @@ if ('trim' == $do) {
 
 	$r = cloud_prepare();
 	if (is_error($r)) {
+		if ($_W['isw7_request']) {
+			iajax(-1, $r['message']);
+		}
 		itoast($r['message'], url('cloud/profile'), 'error');
 	}
 
@@ -205,6 +255,12 @@ if ('trim' == $do) {
 			}
 		}
 	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'diff' => $diff
+		);
+		iajax(0, $message);
+	}
 }
 //优化
 if ('optimize' == $do) {
@@ -235,18 +291,16 @@ if ('optimize' == $do) {
 				pdo_fetch($sql);
 			}
 		}
+		if ($_W['isw7_request']) {
+			iajax(0, '数据表优化成功.');
+		}
 		itoast('数据表优化成功.', 'refresh', 'success');
 	}
-}
-//运行SQL
-if ('run' == $do) {
-	if (!DEVELOPMENT) {
-		itoast('请先开启开发模式后再使用此功能', referer(), 'info');
-	}
-	if ($_W['ispost']) {
-		$sql = $_POST['sql'];
-		pdo_run($sql);
-		itoast('查询执行成功.', 'refresh', 'success');
+	if ($_W['isw7_request']) {
+		$message = array(
+			'optimize_table' => $optimize_table
+		);
+		iajax(0, $message);
 	}
 }
 
@@ -279,6 +333,15 @@ if ('scrap_table' == $do) {
 			continue;
 		}
 		$module_cloud[$module_key] = array('logo' => $module_value['logo'], 'title' => $module_value['title'], 'name' => $module_value['name'], 'module_status' => $module_value['module_status']);
+	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'module_cloud' => $module_cloud,
+			'page' => $pindex,
+			'page_size' => $psize,
+			'total' => $total
+		);
+		iajax(0, $message);
 	}
 }
 

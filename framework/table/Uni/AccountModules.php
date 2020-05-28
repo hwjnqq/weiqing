@@ -23,20 +23,7 @@ class AccountModules extends \We7Table {
 		'displayorder' => 0,
 		'settings' => '',
 	);
-
-	public function isSettingExists($module_name) {
-		global $_W;
-		return $this->query->where('module', $module_name)->where('uniacid', $_W['uniacid'])->exists();
-	}
-
-	public function getByUniacidAndVersionId($uniacid, $version_id) {
-		$data = $this->query->where('uniacid', $uniacid)->where('version_id', $version_id)->get();
-		if (!empty($data['settings'])) {
-			$data['settings'] = iunserializer($data['settings']);
-		}
-		return $data;
-	}
-
+	
 	public function getByUniacidAndModule($module_name, $uniacid) {
 		$result = $this->query->where('module', $module_name)->where('uniacid', $uniacid)->get();
 		if (!empty($result)) {

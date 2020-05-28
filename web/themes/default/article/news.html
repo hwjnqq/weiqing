@@ -81,7 +81,7 @@
 					<span class="label label-danger">已隐藏</span>
 				{/if}
 			</td>
-			<td class="">{php echo date('Y-m-d H:i', $new['createtime']);}</td>
+			<td class="">{$new['createtime']}</td>
 			<td>
 				<div class="link-group">
 					<a href="{php echo url('article/news-show/detail', array('id' => $new['id']));}" target="_blank">预览</a>
@@ -113,8 +113,8 @@
 					<div class="modal-body">
 						<div class="form-group">
 							<select name="setting" class="we7-select">
-								<option value="order">按排序数字大小倒序</option>
-								<option value="createtime">按添加时间倒序</option>
+								<option value="displayorder" {if 'displayorder' == $news_display}selected{/if}>按排序数字大小倒序</option>
+								<option value="createtime" {if 'createtime' == $news_display}selected{/if}>按添加时间倒序</option>
 							</select>
 							<span class="help-block"></span>
 						</div>

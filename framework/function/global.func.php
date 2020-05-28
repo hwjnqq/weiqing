@@ -766,12 +766,23 @@ function tomedia($src, $local_path = false, $is_cahce = false) {
 	}
 	$uni_remote_setting = uni_setting_load('remote');
 	//全局未设置远程附件，帐号内设置远程附件的情况要考虑在内，否则帐号内不显示图片，即第二个“||”判断
-	if ($local_path ||
-		empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($uni_remote_setting['remote']['type'])) ||
-		file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
+	if ($local_path || empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($uni_remote_setting['remote']['type'])) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
 		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;
 	} else {
-		$src = $_W['attachurl_remote'] . $src;
+		if ($uni_remote_setting['remote']['type']) {
+			if (ATTACH_FTP == $uni_remote_setting['remote']['type']) {
+				$src = $uni_remote_setting['remote']['ftp']['url'] . '/' . $src;
+			} elseif (ATTACH_OSS == $uni_remote_setting['remote']['type']) {
+				$src = $uni_remote_setting['remote']['alioss']['url'] . '/' . $src;
+			} elseif (ATTACH_QINIU == $uni_remote_setting['remote']['type']) {
+				$src = $uni_remote_setting['remote']['qiniu']['url'] . '/' . $src;
+			} elseif (ATTACH_COS == $uni_remote_setting['remote']['type']) {
+				$src = $uni_remote_setting['remote']['cos']['url'] . '/' . $src;
+			}
+
+		} else {
+			$src = $_W['attachurl_remote'] . $src;
+		}
 	}
 
 	return $src;
@@ -1253,31 +1264,30 @@ function xml2array($xml) {
  * @return mixed|string
  */
 function scriptname() {
-	global $_W;
-	$_W['script_name'] = basename($_SERVER['SCRIPT_FILENAME']);
-	if (basename($_SERVER['SCRIPT_NAME']) === $_W['script_name']) {
-		$_W['script_name'] = $_SERVER['SCRIPT_NAME'];
+	$script_name = basename($_SERVER['SCRIPT_FILENAME']);
+	if (basename($_SERVER['SCRIPT_NAME']) === $script_name) {
+		$script_name = $_SERVER['SCRIPT_NAME'];
 	} else {
-		if (basename($_SERVER['PHP_SELF']) === $_W['script_name']) {
-			$_W['script_name'] = $_SERVER['PHP_SELF'];
+		if (basename($_SERVER['PHP_SELF']) === $script_name) {
+			$script_name = $_SERVER['PHP_SELF'];
 		} else {
-			if (isset($_SERVER['ORIG_SCRIPT_NAME']) && basename($_SERVER['ORIG_SCRIPT_NAME']) === $_W['script_name']) {
-				$_W['script_name'] = $_SERVER['ORIG_SCRIPT_NAME'];
+			if (isset($_SERVER['ORIG_SCRIPT_NAME']) && basename($_SERVER['ORIG_SCRIPT_NAME']) === $script_name) {
+				$script_name = $_SERVER['ORIG_SCRIPT_NAME'];
 			} else {
-				if (false !== ($pos = strpos($_SERVER['PHP_SELF'], '/' . $scriptName))) {
-					$_W['script_name'] = substr($_SERVER['SCRIPT_NAME'], 0, $pos) . '/' . $_W['script_name'];
+				if (false !== ($pos = strpos($_SERVER['PHP_SELF'], '/'))) {
+					$script_name = substr($_SERVER['SCRIPT_NAME'], 0, $pos) . '/' . $script_name;
 				} else {
 					if (isset($_SERVER['DOCUMENT_ROOT']) && 0 === strpos($_SERVER['SCRIPT_FILENAME'], $_SERVER['DOCUMENT_ROOT'])) {
-						$_W['script_name'] = str_replace('\\', '/', str_replace($_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILENAME']));
+						$script_name = str_replace('\\', '/', str_replace($_SERVER['DOCUMENT_ROOT'], '', $_SERVER['SCRIPT_FILENAME']));
 					} else {
-						$_W['script_name'] = 'unknown';
+						$script_name = 'unknown';
 					}
 				}
 			}
 		}
 	}
 
-	return $_W['script_name'];
+	return $script_name;
 }
 
 /**

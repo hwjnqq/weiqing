@@ -14,6 +14,9 @@ $do = in_array($do, $dos) ? $do : 'index';
 
 if ('opcache' == $do) {
 	opcache_reset();
+	if ($_W['isw7_request']) {
+		iajax(0, '清空缓存成功');
+	}
 	itoast('清空缓存成功', url('system/optimize'), 'success');
 } else {
 	$cache_type = cache_type();
@@ -67,6 +70,20 @@ if ('opcache' == $do) {
 				$extensions['redis']['extra'] = '消耗峰值：' . round($status['used_memory_peak'] / 1048576, 2) . ' M/ 内存总量：' . round($status['used_memory'] / 1048576, 2) . ' M';
 			}
 		}
+	}
+	if ($_W['isw7_request']) {
+		$message = array(
+			'extensions' => $extensions,
+			'slave_status' => $slave['slave_status'],
+			'extensions' => $extensions,
+			'session_setting' => array(
+				'memcache' => $setting['memcache']['session'],
+				'redis' => $setting['redis']['session']
+			),
+			'slave_except_table' => !empty($slave['common']['slave_except_table']) ? $slave['common']['slave_except_table']: array(),
+			'proxy_host' => !empty($setting['proxy']['host']) ? $setting['proxy']['host'] : ''
+		);
+		iajax(0, $message);
 	}
 	template('system/optimize');
 }

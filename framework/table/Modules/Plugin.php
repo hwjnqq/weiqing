@@ -16,15 +16,12 @@ class Plugin extends \We7Table {
 		'main_module' => '',
 	);
 
-	public function getAllByNameOrMainModule($modulenams) {
-		return $this->where('name', $modulenams)->whereor('main_module', $modulenams)->getall();
+	public function getAllByNameOrMainModule($module_name) {
+		return $this->where('name', $module_name)->whereor('main_module', $module_name)->getall();
 	}
 
-	public function deleteByMainModule($modulename) {
-		if (empty($modulename)) {
-			return true;
-		}
-		return $this->query->where('main_module', $modulename)->delete();
+	public function deleteByMainModule($module_name) {
+		return $this->query->where('main_module', $module_name)->delete();
 	}
 	
 	public function getPluginExists($main_module, $plugin_name) {

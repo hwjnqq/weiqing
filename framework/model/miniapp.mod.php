@@ -42,7 +42,10 @@ function miniapp_create($account) {
 		'groupid' => 0,
 		'createtime' => TIMESTAMP,
 		'create_uid' => intval($_W['uid']),
+		'logo' => $account['headimg'],
+		'qrcode' => $account['qrcode'],
 	);
+
 	if (!pdo_insert('uni_account', $uni_account_data)) {
 		return error(1, '添加失败');
 	}
@@ -52,20 +55,12 @@ function miniapp_create($account) {
 		'type' => $account['type'],
 		'hash' => random(8),
 	);
-	if (!user_is_founder($_W['uid'], true)  && $_W['user']['endtime'] > USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
+	if (!$_W['isadmin']  && $_W['user']['endtime'] > USER_ENDTIME_GROUP_UNLIMIT_TYPE) {
 		$account_data['endtime'] = $_W['user']['endtime'];
 	}
 	pdo_insert('account', $account_data);
 	$acid = pdo_insertid();
 	pdo_update('uni_account', array('default_acid' => $acid), array('uniacid' => $uniacid));
-
-	load()->model('utility');
-	if (!empty($account['headimg'])) {
-		utility_image_rename($account['headimg'], ATTACHMENT_ROOT . 'headimg_' . $acid . '.jpg');
-	}
-	if (!empty($account['qrcode'])) {
-		utility_image_rename($account['qrcode'], ATTACHMENT_ROOT . 'qrcode_' . $acid . '.jpg');
-	}
 
 	if (in_array($account['type'], array(ACCOUNT_TYPE_APP_NORMAL, ACCOUNT_TYPE_APP_AUTH, ACCOUNT_TYPE_APP_PLATFORM))) {
 		$data = array(
@@ -85,7 +80,7 @@ function miniapp_create($account) {
 			$user_info = permission_user_account_num($_W['uid']);
 			if (empty($user_info['usergroup_wxapp_limit'])) {
 				pdo_update('account', array('endtime' => strtotime('+1 month', time())), array('uniacid' => $uniacid));
-				pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => ACCOUNT_TYPE_APP_NORMAL));
+				pdo_insert('site_store_create_account', array('endtime' => strtotime('+1 month', time()), 'uid' => $_W['uid'], 'uniacid' => $uniacid, 'type' => $account['type']));
 			}
 		}
 	} else {
@@ -112,13 +107,13 @@ function miniapp_create($account) {
 
 	pdo_insert($account_type_info['table_name'], $data);
 	if (empty($_W['isfounder'])) {
-		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
+		uni_account_user_role_insert($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_OWNER);
 	}
 	if (user_is_vice_founder()) {
-		uni_user_account_role($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+		uni_account_user_role_insert($uniacid, $_W['uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 	}
 	if (!empty($_W['user']['owner_uid'])) {
-		uni_user_account_role($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+		uni_account_user_role_insert($uniacid, $_W['user']['owner_uid'], ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
 	}
 	$unisettings['creditnames'] = array('credit1' => array('title' => '积分', 'enabled' => 1), 'credit2' => array('title' => '余额', 'enabled' => 1));
 	$unisettings['creditnames'] = iserializer($unisettings['creditnames']);
@@ -178,9 +173,11 @@ function miniapp_create_wxapp_by_auth_appid($auth_appid, $account_name = '') {
 }
 
 function miniapp_add_register_version($data) {
-	$result = pdo_insert('wxapp_register_version', $data);
+	table('wxapp_register_version')->where('version_id', $data['version_id'])->where('status', WXAPP_REGISTER_VERSION_STATUS_DEVELOP)->delete();
+	$result = table('wxapp_register_version')->fill($data)->save();
 	return $result ? true : false;
 }
+
 function miniapp_change_register_version_status($auditid, $status, $reason = '') {
 	global $_W;
 	$register_info = table('wxapp_register_version')->getByUniacidAndAuditid($_W['uniacid'], $auditid);
@@ -194,39 +191,83 @@ function miniapp_change_register_version_status($auditid, $status, $reason = '')
 	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
 	return $result ? true : false;
 }
-function miniapp_update_submit_audit($auditid) {
+
+/**
+ * 建立审核版本
+ * @param $version_id 版本ID
+ * @param $auditid 提交审核时获得的审核 id
+ * @return bool
+ */
+function miniapp_create_submit_audit($version_id, $auditid) {
 	global $_W;
-	$register_info = table('wxapp_register_version')->getByUniacid($_W['uniacid']);
+	$register_info = table('wxapp_register_version')->getByUniacidAndVersionidAndStatus($_W['uniacid'], $version_id, WXAPP_REGISTER_VERSION_STATUS_DEVELOP);
 	if (empty($register_info)) {
 		return false;
 	}
+
+	$delete_data = array(
+		'uniacid' => $_W['uniacid'],
+		'version_id' => $version_id,
+		'status' => array(WXAPP_REGISTER_VERSION_STATUS_CHECKFAIL, WXAPP_REGISTER_VERSION_STATUS_CHECKSUCCESS)
+	);
+	table('wxapp_register_version')->where($delete_data)->delete();
+
 	$audit_info = array(
-		'version'       =>  $register_info['version'],
-		'description'   =>  $register_info['description'],
-		'upload_time'   =>  TIMESTAMP
+		'version' => $register_info['version'],
+		'description' => $register_info['description'],
+		'developer' => $register_info['developer'],
+		'upload_time' => TIMESTAMP
 	);
 	$data = array(
-		'status'        =>  WXAPP_REGISTER_VERSION_STATUS_CHECKING,
-		'audit_info'     =>  iserializer($audit_info),
-		'auditid' => $auditid
+		'uniacid' => $_W['uniacid'],
+		'version_id' => $version_id,
+		'version' => $register_info['version'],
+		'description' => $register_info['description'],
+		'developer' => $register_info['developer'],
+		'upload_time' => TIMESTAMP,
+		'status' => WXAPP_REGISTER_VERSION_STATUS_CHECKING,
+		'audit_info' => iserializer($audit_info),
+		'auditid' => $auditid,
 	);
-	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
+	$result = table('wxapp_register_version')->fill($data)->save();
 	return $result ? true : false;
 }
 
-function miniapp_update_release() {
+/**
+ * 建立线上版本
+ * @param $version_id 版本ID
+ * @return bool
+ */
+function miniapp_create_release($version_id) {
 	global $_W;
-	$register_info = table('wxapp_register_version')->getByUniacid($_W['uniacid']);
+	$audit_success_info = table('wxapp_register_version')->getByUniacidAndVersionidAndStatus($_W['uniacid'], $version_id, WXAPP_REGISTER_VERSION_STATUS_CHECKSUCCESS);
+	if (empty($register_info)) {
+		return false;
+	}
+
+	$delete_data = array(
+		'uniacid' => $_W['uniacid'],
+		'version_id' => $version_id,
+		'status' => WXAPP_REGISTER_VERSION_STATUS_RELEASE,
+	);
+	table('wxapp_register_version')->where($delete_data)->delete();
+
 	$submit_info = array(
-		'version'       =>  $register_info['version'],
-		'description'   =>  $register_info['description'],
+		'version'       =>  $audit_success_info['version'],
+		'description'   =>  $audit_success_info['description'],
 		'upload_time'   =>  TIMESTAMP
 	);
 	$data = array(
+		'uniacid' => $_W['uniacid'],
+		'version_id' => $version_id,
+		'version' => $audit_success_info['version'],
+		'description' => $audit_success_info['description'],
+		'developer' => $audit_success_info['developer'],
+		'upload_time' => TIMESTAMP,
 		'status'        =>  WXAPP_REGISTER_VERSION_STATUS_RELEASE,
 		'submit_info'     =>  iserializer($submit_info)
 	);
-	$result = table('wxapp_register_version')->where('id', $register_info['id'])->fill($data)->save();
+	$result = table('wxapp_register_version')->fill($data)->save();
 	return $result ? true : false;
 }
 /**
@@ -255,6 +296,26 @@ function miniapp_support_wxapp_modules($uniacid = 0) {
 		}
 	}
 	return $wxapp_modules;
+}
+
+/**
+ * @param $version_id 版本ID
+ * @param $status 要删除的状态(只能删除审核中和审核失败的)
+ * @return bool
+ */
+function miniapp_delete_audit($version_id, $status) {
+	global $_W;
+	if (!in_array($status, array(WXAPP_REGISTER_VERSION_STATUS_CHECKFAIL, WXAPP_REGISTER_VERSION_STATUS_CHECKING))) {
+		return false;
+	}
+	$wxapp_register_version = table('wxapp_register_version');
+	$condition = array('uniacid' => $_W['uniacid'], 'version_id' => $version_id, 'status' => $status);
+	$result = $wxapp_register_version->where($condition)->delete();
+	if ($result) {
+		return true;
+	} else {
+		return false;
+	}
 }
 
 /**
@@ -506,11 +567,7 @@ function miniapp_version_detail_info($version_info) {
 			$version_module = current($version_info['modules']);
 			$version_info['cover_entrys'] = !empty($version_module['cover_entrys']['cover']) ? $version_module['cover_entrys']['cover'] : array();
 		}
-		$version_info['last_modules'] = iunserializer($version_info['last_modules']);
-		$version_info['tominiprogram'] = iunserializer($version_info['tominiprogram']);
-		if (!empty($version_info['quickmenu'])) {
-			$version_info['quickmenu'] = iunserializer($version_info['quickmenu']);
-		}
+		$version_info['support_live'] = strpos($version_info['default_appjson'], 'wx2b03c6e691cd7370') !== false ? 1: 0;
 	} else {
 		foreach ($version_info['modules'] as $i => $module) {
 			if (!in_array($module['name'], $uni_modules)) {
@@ -571,7 +628,6 @@ function miniapp_site_info($multiid) {
 	}
 	$recommend_sql = 'SELECT a.name, b.* FROM ' . tablename('site_category') . ' AS a LEFT JOIN ' . tablename('site_article') . ' AS b ON a.id = b.pcate WHERE a.parentid = 0 AND a.multiid = :multiid';
 	$site_info['recommend'] = pdo_fetchall($recommend_sql, array(':multiid' => $multiid));
-
 	return $site_info;
 }
 
@@ -610,9 +666,12 @@ function miniapp_insert_date_visit_trend($date) {
 }
 
 /**
- *   通知服务器生成小程序代码
+ * @param $version_id 小程序版本号
+ * @param $user_version 用户上传书写的版本号
+ * @param array $plugins 插件支持1支持；0不支持
+ * @return array|false|mixed|string
  */
-function miniapp_code_generate($version_id, $user_version) {
+function miniapp_code_generate($version_id, $user_version, $plugins = array()) {
 	global $_W;
 	load()->classs('cloudapi');
 	$api = new CloudApi();
@@ -632,8 +691,17 @@ function miniapp_code_generate($version_id, $user_version) {
 	if ($version_info['type'] == WXAPP_CREATE_MODULE && $version_info['entry_id'] <= 0) {
 		return error(1, '请先设置小程序入口');
 	}
-
-	$appid = $account_wxapp_info['key'];
+	if (ACCOUNT_TYPE_APP_AUTH == $_W['account']['type']) {
+		if (empty($_W['setting']['platform']['authstate'])) {
+			return error(1, '开放平台未开启，无法上传');
+		}
+		if (empty($_W['setting']['platform']['bindappid'])) {
+			return error(1, '未设置开放平台绑定的开发小程序，无法给该授权小程序上传');
+		}
+		$appid = $_W['setting']['platform']['bindappid'];
+	} else {
+		$appid = $account_wxapp_info['key'];
+	}
 	$siteinfo = array(
 		'name' => $account_wxapp_info['name'],
 		'uniacid' => $account_wxapp_info['uniacid'],
@@ -653,6 +721,7 @@ function miniapp_code_generate($version_id, $user_version) {
 		'tabBar' => json_decode($account_wxapp_info['version']['quickmenu'], true),
 		// 小程序类型 如果是模块类型使用默认网页小程序
 		'wxapp_type' => isset($version_info['type']) ? $version_info['type'] : 0,
+		'clear_live_player_plugin' => !$plugins['live_plugin'],
 	);
 
 	$do = 'upload2';
@@ -665,7 +734,6 @@ function miniapp_code_generate($version_id, $user_version) {
 			$commit_data['appjson'] = $appjson;
 		}
 	}
-
 	$data = $api->post('wxapp', $do, $commit_data, 'json', false);
 	return $data;
 }
@@ -826,6 +894,28 @@ function miniapp_code_current_appjson($version_id) {
 	}
 }
 
+/**
+ * 获取模块配置信息
+ * @param $version_id
+ * @return array
+ */
+function miniapp_code_config($version_id) {
+	load()->classs('cloudapi');
+	$version_info = miniapp_version($version_id);
+	$cloud_api = new CloudApi();
+	$account_wxapp_info = miniapp_fetch($version_info['uniacid'], $version_id);
+	$commit_data = array('do' => 'config',
+		'wxapp_type' => isset($version_info['type']) ? $version_info['type'] : 0,
+		'modules' => $account_wxapp_info['version']['modules'],
+	);
+	$cloud_config = $cloud_api->get('wxapp', 'upload2', $commit_data,
+		'json', false);
+	if (is_error($cloud_config)) {
+		return array();
+	}
+	$config = $cloud_config['data'];
+	return $config;
+}
 /** 自定义appjson 路径转base64
  * @param $version_id
  *

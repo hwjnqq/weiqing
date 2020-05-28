@@ -50,7 +50,6 @@ abstract class Pay {
 			'encrypt_code' => '',
 		);
 		pdo_insert('core_paylog', $data);
-
 		return pdo_insertid();
 	}
 }

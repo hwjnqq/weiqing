@@ -77,7 +77,7 @@ if ('post' == $do) {
 				$data = array(
 					'uid' => $uid,
 					'createtime' => TIMESTAMP,
-					$type => trim($_GPC[$type]),
+					$type => safe_gpc_string($_GPC[$type]),
 				);
 				$result = pdo_insert('users_profile', $data);
 			}
@@ -100,8 +100,7 @@ if ('post' == $do) {
 			}
 			break;
 		case 'username':
-			$founders = explode(',', $_W['config']['setting']['founder']);
-			if (!in_array($_W['uid'], $founders) && $_W['uid'] != $user['owner_uid']) {
+			if (!$_W['isadmin'] && $_W['uid'] != $user['owner_uid']) {
 				iajax(-1, '无权限修改，请联系网站创始人！');
 			}
 			$username = safe_gpc_string($_GPC['username']);
@@ -113,17 +112,45 @@ if ('post' == $do) {
 			break;
 		case 'vice_founder_name':
 			$userinfo = user_single(array('username' => safe_gpc_string($_GPC['vice_founder_name'])));
+
 			if (empty($userinfo) || ACCOUNT_MANAGE_GROUP_VICE_FOUNDER != $userinfo['founder_groupid']) {
 				iajax(-1, '用户不存在或该用户不是副创始人', '');
 			}
 
 			$founder_own_user_table = table('users_founder_own_users');
 			$founder_own_user_exists = $founder_own_user_table->getFounderByUid($uid);
+
 			if (!empty($founder_own_user_exists)) {
 				$result = $founder_own_user_table->updateOwnUser($uid, $userinfo['uid']);
 			} else {
 				$result = $founder_own_user_table->addOwnUser($uid, $userinfo['uid']);
 			}
+
+			/*把当前用户的所有账号同步到新的副账户start*/
+			if ($result) {
+				$uni_account_users = table('uni_account_users');
+				$synchronize_data = $uni_account_users->where(array('uid' => $uid, 'role' => 'owner'))->getall('uniacid');
+				if (!empty($synchronize_data)) {
+					foreach ($synchronize_data as $k => $v) {
+						$founder_id = '';
+						$founder_id = table('uni_account_users')->where(array('uniacid' => $k, 'role' => 'vice_founder'))->getcolumn('id');
+
+						if($founder_id) {
+							$uni_account_result = table('uni_account_users')->where(array('id' => $founder_id))->fill(array('uid' => $userinfo['uid']))->save();
+						}else{
+							$save_data = array(
+								'uniacid' => $k,
+								'uid' => $userinfo['uid'],
+								'role' => 'vice_founder',
+								'rank' => 0,
+								'createtime' => 0
+							);
+							$uni_account_result = table('uni_account_users')->fill($save_data)->save();
+						}
+					}
+				}
+			}
+			/*end*/
 			break;
 		case 'remark':
 			$result = pdo_update('users', array('remark' => safe_gpc_string($_GPC['remark'])), array('uid' => $uid));
@@ -242,17 +269,13 @@ if ('base' == $do) {
 
 	$user_type = !empty($_GPC['user_type']) ? trim($_GPC['user_type']) : PERSONAL_BASE_TYPE;
 	//基础信息
-	$user = user_single($_W['uid']);
-	if (empty($user)) {
-		itoast('抱歉，用户不存在或是已经被删除！', url('user/profile'), 'error');
-	}
+	$user = $_W['user'];
 	$user['last_visit'] = date('Y-m-d H:i:s', $user['lastvisit']);
 	$user['joindate'] = date('Y-m-d H:i:s', $user['joindate']);
 	$user['url'] = user_invite_register_url($_W['uid']);
 	$user_founder_info = table('users_founder_own_users')->getFounderByUid($user['uid']);
 
 	$profile = pdo_get('users_profile', array('uid' => $_W['uid']));
-
 	$profile = user_detail_formate($profile);
 
 	if (!$_W['isfounder'] || user_is_vice_founder()) {
@@ -474,7 +497,7 @@ if ('unbind' == $do) {
 			iajax(-1, $unbind_info['message']);
 		}
 		$settings = $_W['setting']['copyright'];
-		if (user_is_founder($_W['uid'], true) && $settings['login_verify_status']) {
+		if ($_W['isadmin'] && $settings['login_verify_status']) {
 			$settings['login_verify_status'] = 0;
 			setting_save($settings, 'copyright');
 		}
@@ -522,7 +545,7 @@ if ('modules_tpl' == $do) {
 		}
 	}
 
-	$user_modules = array('account' => array(), 'wxapp' => array(), 'webapp' => array(), 'phoneapp' => array(), 'xzapp' => array());
+	$user_modules = array('account' => array(), 'wxapp' => array(), 'webapp' => array(), 'phoneapp' => array());
 	if (!empty($modules)) {
 		foreach ($modules as $module) {
 			if (0 == $module['issystem']) {
@@ -555,14 +578,6 @@ if ('modules_tpl' == $do) {
 						$module['checked'] = 1;
 					}
 					$user_modules['phoneapp'][] = $module;
-					$module['checked'] = 0;
-				}
-
-				if (MODULE_SUPPORT_XZAPP == $module[MODULE_SUPPORT_XZAPP_NAME]) {
-					if (!empty($user_extend_modules) && in_array($module['name'], $user_extend_modules)) {
-						$module['checked'] = 1;
-					}
-					$user_modules['xzapp'][] = $module;
 					$module['checked'] = 0;
 				}
 

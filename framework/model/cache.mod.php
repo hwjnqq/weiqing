@@ -41,7 +41,7 @@ function cache_build_account_modules($uniacid = 0, $uid = 0) {
 		}
 		return true;
 	} else {
-		cache_delete(cache_system_key('unimodules', array('uniacid' => $uniacid)));
+		cache_clean(cache_system_key('unimodules', array('uniacid' => $uniacid)));
 		if (empty($uid)) {
 			$uid = table('uni_account_users')->getUidByUniacidAndRole($uniacid, 'owner');
 		}
@@ -51,7 +51,7 @@ function cache_build_account_modules($uniacid = 0, $uid = 0) {
 	if (is_error($account_info)) {
 		return false;
 	}
-
+	
 	# 公众号现有最新的模块
 	$uni_modules_new = uni_modules_by_uniacid($uniacid);
 	$module_system = module_system();
@@ -266,14 +266,14 @@ function cache_build_frame_menu() {
 	if (!empty($system_menu) && is_array($system_menu)) {
 		$system_displayoder = 1;
 		foreach ($system_menu as $menu_name => $menu) {
-			$system_menu[$menu_name]['is_system'] = true;
-			$system_menu[$menu_name]['is_display'] = !empty($system_menu_db[$menu_name]['is_display']) ? true : ((isset($system_menu[$menu_name]['is_display']) && empty($system_menu[$menu_name]['is_display']) || !empty($system_menu_db[$menu_name])) ? false : true);
+			$system_menu[$menu_name]['is_system'] = 1;
+			$system_menu[$menu_name]['is_display'] = !empty($system_menu_db[$menu_name]['is_display']) ? 1 : ((isset($system_menu[$menu_name]['is_display']) && empty($system_menu[$menu_name]['is_display']) || !empty($system_menu_db[$menu_name])) ? 0 : 1);
 			$system_menu[$menu_name]['displayorder'] = !empty($system_menu_db[$menu_name]) ? intval($system_menu_db[$menu_name]['displayorder']) : ++$system_displayoder;
 			if ($_W['role'] == ACCOUNT_MANAGE_NAME_EXPIRED && $menu_name != 'store' && $menu_name != 'system') {
-				$system_menu[$menu_name]['is_display'] = false;
+				$system_menu[$menu_name]['is_display'] = 0;
 			}
 			if ($menu_name == 'appmarket') {
-				$system_menu[$menu_name]['is_display'] = true;
+				$system_menu[$menu_name]['is_display'] = 1;
 			}
 			foreach ($menu['section'] as $section_name => $section) {
 				$displayorder = max(count($section['menu']), 1);
@@ -342,7 +342,7 @@ function cache_build_frame_menu() {
 				}
 				//用户自己额外加的菜单,全部新窗口打开(header.html中使用)
 				$menu['blank'] = true;
-				$system_menu[$menu['permission_name']]['is_display'] = $menu['is_display'] == 0 ? false : true;
+				$system_menu[$menu['permission_name']]['is_display'] = $menu['is_display'] == 0 ? 0 : 1;
 			}
 		}
 		$system_menu = iarray_sort($system_menu, 'displayorder', 'asc');
@@ -463,7 +463,7 @@ function cache_build_uninstalled_module() {
 		);
 
 		if (!empty($manifest['platform']['supports'])) {
-			foreach (array('app', 'wxapp', 'webapp', 'android', 'ios', 'system_welcome', 'xzapp', 'aliapp', 'baiduapp', 'toutiaoapp') as $support) {
+			foreach (array('app', 'wxapp', 'webapp', 'android', 'ios', 'system_welcome', 'aliapp', 'baiduapp', 'toutiaoapp') as $support) {
 				if (in_array($support, $manifest['platform']['supports'])) {
 					//纠正支持类型名字，统一
 					if ($support == 'app') {
@@ -514,7 +514,7 @@ function cache_build_proxy_wechatpay_account() {
 	global $_W;
 	load()->model('account');
 	$account_table = table('account');
-	if (user_is_founder($_W['uid'], true)) {
+	if ($_W['isadmin']) {
 		$uniaccounts = pdo_getall('account', array('type IN ' => array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH)));
 	} else {
 		$uniaccounts = $account_table->userOwnedAccount($_W['uid']);
@@ -561,22 +561,27 @@ function cache_build_module_info($module_name) {
 /**
  * 更新功能权限组
  */
-function cache_build_uni_group($group_id = 0) {
-	cache_delete(cache_system_key('uni_groups', array('groupids' => $group_id)));
+function cache_build_uni_group() {
+	$uni_group_cache_key = cache_system_key('uni_groups', array());
+	$cache_keys = cache_search($uni_group_cache_key);
+	foreach ($cache_keys as $cache_key => $cache_value) {
+		cache_delete($cache_key);
+	}
 }
 
 /**
  * @param int $length
+ * @param boolean $direct_write
  * @return string
  */
-function cache_random($length = 4) {
+function cache_random($length = 4, $direct_write = false) {
 	$cachekey = cache_system_key('random');
 	$cache = cache_load($cachekey);
-	if ($cache) {
+	if ($cache && !$direct_write) {
 		return $cache;
 	}
 	$result = random($length);
-	cache_write($cachekey, $result, CACHE_EXPIRE_SHORT);
+	cache_write($cachekey, $result, CACHE_EXPIRE_MIDDLE);
 	return $result;
 }
 
@@ -592,10 +597,18 @@ function cache_updatecache() {
 	cache_build_users_struct();
 	cache_build_setting();
 	cache_build_module_subscribe_type();
-	//删除模板缓存和patch目录
+	//删除模板缓存、patch目录、云服务文件
 	rmdirs(IA_ROOT . '/data/patch/upgrade/');
 	rmdirs(IA_ROOT . '/data/tpl/web/');
 	rmdirs(IA_ROOT . '/data/tpl/app/');
+	$path = IA_ROOT . '/data/';
+	if ($dir = opendir($path)) {
+		while (false !== ($file = readdir($dir))) {
+			if (is_file($path . '/' . $file) && (strpos($file, 'application.build') === 0) || strpos($file, 'module.info') === 0) {
+				@unlink($path . '/' . $file);
+			}
+		}
+	}
 	//清除模块接口缓存表中的数据
 	pdo_delete('modules_cloud');
 	return true;

@@ -33,7 +33,7 @@ if ('ext' == $do && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
 	}
 	$account_api = WeAccount::createByUniacid();
 	if (is_error($account_api)) {
-		message($account_api['message'], url('account/display'));
+		message($account_api['message'], $_W['siteroot'] . 'web/home.php');
 	}
 	$check_manange = $account_api->checkIntoManage();
 	if (is_error($check_manange)) {
@@ -45,7 +45,7 @@ if ('platform' == $do) {
 	if (empty($_W['account'])) {
 		itoast('', $_W['siteroot'] . 'web/home.php');
 	}
-	if (!empty($_W['account']['endtime']) && $_W['account']['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $_W['account']['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE && $_W['account']['endtime'] < time() && !user_is_founder($_W['uid'], true)) {
+	if (!empty($_W['account']['endtime']) && $_W['account']['endtime'] != USER_ENDTIME_GROUP_EMPTY_TYPE && $_W['account']['endtime'] != USER_ENDTIME_GROUP_UNLIMIT_TYPE && $_W['account']['endtime'] < time() && !$_W['isadmin']) {
 		itoast('平台账号已到服务期限，请联系管理员并续费', $_W['siteroot'] . 'web/home.php', 'info');
 	}
 	//公告
@@ -54,7 +54,7 @@ if ('platform' == $do) {
 }
 
 if ('system' == $do) {
-	if (!user_is_founder($_W['uid'], true)) {
+	if (!$_W['isadmin']) {
 		header('Location: ' . $_W['siteroot'] . 'web/home.php');
 		exit;
 	}
@@ -138,7 +138,7 @@ if ('ext' == $do) {
 				if ($menu['module_welcome_display'] && !empty($_W['current_module']['main_module'])) {
 					continue;
 				}
-				header('Location: ' . $_W['siteroot'] . 'web/' . $menu['url']);
+				header('Location: ' . $_W['siteroot'] . 'web/' . $menu['url'] . ($_GPC['system_welcome'] ? '&module_type=system_welcome' : ''));
 				exit;
 			}
 		}
@@ -200,8 +200,7 @@ if ('get_system_upgrade' == $do) {
 
 if ('get_upgrade_modules' == $do) {
 	$module_support_types = module_support_type();
-	//可升级应用
-	module_upgrade_info();
+	$module_upgrade_info = module_upgrade_info();
 	$upgrade_modules = module_upgrade_list();
 
 	if (!empty($_GPC['unstall'])) {
@@ -250,7 +249,7 @@ if ('get_upgrade_modules' == $do) {
 					$is_unset = false;
 				}
 			}
-			if ($is_unset) {
+			if ($is_unset || $module_upgrade_info[$key]['service_expire']) {
 				unset($upgrade_modules[$key]);
 			}
 		}

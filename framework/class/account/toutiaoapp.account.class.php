@@ -17,7 +17,7 @@ class ToutiaoappAccount extends WeAccount {
 	protected $typeSign = TOUTIAOAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;
 
-	protected function getAccountInfo($acid) {
-		return table('account_toutiaoapp')->getAccount($acid);
+	protected function getAccountInfo($uniacid) {
+		return table('account_toutiaoapp')->getAccount($uniacid);
 	}
 }

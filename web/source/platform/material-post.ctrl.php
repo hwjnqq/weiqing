@@ -29,6 +29,7 @@ if ('news' == $do) {
 			$news_list = pdo_getall('news_reply', array(
 				'parent_id' => $news['id'],
 			), array(), '', ' displayorder ASC');
+
 			$news_list = array_merge(array(
 				$news,
 			), $news_list);

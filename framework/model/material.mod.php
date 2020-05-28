@@ -343,7 +343,6 @@ function material_local_news_upload($attach_id) {
 			}
 		}
 		pdo_update('wechat_news', $news, array('id' => $news['id']));
-
 		$articles['articles'][] = $news;
 
 		if (!empty($material['media_id'])) {
@@ -598,7 +597,7 @@ function material_news_list($server = '', $search ='', $page = array('page_index
 				$news['items'] = array_values($news['items']);
 			}
 			foreach ($news['items'] as &$item) {
-				$item['thumb_url'] = tomedia($item['thumb_url']);
+				$item['digest'] = htmlspecialchars($item['digest']);
 			}
 		}
 	}
@@ -612,36 +611,36 @@ function material_list($type = '', $server = '', $page = array('page_index' => 1
 	global $_W;
 	$tables = array(MATERIAL_LOCAL => 'core_attachment', MATERIAL_WEXIN => 'wechat_attachment');
 	$conditions['uniacid'] = $_W['uniacid'];
-		$table = $tables[$server];
-		switch ($type) {
-			case 'voice' :
-				$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_VOICE : 'voice';
-				break;
-			case 'video' :
-				$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_VEDIO : 'video';
-				break;
-			default :
-				$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_IMAGE : 'image';
-				break;
-		}
-		if ($server == 'local') {
-			$material_list = pdo_getslice($table, $conditions, array($page['page_index'], $page['page_size']), $total, array(), '', 'createtime DESC');
-		} else {
-			$conditions['model'] = MATERIAL_WEXIN;
-			$material_list = pdo_getslice($table, $conditions, array($page['page_index'], $page['page_size']), $total, array(), '', 'createtime DESC');
-			if ($type == 'video'){
-				foreach ($material_list as &$row) {
-					$row['tag'] = $row['tag'] == '' ? array() : iunserializer($row['tag']);
-					if (empty($row['filename'])) {
-						$row['filename'] = $row['tag']['title'];
-					}
+	$table = $tables[$server];
+	switch ($type) {
+		case 'voice' :
+			$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_VOICE : 'voice';
+			break;
+		case 'video' :
+			$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_VEDIO : 'video';
+			break;
+		default :
+			$conditions['type'] = $server == MATERIAL_LOCAL ? ATTACH_TYPE_IMAGE : 'image';
+			break;
+	}
+	if ($server == 'local') {
+		$material_list = pdo_getslice($table, $conditions, array($page['page_index'], $page['page_size']), $total, array(), '', 'createtime DESC');
+	} else {
+		$conditions['model'] = MATERIAL_WEXIN;
+		$material_list = pdo_getslice($table, $conditions, array($page['page_index'], $page['page_size']), $total, array(), '', 'createtime DESC');
+		if ($type == 'video'){
+			foreach ($material_list as &$row) {
+				$row['tag'] = $row['tag'] == '' ? array() : iunserializer($row['tag']);
+				if (empty($row['filename'])) {
+					$row['filename'] = $row['tag']['title'];
 				}
-				unset($row);
 			}
+			unset($row);
 		}
-		$pager = pagination($total, $page['page_index'], $page['page_size'],'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
-		$material_news = array('material_list' => $material_list, 'page' => $pager);
-		return $material_news;
+	}
+	$pager = pagination($total, $page['page_index'], $page['page_size'],'',$context = array('before' => 5, 'after' => 4, 'isajax' => $_W['isajax']));
+	$material_news = array('material_list' => $material_list, 'page' => $pager);
+	return $material_news;
 }
 
 
@@ -702,9 +701,18 @@ function material_network_image_to_local($url, $uniacid, $uid) {
  * @return array|string
  */
 function material_network_to_local($url, $uniacid, $uid, $type = 'image') {
+	global $_W;
 	$path = file_remote_attach_fetch($url); //网络转本地图片路径
 	if(is_error($path)) {
 		return $path;
+	}
+	if (!empty($_W['setting']['remote']['type'])) {
+		$remotestatus = file_remote_upload($path);
+		if (is_error($remotestatus)) {
+			return $remotestatus;
+		} else {
+			file_delete($path);
+		}
 	}
 	$filename = pathinfo($path,PATHINFO_FILENAME);
 	$data = array('uniacid' => $uniacid, 'uid' => $uid,

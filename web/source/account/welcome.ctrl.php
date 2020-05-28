@@ -8,7 +8,7 @@ load()->model('article');
 load()->model('module');
 
 if (!empty($_W['uid'])) {
-	header('Location: ' . url('account/display', array('type' => ACCOUNT_TYPE_SIGN)));
+	header('Location: ' . $_W['siteroot'] . 'web/home.php');
 	exit;
 }
 

@@ -144,6 +144,7 @@ class Qq extends OAuth2Client {
 			return $user;
 		}
 		$user_id = pdo_getcolumn('users', array('openid' => $user['member']['openid']), 'uid');
+
 		$user_bind_info = table('users_bind')->getByTypeAndBindsign($user['member']['register_type'], $user['member']['openid']);
 
 		if (!empty($user_id)) {
@@ -156,7 +157,6 @@ class Qq extends OAuth2Client {
 
 		if (!empty($user_id) && empty($user_bind_info)) {
 			pdo_insert('users_bind', array('uid' => $user_id, 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => $user['member']['username']));
-
 			return $user_id;
 		}
 
@@ -173,7 +173,6 @@ class Qq extends OAuth2Client {
 			return error(-1, '已被其他用户绑定，请更换账号');
 		}
 		pdo_insert('users_bind', array('uid' => $_W['uid'], 'bind_sign' => $user['member']['openid'], 'third_type' => $user['member']['register_type'], 'third_nickname' => strip_emoji($user['profile']['nickname'])));
-
 		return true;
 	}
 
@@ -187,7 +186,6 @@ class Qq extends OAuth2Client {
 		}
 		pdo_update('users', array('openid' => ''), array('uid' => $_W['uid']));
 		pdo_delete('users_bind', array('uid' => $_W['uid'], 'third_type' => $third_type));
-
 		return error(0, '成功');
 	}
 

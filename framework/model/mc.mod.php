@@ -183,7 +183,6 @@ function mc_fetch_one($uid, $uniacid = 0) {
 	}
 	$params = array('uid' => $uid);
 	$params['uniacid'] = intval($uniacid) > 0 ? intval($uniacid) : $_W['uniacid'];
-
 	$result = pdo_get('mc_members', $params);
 	if (!empty($result)) {
 		$result['avatar'] = tomedia($result['avatar']);
@@ -410,12 +409,8 @@ function mc_oauth_account_userinfo($url = '') {
 	if (!empty($url)) {
 		$_SESSION['dest_url'] = urlencode($url);
 	}
-	$str = '';
-	if(uni_is_multi_acid()) {
-		$str = "&j={$_W['acid']}";
-	}
 	$oauth_url = uni_account_oauth_host();
-	$url = $oauth_url . "app/index.php?i={$_W['uniacid']}{$str}&c=auth&a=oauth&scope=userinfo";
+	$url = $oauth_url . "app/index.php?i={$_W['uniacid']}&c=auth&a=oauth&scope=userinfo";
 	$callback = urlencode($url);
 
 	$oauth_account = WeAccount::create($_W['account']['oauth']);
@@ -651,7 +646,6 @@ function mc_credit_update($uid, $credittype, $creditval = 0, $log = array()) {
 		'real_uniacid' => mc_current_real_uniacid()
 	);
 	pdo_insert('mc_credits_record', $data);
-
 	return true;
 }
 
@@ -878,7 +872,6 @@ function mc_handsel($touid, $fromuid, $handsel, $uniacid = '') {
 	if (!empty($handsel_exists)) {
 		return error(-1, '已经赠送过积分,每个用户只能赠送一次');
 	}
-
 	$creditbehaviors = pdo_fetchcolumn('SELECT creditbehaviors FROM ' . tablename('uni_settings') . ' WHERE uniacid = :uniacid', array(':uniacid' => $uniacid));
 	$creditbehaviors = iunserializer($creditbehaviors) ? iunserializer($creditbehaviors) : array();
 	if (empty($creditbehaviors['activity'])) {
@@ -1822,7 +1815,6 @@ function mc_init_fans_info($openid, $force_init_member = false){
 			$fans_update_info['salt'] = random(8);
 			$fans_update_info['unfollowtime'] = 0;
 			$fans_update_info['followtime'] = TIMESTAMP;
-
 			pdo_insert('mc_mapping_fans', $fans_update_info);
 			$fans_mapping['fanid'] = pdo_insertid();
 		}
@@ -1848,7 +1840,6 @@ function mc_init_fans_info($openid, $force_init_member = false){
 		} else {
 			pdo_insert('mc_fans_tag', $fans_tag_update_info);
 		}
-
 	}
 	if (is_string($openid) && !empty($fans_update_info)) {
 		return $fans_update_info;
@@ -1891,7 +1882,6 @@ function mc_batch_insert_fanstag_mapping($fanid_list, $tagid_list){
 	if (!is_array($fanid_list) || !is_array($tagid_list)) {
 		return false;
 	}
-	$sql = '';
 	foreach ($fanid_list as $fanid) {
 		foreach ($tagid_list as $tagid) {
 			$fanid = intval($fanid);

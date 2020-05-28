@@ -6,9 +6,10 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('system');
 
-$dos = array('basic', 'copyright', 'about', 'save_setting', 'icps', 'save_icps', 'edit_icp', 'del_icp');
+$dos = array('basic', 'copyright', 'about', 'save_setting', 'icps', 'edit_icp', 'del_icp');
 $do = in_array($do, $dos) ? $do : 'basic';
 $settings = $_W['setting']['copyright'];
+
 if (empty($settings) || !is_array($settings)) {
 	$settings = array();
 } else {
@@ -116,7 +117,7 @@ if ('save_setting' == $do) {
 		$basic_setting = $_W['setting']['basic'];
 		$basic_setting[$key] = safe_gpc_string($_GPC['value']);
 		setting_save($basic_setting, 'basic');
-	} elseif ($key = 'baidumap') {
+	} elseif ($key == 'baidumap') {
 		$settings['baidumap'] = array('lng' => $_GPC['lng'], 'lat' => $_GPC['lat']);
 		setting_save($settings, 'copyright');
 	} else {
@@ -130,12 +131,13 @@ if ($do == 'icps') {
 	$keyword = !empty($_GPC['keyword']) ? safe_gpc_string($_GPC['keyword']) : '';
 	$page = max(1, safe_gpc_int($_GPC['page']));
 	$page_size = 10;
-	$icps = $settings['icps'];
-	if (!empty($keyword) && !empty($icps)) {
+	$icps = (array)$settings['icps'];
+	if (!empty($icps)) {
 		foreach ($icps as $key => $icp) {
-			if (!strexists($icp['icp'], $keyword) && !strexists($icp['domain'], $keyword)) {
+			if (!empty($keyword) && !strexists($icp['icp'], $keyword) && !strexists($icp['domain'], $keyword)) {
 				unset($icps[$key]);
 			}
+			$icp['electronic_license'] = htmlspecialchars_decode($icp['electronic_license']);
 		}
 	}
 	$total = count($icps);
@@ -149,47 +151,18 @@ if ($do == 'icps') {
 		);
 		iajax(0, $result);
 	}
-	$pager = pagination($total, $page, $page_size, '', array('before' => '2', 'after' => '3', 'ajaxcallback' => 'null'));
-}
 
-if ($do == 'save_icps') {
-	$icps_data = safe_gpc_array($_GPC['icps']);
-	$domains_data = safe_gpc_array($_GPC['domains']);
-	if (empty($icps_data)) {
-		iajax(-1, '请至少填写一条icp信息！');
-	}
-	$icps = $settings['icps'];
-	$icp_domains = array_column($icps, 'domain');
-	$max_id = max(max(array_column($icps, 'id')), 1);
-	foreach ($domains_data as $key => $domain) {
-		if (starts_with($domain, 'http')) {
-			iajax(-1, '域名格式为w7.cc,无http://或以https://开头');
-		}
-		$special_domain = array('.com.cn', '.net.cn', '.gov.cn', '.org.cn', '.com.hk', '.com.tw');
-		$domain_data = str_replace($special_domain, '.com', $domain);
-		$domain_array = explode('.', $domain_data);
-		if (count($domain_array) > 3 || count($domain_array) < 2) {
-			iajax(-1, '只支持一级域名和二级域名！');
-		}
-		if (in_array($domain, $icp_domains)) {
-			iajax(-1, $domain . '已存在！');
-		}
-		$max_id++;
-		$icp_domains[] = $domain;
-		$icps[] = array('id' => $max_id, 'icp' => $icps_data[$key], 'domain' => $domain);
-	}
-	$settings['icps'] = iserializer($icps);
-	setting_save($settings, 'copyright');
-	iajax(0, '添加成功');
+	$pager = pagination($total, $page, $page_size, '', array('before' => '2', 'after' => '3'));
 }
 
 if ($do == 'edit_icp') {
 	$id = safe_gpc_int($_GPC['id']);
 	$icp = safe_gpc_string($_GPC['icp']);
 	$domain = safe_gpc_string($_GPC['domain']);
-	if (empty($id) || empty($icp) || empty($domain)) {
-		iajax(-1, '参数错误');
-	}
+	$policeicp_location = safe_gpc_string($_GPC['policeicp_location']);
+	$policeicp_code = safe_gpc_string($_GPC['policeicp_code']);
+	$electronic_license = safe_gpc_html(htmlspecialchars_decode($_GPC['electronic_license']));
+	if (empty($icp)) iajax(-1, '请至少填写一条icp信息！');
 	if (starts_with($domain, 'http')) {
 		iajax(-1, '域名格式为w7.cc,无http://或以https://开头');
 	}
@@ -199,27 +172,58 @@ if ($do == 'edit_icp') {
 	if (count($domain_array) > 3 || count($domain_array) < 2) {
 		iajax(-1, '只支持一级域名和二级域名！');
 	}
-	$else_icps = $icps = $settings['icps'];
-	foreach ($icps as $k => $value) {
-		if ($value['id'] == $id) {
-			$key = $k;
-			break;
-		}
-	}
-	if (!isset($key)) {
-		iajax(-1, '参数错误');
-	}
-	unset($else_icps[$key]);
-	$icp_domains = array_column($else_icps, 'domain');
 
-	if (in_array($domain, $icp_domains)) {
-		iajax(-1, $domain . '已存在！');
+	if (empty($id)) {
+		$icps = (array)$settings['icps'];
+		if (!empty($icps)) {
+			$icp_domains = array_column($icps, 'domain');
+			$max_id = max(max(array_column($icps, 'id')), 1);
+		}
+		if (!empty($icp) && in_array($domain, $icp_domains)) {
+			iajax(-1, $domain . '已存在！');
+		}
+		$max_id++;
+		$icp_domains[] = $domain;
+		$icps[] = array(
+			'id' => $max_id,
+			'icp' => $icp,
+			'domain' => $domain,
+			'policeicp_location' => $policeicp_location,
+			'policeicp_code' => $policeicp_code,
+			'electronic_license' => $electronic_license,
+		);
+		$settings['icps'] = iserializer($icps);
+		setting_save($settings, 'copyright');
+		iajax(0, '添加成功');
+	} else {
+		if (empty($icp) || empty($domain)) {
+			iajax(-1, '参数错误');
+		}
+		$else_icps = $icps = $settings['icps'];
+		foreach ($icps as $k => $value) {
+			if ($value['id'] == $id) {
+				$key = $k;
+				break;
+			}
+		}
+		if (!isset($key)) {
+			iajax(-1, '参数错误');
+		}
+		unset($else_icps[$key]);
+		$icp_domains = array_column($else_icps, 'domain');
+
+		if (in_array($domain, $icp_domains)) {
+			iajax(-1, $domain . '已存在！');
+		}
+		$icps[$key]['icp'] = $icp;
+		$icps[$key]['domain'] = $domain;
+		$icps[$key]['policeicp_location'] = $policeicp_location;
+		$icps[$key]['policeicp_code'] = $policeicp_code;
+		$icps[$key]['electronic_license'] = $electronic_license;
+		$settings['icps'] = iserializer($icps);
+		setting_save($settings, 'copyright');
+		iajax(0, '保存成功');
 	}
-	$icps[$key]['icp'] = $icp;
-	$icps[$key]['domain'] = $domain;
-	$settings['icps'] = iserializer($icps);
-	setting_save($settings, 'copyright');
-	iajax(0, '修改成功');
 }
 
 if ($do == 'del_icp') {
