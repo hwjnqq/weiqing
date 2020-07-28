@@ -11,10 +11,10 @@ $dos = array('home', 'profile', 'homemenu_display', 'homemenu_post', 'homemenu_d
 $do = in_array($do, $dos) ? $do : 'home';
 
 $system_modules = module_system();
-if (!in_array($_GPC['m'], $system_modules)) {
+if (!in_array($_GPC['module_name'], $system_modules)) {
 	permission_check_account_user('', true, 'nav');
 }
-$modulename = $_GPC['m'];
+$modulename = $_GPC['module_name'];
 
 //微官网首页导航菜单：homemenu_display、homemenu_post、homemenu_del、homemenu_switch(切换开关状态)
 if ('homemenu_display' == $do) {

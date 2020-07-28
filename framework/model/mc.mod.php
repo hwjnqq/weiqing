@@ -282,13 +282,13 @@ function mc_fansinfo($openidOruid, $acid = 0, $uniacid = 0) {
 /**
  * 无网页授权的公众号,通过借用授权   定位 openid 和 uid
  * @param string $openid 粉丝唯一标志
- * @param int $acid 子公众号ID
+ * @param int $uniacid 子公众号ID
  * @return array
  */
-function mc_oauth_fans($openid, $acid = 0){
+function mc_oauth_fans($openid, $uniacid = 0){
 	$mc_oauth_fans_table = table('mc_oauth_fans');
-	if (!empty($acid)) {
-		$mc_oauth_fans_table->searchWithAcid($acid);
+	if (!empty($uniacid)) {
+		$mc_oauth_fans_table->searchWithUniacid($uniacid);
 	}
 	$mc_oauth_fans_table->searchWithoAuthopenid($openid);
 	$fan = $mc_oauth_fans_table->get();
@@ -2031,13 +2031,17 @@ function mc_parse_profile($profile) {
 /**
  * 得到符合导出格式的会员信息字符串
  * @param unknown $members 会员数组
+ * @param unknown $header  导出头
+ * @param unknown $type 类型
  * @return string 处理后的会员信息字符串
  */
-function mc_member_export_parse($members, $header = array()){
+function mc_member_export_parse($members, $header = array(), $type = 'userinfo'){
 	if (empty($members)) {
 		return false;
 	}
-	$groups = mc_groups();
+	if ('userinfo' == $type) {
+		$groups = mc_groups();
+	}
 	$keys = array_keys($header);
 	$html = "\xEF\xBB\xBF";
 	foreach ($header as $li) {
@@ -2054,11 +2058,15 @@ function mc_member_export_parse($members, $header = array()){
 				$buffer = array_slice($list, $i * 500, 500);
 				$user = array();
 				foreach ($buffer as $row) {
-					if (strexists($row['email'], 'we7.cc')) {
-						$row['email'] = '';
+					if ('userinfo' == $type) {
+						if (strexists($row['email'], 'we7.cc')) {
+							$row['email'] = '';
+						}
+						$row['groupid'] = $groups[$row['groupid']]['title'];
+					} elseif ('creditinfo' == $type) {
+						$row['credittype'] = $row['credittype'] == 'credit1' ? '积分' : '余额';
 					}
 					$row['createtime'] = date('Y-m-d H:i:s', $row['createtime']);
-					$row['groupid'] = $groups[$row['groupid']]['title'];
 					foreach ($keys as $key) {
 						$data[] = $row[$key];
 					}

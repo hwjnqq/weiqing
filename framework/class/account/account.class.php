@@ -77,6 +77,7 @@ class WeAccount extends ArrayObject {
 
 	protected $toArrayMap = array(
 		'type_sign' => 'typeSign',
+		'createtime' => 'createTime',
 		'starttime' => 'startTime',
 		'endtime' => 'endTime',
 		'groups' => 'groups',
@@ -184,7 +185,6 @@ class WeAccount extends ArrayObject {
 		if (!empty($_W['uid']) && !$_W['isadmin'] && !permission_account_user_role($_W['uid'], $uniacid)) {
 			return error('-1', '无权限操作该平台账号');
 		}
-
 		return self::create($uniaccount);
 	}
 
@@ -240,7 +240,16 @@ class WeAccount extends ArrayObject {
 	public function fetchAccountInfo() {
 		return $this->getAccountInfo($this->account['acid']);
 	}
-
+	
+	protected function fetchCreateTime() {
+		global $_W;
+		//私有类创始人账号在外层没有操作权限
+		if ($_W['uid'] == $this->account['create_uid'] || $_W['isadmin']) {
+			return $this->account['createtime'] > 0 ? date('Y-m-d', $this->account['createtime']) : '';
+		}
+		return '';
+	}
+	
 	protected function fetchDisplayUrl() {
 		global $_W;
 		return $_W['siteroot'] . 'web/home.php';
@@ -290,7 +299,7 @@ class WeAccount extends ArrayObject {
 	}
 
 	protected function fetchSetting() {
-		$this->setting = uni_setting($this->uniacid);
+		$this->setting = uni_setting_load('', $this->uniacid);
 
 		return $this->setting;
 	}
@@ -1192,7 +1201,7 @@ abstract class WeBase {
 	 */
 	protected function createWebUrl($do, $query = array()) {
 		$query['do'] = $do;
-		$query['m'] = strtolower($this->modulename);
+		$query['module_name'] = strtolower($this->modulename);
 
 		return wurl('site/entry', $query);
 	}
@@ -2257,11 +2266,25 @@ abstract class WeModuleWxapp extends WeBase {
 		load()->model('payment');
 		$wxapp_uniacid = intval($_W['account']['uniacid']);
 		$setting = uni_setting($wxapp_uniacid, array('payment'));
+		if (empty($setting['payment'])) {
+			message('支付方式错误,请联系商家', '', 'error');
+		}
+		$paytype = '';
+		foreach ($setting['payment'] as $key => $value) {
+			if (isset($value['switch']) && $value['switch'] == 'true') {
+				$paytype = $key;
+			}
+		}
+		if (empty($paytype)) {
+			message('支付方式错误,请联系商家', '', 'error');
+		}
+
 		$wechat_payment = array(
 			'appid' => $_W['account']['key'],
-			'signkey' => $setting['payment']['wechat']['signkey'],
-			'mchid' => $setting['payment']['wechat']['mchid'],
+			'signkey' => $setting['payment'][$paytype]['signkey'],
+			'mchid' => $setting['payment'][$paytype]['mchid'],
 			'version' => 2,
+			'sub_mch_id' => $paytype == 'wechat_facilitator' ? $setting['payment']['wechat_facilitator']['sub_mch_id'] : '',
 		);
 
 		return wechat_build($params, $wechat_payment);
@@ -2454,7 +2477,7 @@ abstract class WeModuleBaiduapp extends WeBase {
 }
 
 /**
- * 模块头条小程序.
+ * 模块字节跳动小程序.
  */
 abstract class WeModuleToutiaoapp extends WeBase {
 	public $appid;

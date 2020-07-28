@@ -261,7 +261,7 @@ if ('own' == $do) {
 
 			foreach ($owned_account_list as $uniacid => $account) {
 				$role = table('uni_account_users')->where(array('uniacid' => $uniacid, 'uid' => $_W['uid']))->getcolumn('role');
-				if (!empty($role) && !in_array($role, array(ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
+				if (!empty($role) && !in_array($role, array(ACCOUNT_MANAGE_NAME_CLERK, ACCOUNT_MANAGE_NAME_OPERATOR, ACCOUNT_MANAGE_NAME_MANAGER, ACCOUNT_MANAGE_NAME_OWNER, ACCOUNT_MANAGE_NAME_VICE_FOUNDER))) {
 					unset($owned_account_list[$uniacid]);
 				}
 			}
@@ -273,7 +273,9 @@ if ('own' == $do) {
 					$version_uniacid[] = $account['uniacid'];
 				}
 			}
-			$wxapp_versions_module = pdo_fetchall("SELECT uniacid, modules FROM ".tablename('wxapp_versions'). " WHERE uniacid IN (".implode(',', $version_uniacid).")");
+			if (!empty($version_uniacid)) {
+				$wxapp_versions_module = pdo_fetchall("SELECT uniacid, modules FROM ".tablename('wxapp_versions'). " WHERE uniacid IN (".implode(',', $version_uniacid).")");
+			}
 			if (!empty($wxapp_versions_module)) {
 				foreach ($wxapp_versions_module as $version) {
 					$version_module = array_keys(iunserializer($version['modules']));
@@ -288,9 +290,7 @@ if ('own' == $do) {
 				}
 			}
 
-			$clerk_modules_list = pdo_fetchall("SELECT uau.id, uau.uniacid, up.type module_name FROM " . tablename('uni_account_users') . " as uau LEFT JOIN " . tablename('users_permission') . " as up ON uau.uniacid=up.uniacid AND uau.uid=up.uid WHERE uau.role IN ('" . ACCOUNT_MANAGE_NAME_MANAGER . "', '" . ACCOUNT_MANAGE_NAME_OPERATOR . "', '" . ACCOUNT_MANAGE_NAME_CLERK . "') AND uau.uid=" . $_W['uid']);
-			$modules_list_all = array_merge($uni_modules_list, $clerk_modules_list);
-			$modules_list = array_slice($modules_list_all, ($pageindex - 1) * $pagesize, $pagesize);
+			$modules_list = array_slice($uni_modules_list, ($pageindex - 1) * $pagesize, $pagesize);
 			break;
 	}
 	if (empty($modules_list)) {
@@ -348,7 +348,7 @@ if ('system_welcome' == $do) {
 			"logo"=> $user_modules[$module]['logo'],
 			"list_type"=> "system_welcome_module",
 			"is_star"=> 0,
-			"manageurl" => url('home/welcome/ext', array('system_welcome' => 1, 'm' => $module), true),
+			"manageurl" => url('home/welcome/ext', array('system_welcome' => 1, 'module_name' => $module), true),
 			"bind_domain"=> !empty($module_bind_domains[$module]) ? join(',', $module_bind_domains[$module]) : '',
 		);
 	}

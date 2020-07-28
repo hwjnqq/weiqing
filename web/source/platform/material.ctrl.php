@@ -95,7 +95,7 @@ if ('delete' == $do) {
 
 	permission_check_account_user('platform_material_delete');
 
-	if (empty($_W['isfounder']) && ACCOUNT_MANAGE_NAME_MANAGER != $_W['role'] && ACCOUNT_MANAGE_NAME_OWNER != $_W['role']) {
+	if (empty($_W['isfounder']) && ACCOUNT_MANAGE_NAME_MANAGER != $_W['role'] && ACCOUNT_MANAGE_NAME_OWNER != $_W['role'] && ACCOUNT_MANAGE_NAME_OPERATOR != $_W['role']) {
 		iajax(1, '您没有权限删除文件');
 	}
 

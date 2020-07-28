@@ -36,6 +36,7 @@ class CoreModule extends WeModule {
 		global $_GPC, $_W, $setting_keyword;
 		load()->model('material');
 		load()->model('reply');
+		$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 		$replies = array();
 		switch ($_GPC['a']) {
 			case 'mass':
@@ -76,12 +77,12 @@ class CoreModule extends WeModule {
 			default:
 				if (!empty($rid)) {
 					$rule_rid = $rid;
-					if (in_array($_GPC['m'], array('welcome', 'default'))) {
+					if (in_array($module_name, array('welcome', 'default'))) {
 						$rule_rid = table('rule_keyword')->where(array('rid' => $rid))->getcolumn('rid');
 					}
 					$isexists = reply_single($rule_rid);
 				}
-				if ('special' == $_GPC['m']) {
+				if ('special' == $module_name) {
 					$default_setting = uni_setting_load('default_message', $_W['uniacid']);
 					$default_setting = $default_setting['default_message'] ? $default_setting['default_message'] : array();
 					$reply_type = $default_setting[$_GPC['type']]['type'];
@@ -117,7 +118,7 @@ class CoreModule extends WeModule {
 					$module = 'images' == $module ? 'image' : $module;
 
 					//选择多种素材
-					if ('reply' == $_GPC['a'] && (!empty($_GPC['m']) && 'keyword' == $_GPC['m'])) {
+					if ('reply' == $_GPC['a'] && (!empty($module_name) && 'keyword' == $module_name)) {
 						foreach ($this->tablename as $key => $tablename) {
 							if ('keyword' != $key) {
 								$replies[$key] = table($tablename)->where(array('rid' => $rid))->orderby('id')->getall();

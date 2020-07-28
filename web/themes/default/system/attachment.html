@@ -410,19 +410,29 @@
 	<label class="col-xs-12 col-sm-3 col-md-2 control-label">bucket所在区域</label>
 		<div class="col-sm-9 col-xs-12">
 			<select class="form-control" name="cos[local]">
-				<option value="" {if $remote['cos']['local'] == ''}selected{/if}>无</option>
-				<option value="tj" {if $remote['cos']['local'] == 'tj'}selected{/if}>华北</option>
-				<option value="sh" {if $remote['cos']['local'] == 'sh'}selected{/if}>华东</option>
-				<option value="gz" {if $remote['cos']['local'] == 'gz'}selected{/if}>华南</option>
-				<option value="cd" {if $remote['cos']['local'] == 'cd'}selected{/if}>西南</option>
-				<option value="bj" {if $remote['cos']['local'] == 'bj'}selected{/if}>北京</option>
-				<option value="cq" {if $remote['cos']['local'] == 'cq'}selected{/if}>重庆</option>
-				<option value="sgp" {if $remote['cos']['local'] == 'sgp'}selected{/if}>新加坡</option>
-				<option value="hk" {if $remote['cos']['local'] == 'hk'}selected{/if}>香港</option>
-				<option value="ca" {if $remote['cos']['local'] == 'ca'}selected{/if}>多伦多</option>
-				<option value="ger" {if $remote['cos']['local'] == 'ger'}selected{/if}>法兰克福</option>
+				<option value="ap-beijing-1" {if $remote['cos']['local'] == 'ap-beijing-1'}selected{/if}>北京一区（已售罄）</option>
+				<option value="ap-beijing" {if $remote['cos']['local'] == 'ap-beijing'}selected{/if}>北京</option>
+				<option value="ap-nanjing" {if $remote['cos']['local'] == 'ap-nanjing'}selected{/if}>南京</option>
+				<option value="ap-shanghai" {if $remote['cos']['local'] == 'ap-shanghai'}selected{/if}>上海</option>
+				<option value="ap-guangzhou" {if $remote['cos']['local'] == 'ap-guangzhou'}selected{/if}>广州</option>
+				<option value="ap-chengdu" {if $remote['cos']['local'] == 'ap-chengdu'}selected{/if}>成都</option>
+				<option value="ap-chongqing" {if $remote['cos']['local'] == 'ap-chongqing'}selected{/if}>重庆</option>
+				<option value="ap-shenzhen-fsi" {if $remote['cos']['local'] == 'ap-shenzhen-fsi'}selected{/if}>深圳金融</option>
+				<option value="ap-shanghai-fsi" {if $remote['cos']['local'] == 'ap-shanghai-fsi'}selected{/if}>上海金融</option>
+				<option value="ap-beijing-fsi" {if $remote['cos']['local'] == 'ap-beijing-fsi'}selected{/if}>北京金融</option>
+				<option value="ap-hongkong" {if $remote['cos']['local'] == 'ap-hongkong'}selected{/if}>中国香港</option>
+				<option value="ap-singapore" {if $remote['cos']['local'] == 'ap-singapore'}selected{/if}>新加坡</option>
+				<option value="ap-mumbai" {if $remote['cos']['local'] == 'ap-mumbai'}selected{/if}>孟买</option>
+				<option value="ap-seoul" {if $remote['cos']['local'] == 'ap-seoul'}selected{/if}>首尔</option>
+				<option value="ap-bangkok" {if $remote['cos']['local'] == 'ap-bangkok'}selected{/if}>曼谷</option>
+				<option value="ap-tokyo" {if $remote['cos']['local'] == 'ap-tokyo'}selected{/if}>东京</option>
+				<option value="na-siliconvalley" {if $remote['cos']['local'] == 'na-siliconvalley'}selected{/if}>硅谷</option>
+				<option value="na-ashburn" {if $remote['cos']['local'] == 'na-ashburn'}selected{/if}>弗吉尼亚</option>
+				<option value="na-toronto" {if $remote['cos']['local'] == 'na-toronto'}selected{/if}>多伦多</option>
+				<option value="eu-frankfurt" {if $remote['cos']['local'] == 'eu-frankfurt'}selected{/if}>法兰克福</option>
+				<option value="eu-moscow" {if $remote['cos']['local'] == 'eu-moscow'}selected{/if}>莫斯科</option>
 			</select>
-			<span class="help-block">选择bucket对应的区域，如果没有选择无</span>
+			<span class="help-block">选择bucket对应的区域</span>
 		</div>
 	</div>
 	<div class="form-group" >
@@ -479,7 +489,7 @@
 			'ssl' : ssl,
 			'host' : $.trim($(':text[name="ftp[host]"]').val()),
 			'username'  : $.trim($(':text[name="ftp[username]"]').val()),
-			'password' : $.trim($(':text[name="ftp[password]"]').val()),
+			'password' : $.trim($(':password[name="ftp[password]"]').val()),
 			'pasv' : pasv,
 			'dir': $.trim($(':text[name="ftp[dir]"]').val()),
 			'url': $.trim($(':text[name="ftp[url]"]').val()),

@@ -13,32 +13,10 @@ load()->model('cloud');
 load()->model('cache');
 load()->model('extension');
 
-$dos = array('display', 'setting', 'shortcut', 'enable', 'check_status');
+$dos = array('display', 'setting', 'shortcut', 'enable');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
 $modulelist = uni_modules();
-
-//检测模块更新和是否盗版
-if ('check_status' == $do) {
-	$module_name = $_GPC['module'];
-
-	if (empty($module_name)) {
-		iajax(0, '', '');
-	}
-
-	$module_status = module_status($module_name);
-	if (!empty($module_status)) {
-		isetcookie('module_status:' . $module_name, json_encode($module_status));
-	}
-	if ($module_status['ban']) {
-		iajax(1, '您的站点存在盗版模块, 请删除文件后联系客服');
-	}
-	if ($module_status['upgrade']['has_upgrade']) {
-		iajax(2, $module_status['upgrade']['name'] . '检测最新版为' . $module_status['upgrade']['version'] . '，请尽快更新');
-	}
-
-	iajax(0, '', '');
-}
 
 if ('display' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
@@ -108,7 +86,7 @@ if ('display' == $do) {
 	cache_build_account_modules($_W['uniacid']);
 	itoast('模块置顶成功', referer(), 'success');
 } elseif ('setting' == $do) {
-	$module_name = $_GPC['m'];
+	$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 	$module = $_W['current_module'] = $modulelist[$module_name];
 	if (empty($module)) {
 		itoast('抱歉，你操作的模块不能被访问！', '', '');
@@ -133,7 +111,7 @@ if ('display' == $do) {
 	$obj->settingsDisplay($config);
 	exit();
 } elseif ('setting_params' == $do) {
-	$module_name = safe_gpc_string(trim($_GPC['m']));
+	$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 	$module = module_fetch($module_name);
 	if (empty($module)) {
 		iajax(-1, '抱歉，你操作的模块不能被访问！');

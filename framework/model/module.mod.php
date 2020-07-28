@@ -119,7 +119,7 @@ function module_support_type() {
 		),
 		'toutiaoapp_support' => array(
 			'type' => TOUTIAOAPP_TYPE_SIGN,
-			'type_name' => '头条小程序',
+			'type_name' => '字节跳动小程序',
 			'support' => MODULE_SUPPORT_TOUTIAOAPP,
 			'not_support' => MODULE_NOSUPPORT_TOUTIAOAPP,
 			'store_type' => STORE_TYPE_TOUTIAOAPP_MODULE,
@@ -400,9 +400,11 @@ function module_fetch($name, $enabled = true) {
 			$module_info['plugin_list'] = array_column($modules_plugin, 'name');
 		} else {
 			$module_info['main_module'] = current($main_module);
-			$main_module_info = module_fetch($module_info['main_module']);
-			$module_info['main_module_logo'] = $main_module_info['logo'];
-			$module_info['main_module_title'] = $main_module_info['title'];
+			if (!empty($module_info['main_module'])) {
+				$main_module_info = module_fetch($module_info['main_module']);
+				$module_info['main_module_logo'] = $main_module_info['logo'];
+				$module_info['main_module_title'] = $main_module_info['title'];
+			}
 		}
 		//禁用订阅
 		$module_receive_ban = (array)setting_load('module_receive_ban');
@@ -949,7 +951,7 @@ function module_upgrade_info($modulelist = array()) {
 	unset($cloud_m_query_module['pirate_apps']);
 	//模板的处理
 	foreach ($cloud_t_query_module as $template_name => $template_manifest_cloud) {
-		if (empty($template_manifest_cloud)) {
+		if (empty($template_manifest_cloud) || !is_array($template_manifest_cloud)) {
 			continue;
 		}
 		$template_manifest = array(

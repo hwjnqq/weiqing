@@ -5,7 +5,7 @@
 defined('IN_IA') or exit('Access Denied');
 load()->model('mc');
 
-$dos = array('address', 'base_information', 'member_credits', 'credit_statistics', 'display', 'del', 'add', 'group', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting');
+$dos = array('address', 'base_information', 'member_credits', 'credit_statistics', 'display', 'del', 'add', 'group', 'register_setting', 'credit_setting', 'save_credit_setting', 'save_tactics_setting', 'export');
 $do = in_array($do, $dos) ? $do : 'display';
 
 $creditnames = uni_setting_load('creditnames');
@@ -349,7 +349,6 @@ if ('member_credits' == $do) {
 	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit1';
 	$pindex = max(1, intval($_GPC['page']));
 	$psize = 50;
-
 	$mc_credits_record = table('mc_credits_record');
 	$mc_credits_record->searchWithUniacid($_W['uniacid']);
 	$mc_credits_record->searchWithPage($pindex, $psize);
@@ -358,6 +357,39 @@ if ('member_credits' == $do) {
 
 	$pager = pagination($total, $pindex, $psize);
 	template('mc/member-information');
+}
+
+if ('export' == $do) {
+	$uid = intval($_GPC['uid']);
+	$type = trim($_GPC['type']) ? trim($_GPC['type']) : 'credit1';
+	if (empty($uid) || empty($_W['uniacid'])) {
+		iajax('-1', '参数错误，请刷新后重试！');
+	}
+	//导出数据
+	$available_fields = [
+		'credittype' => '账户类型',
+		'username' => '操作员',
+		'num' => '积分增减',
+		'module' => '模块',
+		'createtime' => '操作时间',
+		'remark' => '备注',
+	];
+	$params = [
+		':uniacid' => $_W['uniacid'],
+		':uid' => $uid,
+	];
+	$condition = '';
+	if (!empty($type)) {
+		$condition .= 'AND r.credittype = :credittype ';
+		$params[':credittype'] = $type;
+	}
+	$sql = 'SELECT r.credittype, u.username, r.num, r.module, r.createtime, r.remark FROM ' .tablename('mc_credits_record'). ' r LEFT JOIN ' .tablename('users'). ' u ON r.operator = u.uid  WHERE r.uniacid = :uniacid AND r.uid = :uid ' .$condition. 'ORDER BY r.id desc';
+	$credittype_data = pdo_fetchall($sql, $params);
+	$html = mc_member_export_parse($credittype_data, $available_fields, 'creditinfo');
+	header('Content-type:text/csv');
+	header('Content-Disposition:attachment; filename=会员账户数据.csv');
+	echo $html;
+	exit();
 }
 
 if ('base_information' == $do) {

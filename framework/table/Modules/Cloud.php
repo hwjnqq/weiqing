@@ -124,6 +124,7 @@ class Cloud extends \We7Table {
 					->whereor('wxapp_support', 2)
 					->whereor('webapp_support', 2)
 					->whereor('phoneapp_support', 2)
+					->whereor('welcome_support', 2)
 					->whereor('xzapp_support', 2)
 					->whereor('aliapp_support', 2)
 					->whereor('baiduapp_support', 2)

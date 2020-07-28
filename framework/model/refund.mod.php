@@ -85,7 +85,7 @@ function refund($refund_id) {
 	$params = array('uniontid' => $refundlog['uniontid']);
 	$params['uniacid'] = $refundlog['is_wish'] == 1 ? $refundlog['uniacid'] : $_W['uniacid'];
 	$paylog = pdo_get('core_paylog', $params);
-	if ($paylog['type'] == 'wechat') {
+	if ($paylog['type'] == 'wechat' || $paylog['type'] == 'wxapp') {
 		$refund_param = reufnd_wechat_build($refund_id, $refundlog['is_wish']);
 		if (is_error($refund_param)) {
 			return $refund_param;

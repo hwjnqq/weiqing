@@ -10,7 +10,7 @@ load()->model('module');
 $dos = array('display', 'post');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-$module_name = trim($_GPC['m']);
+$module_name = trim($_GPC['module_name']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 $module_shortcut_talbe = table('uni_account_modules_shortcut');

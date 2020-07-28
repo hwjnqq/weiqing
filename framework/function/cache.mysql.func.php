@@ -19,7 +19,7 @@ function cache_read($key) {
 		return '';
 	}
 	$cachedata = iunserializer($cachedata);
-	if (is_array($cachedata) && !empty($cachedata['expire']) && !empty($cachedata['data'])) {
+	if (is_array($cachedata) && !empty($cachedata['expire']) && false !== $cachedata['data']) {
 		if ($cachedata['expire'] > TIMESTAMP) {
 			return $cachedata['data'];
 		} else {

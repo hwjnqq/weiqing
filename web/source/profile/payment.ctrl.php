@@ -145,7 +145,7 @@ if ('change_status' == $do) {
 	}
 	$param = $_GPC['param'];
 	$setting = uni_setting_load('payment', $_W['uniacid']);
-	$pay_setting = $setting['payment'];
+	$pay_setting = !empty($setting['payment']) ? $setting['payment'] : array();
 	$setting_data = array(
 		'pay_switch' => 'true' == $param['pay_switch'] ? true : false,
 		'recharge_switch' => 'true' == $param['recharge_switch'] ? true : false,

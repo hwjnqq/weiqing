@@ -831,7 +831,7 @@ function message_list_detail($lists) {
 		$message['create_time'] = date('Y-m-d H:i:s', $message['create_time']);
 
 		if (in_array($message['type'], array(MESSAGE_ORDER_TYPE, MESSAGE_ORDER_WISH_TYPE, MESSAGE_ORDER_PAY_TYPE))) {
-			$message['url'] = url('site/entry/orders', array('m' => 'store', 'direct'=>1, 'message_id' => $message['id']));
+			$message['url'] = url('site/entry/orders', array('module_name' => 'store', 'direct'=>1, 'message_id' => $message['id']));
 		}
 		if ($message['type'] == MESSAGE_ACCOUNT_EXPIRE_TYPE) {
 			$message['url'] = url('account/manage', array('account_type' => ACCOUNT_TYPE_OFFCIAL_NORMAL, 'message_id' => $message['id']));

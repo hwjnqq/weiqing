@@ -91,7 +91,7 @@ class Account extends \We7Table {
 				$users_uids = table('users_founder_own_users')->getFounderOwnUsersList($uid);
 				$users_uids = array_keys($users_uids);
 				$users_uids[] = $uid;
-				$this->query->where('c.uid', $users_uids)->where('c.role', array('manager', 'owner', 'vice_founder'));
+				$this->query->where('c.uid', $users_uids)->where('c.role', array('clerk', 'operator', 'manager', 'owner', 'vice_founder'));
 			} else {
 				$this->query->where('c.uid', $uid)->where('c.role <>', 'clerk');
 			}

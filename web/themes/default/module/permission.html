@@ -4,7 +4,7 @@
 	<div class="we7-padding-bottom clearfix">
 		{if empty($module['main_module'])}
 		<div class="pull-right">
-			<a href="{php echo url('module/permission/post', array('m' => $module_name))}" class="btn btn-primary we7-padding-horizontal">添加操作员</a>
+			<a href="{php echo url('module/permission/post', array('module_name' => $module_name))}" class="btn btn-primary we7-padding-horizontal">添加操作员</a>
 			<a href="{php echo url('user/register', array('type' => USER_TYPE_CLERK, 'm' => $module_name, 'uniacid' => $_W['uniacid']))}"  target="_blank" class="btn btn-primary we7-padding-horizontal">注册操作员</a>
 		</div>
 		{/if}
@@ -41,7 +41,7 @@
 				<td style="width:100px;">
 					<div class="link-group" >
 						{if empty($module['main_module'])}
-							<a href="{php echo url('module/permission/post', array('uid' => $item['uid'], 'm' => $module_name));}">编辑</a>
+							<a href="{php echo url('module/permission/post', array('uid' => $item['uid'], 'module_name' => $module_name));}">编辑</a>
 							<a href="javascript:void(0);" ng-click="deleteClerk({$item['uid']}, '{$module_name}')" class="del">删除</a>
 						{else}
 							<span>---</span>

@@ -63,7 +63,7 @@ if ('register' == $do) {
 					pdo_insert('users_permission', array('uniacid' => $uniacid, 'uid' => $register_user['uid'], 'type' => $module_name, 'permission' => 'all'));
 				}
 			}
-			$redirect = url('module/permission/display', array('m' => $module_name));
+			$redirect = url('module/permission/display', array('module_name' => $module_name));
 		}
 
 		if ('system' == $register_type) {

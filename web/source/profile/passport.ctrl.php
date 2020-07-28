@@ -14,9 +14,16 @@ if ('save_oauth' == $do) {
 	$account = intval($_GPC['account']);
 	if ('oauth' == $type) {
 		$host = safe_gpc_url(rtrim($_GPC['host'], '/'), false);
-
 		if (!empty($_GPC['host']) && empty($host)) {
 			iajax(-1, '域名不合法');
+		}
+		$oauthInfo = uni_setting_load();
+		$oauth_account = empty($oauthInfo['oauth']['account']) ? '' : $oauthInfo['oauth']['account'];
+		if ($oauth_account != $account) {
+			$delete_result = user_account_delete($_W['acid']);
+			if (empty($delete_result)) {
+				iajax(-1, '参数错误');
+			}
 		}
 		if (empty($host) && empty($account)) {
 			uni_setting_save('oauth', '');

@@ -37,6 +37,10 @@ if (empty($module)) {
 	
 	itoast("访问非法, 没有操作权限. (module: {$entry['module']})", '', '');
 }
+if ($module[MODULE_SUPPORT_SYSTEMWELCOME_NAME] != MODULE_SUPPORT_SYSTEMWELCOME) {
+	user_save_operate_history(USERS_OPERATE_TYPE_MODULE, $entry['module']);
+}
+
 if (!$entry['direct']) {
 	checklogin();
 	$referer = (url_params(referer()));

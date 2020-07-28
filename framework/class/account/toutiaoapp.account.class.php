@@ -12,7 +12,7 @@ class ToutiaoappAccount extends WeAccount {
 	protected $tablename = 'account_toutiaoapp';
 	protected $menuFrame = 'wxapp';
 	protected $type = ACCOUNT_TYPE_TOUTIAOAPP_NORMAL;
-	protected $typeName = '头条小程序';
+	protected $typeName = '字节跳动小程序';
 	protected $typeTempalte = '-toutiaoapp';
 	protected $typeSign = TOUTIAOAPP_TYPE_SIGN;
 	protected $supportVersion = STATUS_ON;

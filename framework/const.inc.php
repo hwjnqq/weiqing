@@ -7,7 +7,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 define('REGULAR_EMAIL', '/\w+([-+.]\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*/i');
-define('REGULAR_MOBILE', '/1[345789][0-9]{9}/');
+define('REGULAR_MOBILE', '/1[3456789][0-9]{9}/');
 define('REGULAR_USERNAME', '/^[\x{4e00}-\x{9fa5}a-z\d_\.]{3,30}$/iu');
 /*
  * 模板引用相关
@@ -46,7 +46,7 @@ define('ACCOUNT_TYPE_WXAPP_WORK', 8);
 define('ACCOUNT_TYPE_ALIAPP_NORMAL', 11);
 //百度小程序
 define('ACCOUNT_TYPE_BAIDUAPP_NORMAL', 12);
-//头条小程序
+//字节跳动小程序
 define('ACCOUNT_TYPE_TOUTIAOAPP_NORMAL', 13);
 //第三方创建接入的小程序
 define('ACCOUNT_TYPE_APP_PLATFORM', 14);
@@ -66,7 +66,7 @@ define('WELCOMESYSTEM_TYPE_SIGN', 'welcome');
 define('ALIAPP_TYPE_SIGN', 'aliapp');
 //百度小程序
 define('BAIDUAPP_TYPE_SIGN', 'baiduapp');
-//头条小程序
+//字节跳动小程序
 define('TOUTIAOAPP_TYPE_SIGN', 'toutiaoapp');
 
 //授权登录接入
@@ -182,7 +182,7 @@ define('MODULE_NOSUPPORT_ALIAPP', 1);
 // 是否支持百度小程序 不支持1 支持2
 define('MODULE_SUPPORT_BAIDUAPP', 2);
 define('MODULE_NOSUPPORT_BAIDUAPP', 1);
-// 是否支持头条小程序 不支持1 支持2
+// 是否支持字节跳动小程序 不支持1 支持2
 define('MODULE_SUPPORT_TOUTIAOAPP', 2);
 define('MODULE_NOSUPPORT_TOUTIAOAPP', 1);
 
@@ -307,7 +307,7 @@ define('STORE_TYPE_WEBAPP_MODULE', 11); //PC应用
 define('STORE_TYPE_PHONEAPP_MODULE', 12); //APP应用
 define('STORE_TYPE_ALIAPP_MODULE', 14); //支付宝小程序应用
 define('STORE_TYPE_BAIDUAPP_MODULE', 15); //百度小程序应用
-define('STORE_TYPE_TOUTIAOAPP_MODULE', 16); //头条小程序应用
+define('STORE_TYPE_TOUTIAOAPP_MODULE', 16); //字节跳动小程序应用
 
 define('STORE_TYPE_PACKAGE', 5);
 define('STORE_TYPE_API', 6);

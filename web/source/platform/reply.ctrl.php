@@ -10,7 +10,8 @@ load()->model('module');
 $dos = array('display', 'post', 'delete', 'change_status', 'change_keyword_status');
 $do = in_array($do, $dos) ? $do : 'display';
 
-$m = empty($_GPC['m']) ? 'keyword' : trim($_GPC['m']);
+$m = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
+$m = empty($m) ? 'keyword' : $m;
 if (in_array($m, array('keyword', 'special', 'welcome', 'default', 'apply', 'service', 'userapi'))) {
 	permission_check_account_user('platform_reply_' . $m);
 } else {
@@ -190,7 +191,7 @@ if ('post' == $do) {
 		if (!empty($rid)) {
 			$reply = reply_single($rid);
 			if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
-				itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('m' => $m)), 'error');
+				itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('module_name' => $m)), 'error');
 			}
 			if (!empty($reply['keywords'])) {
 				foreach ($reply['keywords'] as &$keyword) {
@@ -278,9 +279,9 @@ if ('post' == $do) {
 				if (!empty($module_info) && empty($module_info['issystem'])) {
 					$user_module->fieldsFormSubmit($rid);
 				}
-				itoast('回复规则保存成功！', url('platform/reply', array('m' => $m)), 'success');
+				itoast('回复规则保存成功！', url('platform/reply', array('module_name' => $m)), 'success');
 			} else {
-				itoast('回复规则保存失败, 请联系网站管理员！', url('platform/reply', array('m' => $m)), 'error');
+				itoast('回复规则保存失败, 请联系网站管理员！', url('platform/reply', array('module_name' => $m)), 'error');
 			}
 		}
 		template('platform/reply-post');
@@ -295,7 +296,7 @@ if ('post' == $do) {
 			if ((empty($rule_id) && empty($module)) || '0' === $_GPC['status']) {
 				$setting[$type] = array('type' => '', 'module' => $module, 'keyword' => $rule_id);
 				uni_setting_save('default_message', $setting);
-				itoast('关闭成功', url('platform/reply', array('m' => 'special')), 'success');
+				itoast('关闭成功', url('platform/reply', array('module_name' => 'special')), 'success');
 			}
 			$reply_type = empty($rule_id) ? 'module' : 'keyword';
 			$reply_module = WeUtility::createModule('core');
@@ -311,7 +312,7 @@ if ('post' == $do) {
 				$setting[$type] = array('type' => 'keyword', 'keyword' => $rule['content']);
 			}
 			uni_setting_save('default_message', $setting);
-			itoast('发布成功', url('platform/reply', array('m' => 'special')), 'success');
+			itoast('发布成功', url('platform/reply', array('module_name' => 'special')), 'success');
 		}
 		if ($setting[$type]['type'] == 'module') {
 			$rule_id = $setting[$type]['module'];
@@ -342,7 +343,7 @@ if ('post' == $do) {
 			}
 			cache_delete(cache_system_key('unisetting', array('uniacid' => $_W['uniacid'])));
 			cache_delete(cache_system_key('keyword', array('content' => md5($rule['content']), 'uniacid' => $_W['uniacid'])));
-			itoast('系统回复更新成功！', url('platform/reply', array('m' => $m)), 'success');
+			itoast('系统回复更新成功！', url('platform/reply', array('module_name' => $m)), 'success');
 		}
 	}
 	if ('apply' == $m) {
@@ -402,7 +403,7 @@ if ('delete' == $do) {
 		$rid = intval($rid);
 		$reply = reply_single($rid);
 		if (empty($reply) || $reply['uniacid'] != $_W['uniacid']) {
-			itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('m' => $m)), 'error');
+			itoast('抱歉，您操作的规则不在存或是已经被删除！', url('platform/reply', array('module_name' => $m)), 'error');
 		}
 		//删除回复，关键字及规则
 		if (pdo_delete('rule', array('id' => $rid, 'uniacid' => $_W['uniacid']))) {
@@ -429,7 +430,7 @@ if ('delete' == $do) {
 
 //非文字自动回复切换开启关闭状态
 if ('change_status' == $do) {
-	$m = $_GPC['m'];
+	$m = $_GPC['module_name'];
 	if ('service' == $m) {
 		$rid = intval($_GPC['rid']);
 		$file = trim($_GPC['file']);

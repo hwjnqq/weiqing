@@ -104,12 +104,11 @@ if ('save' == $do) {
 	*/
 
 	$user_update['groupid'] = intval($_GPC['groupid']) ? intval($_GPC['groupid']) : 0;
-	$user_update['uid'] = $uid;
 	if (0 == $user_update['groupid']) {
 		$user_update['endtime'] = empty($_GPC['timelimit']) ? USER_ENDTIME_GROUP_DELETE_TYPE : strtotime(intval($_GPC['timelimit']) . ' days', TIMESTAMP);
 	}
-
-	user_update($user_update);
+	pdo_update('users', $user_update, array('uid' => $uid));
+	user_related_update($uid, $user_update);
 
 	if (!empty($_GPC['uni_groups'])) {
 		$ext_group_table = table('users_extra_group');
@@ -231,11 +230,12 @@ if ('check_vice_founder_permission_limit' == $do) {
 	if (user_is_vice_founder()) {
 		$timelimit['timelimit'] = $_GPC['timelimit'];
 		$create_account_nums = $_GPC['create_account_nums'];
-
 		if (USER_CREATE_PERMISSION_GROUP_TYPE == $_GPC['permissionType']) {
 			iajax(0, '权限正确');
 		}
-
+		if (empty($create_account_nums)) {
+			$create_account_nums = array();
+		}
 		$check_result = permission_check_vice_founder_limit(array_merge($timelimit, $create_account_nums));
 		if (is_error($check_result)) {
 			iajax(-1, $check_result['message']);

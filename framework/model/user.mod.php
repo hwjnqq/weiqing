@@ -31,9 +31,9 @@ function user_register($user, $source) {
 
 	$user['salt'] = random(8);
 	$user['password'] = user_hash($user['password'], $user['salt']);
-	$user['joinip'] = CLIENT_IP;
+	$user['joinip'] = $_W['clientip'];
 	$user['joindate'] = TIMESTAMP;
-	$user['lastip'] = CLIENT_IP;
+	$user['lastip'] = $_W['clientip'];
 	$user['lastvisit'] = TIMESTAMP;
 	if (!empty($user['owner_uid'])) {
 		$vice_founder_info = user_single($user['owner_uid']);
@@ -294,42 +294,15 @@ function user_single($user_or_uid) {
  * @param array $user 用户的资料数据, 需要的字段可以包括password, status, lastvisit, lastip, remark 必须包括 uid
  * @return boolean
  */
-function user_update($user) {
-	if (empty($user['uid']) || !is_array($user)) {
+function user_related_update($uid, $user) {
+	$uid = intval($uid);
+	if (empty($uid) || !is_array($user)) {
 		return false;
 	}
-	$record = array();
-	if (!empty($user['username'])) {
-		$record['username'] = $user['username'];
-	}
-	if (!empty($user['password'])) {
-		$record['password'] = user_hash($user['password'], $user['salt']);
-	}
-	if (!empty($user['lastvisit'])) {
-		$record['lastvisit'] = (strlen($user['lastvisit']) == 10) ? $user['lastvisit'] : strtotime($user['lastvisit']);
-	}
-	if (!empty($user['lastip'])) {
-		$record['lastip'] = $user['lastip'];
-	}
-	if (isset($user['joinip'])) {
-		$record['joinip'] = $user['joinip'];
-	}
-	if (isset($user['remark'])) {
-		$record['remark'] = $user['remark'];
-	}
-	if (isset($user['type'])) {
-		$record['type'] = $user['type'];
-	}
-	if (isset($user['status'])) {
-		$status = intval($user['status']);
-		if (!in_array($status, array(1, 2))) {
-			$status = 2;
-		}
-		$record['status'] = $status;
-	}
+
 	if (isset($user['groupid'])) {
 		$record['groupid'] = $user['groupid'];
-		$user_info = table('users')->getById($user['uid']);
+		$user_info = table('users')->getById($uid);
 		if ($user_info['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER || $user['founder_groupid'] == ACCOUNT_MANAGE_GROUP_VICE_FOUNDER) {
 			$group_info = user_founder_group_detail_info($user['groupid']);
 		} else {
@@ -348,36 +321,11 @@ function user_update($user) {
 			} else {
 				$user_end_time = USER_ENDTIME_GROUP_UNLIMIT_TYPE;
 			}
-			$record['endtime'] = $user_end_time;
+			$change_status = $user_end_time;
+			pdo_update('users', array('endtime' => $user_end_time), array('uid' => $uid));
 		}
 	}
-	if (isset($user['founder_groupid'])) {
-		$record['founder_groupid'] = intval($user['founder_groupid']);
-	}
-	if (isset($user['endtime'])) {
-		$record['endtime'] = intval($user['endtime']);
-	}
-	if(isset($user['lastuniacid'])) {
-		$record['lastuniacid'] = intval($user['lastuniacid']);
-	}
-	if(is_array($user['notice_setting'])) {
-		$record['notice_setting'] = iserializer($user['notice_setting']);
-	}
-	if (empty($record)) {
-		return false;
-	}
-
-	if (!empty($record['endtime'])) {
-		$user_own_uniacids = pdo_getall('uni_account_users', array('uid' => $user['uid'], 'role' => 'owner'), array('uniacid'));
-
-		if (!empty($user_own_uniacids)) {
-			foreach ($user_own_uniacids as $uniacid_val) {
-				$uniacid_account_info = uni_fetch($uniacid_val['uniacid']);
-				if (!is_error($uniacid_account_info)) {
-					pdo_update('account', array('endtime' => $record['endtime']), array('uniacid' => $uniacid_val['uniacid']));
-				}
-			}
-		}
+	if (isset($user['endtime']) || !empty($change_status)) {
 		$expire_notice = setting_load('user_expire');
 		if (!empty($expire_notice['user_expire']['status'])) {
 			$user_info = empty($user_info) ? table('users')->getById($user['uid']) : $user_info;
@@ -387,7 +335,7 @@ function user_update($user) {
 		}
 	}
 
-	return pdo_update('users', $record, array('uid' => intval($user['uid'])));
+	return true;
 }
 
 /**
@@ -919,7 +867,9 @@ function user_save_group($group_info) {
 					} else {
 						$endtime = 0;
 					}
-					user_update(array('uid' => $user['uid'], 'endtime' => $endtime));
+					$data['endtime'] = $endtime;
+					pdo_update('users', $data, array('uid' => $user['uid']));
+					user_related_update($user['uid'], $data);
 				}
 			}
 		}
@@ -977,7 +927,9 @@ function user_save_founder_group($group_info) {
 					} else {
 						$endtime = 0;
 					}
-					user_update(array('uid' => $user['uid'], 'endtime' => $endtime));
+					$data['endtime'] = $endtime;
+					pdo_update('users', $data, array('uid' => $user['uid']));
+					user_related_update($user['uid'], $data);
 				}
 			}
 		}
@@ -1489,4 +1441,34 @@ function user_load_operate_star($limit_num = 100) {
 	$users_operate_star_table->searchWithLimit($limit_num);
 	$result = $users_operate_star_table->getAllByUid($_W['uid']);
 	return $result;
+}
+
+//删除借权平台账号下的会员
+function user_account_delete($uniacid) {
+	if (empty($uniacid)) {
+		return false;
+	}
+	$mc_oauth_fans = pdo_getall('mc_oauth_fans', array('uniacid' => $uniacid), array('id', 'oauth_openid'));
+	if (!empty($mc_oauth_fans)) {
+		$ids = $openids = $uids = array();
+		foreach ($mc_oauth_fans as $key => $oauth_openid) {
+			$ids[] = $oauth_openid['id'];
+			if (empty($oauth_openid['oauth_openid'])) {
+				continue;
+			}
+			$openids[] = $oauth_openid['oauth_openid'];
+		}
+		if (!empty($ids)) {
+			pdo_delete('mc_oauth_fans', array('id' => $ids, 'uniacid' => $uniacid));
+		}
+		if (!empty($openids)) {
+			$mapping_fans = pdo_getall('mc_mapping_fans', array('uniacid' => $uniacid, 'openid' => $openids), array('uid'));
+			$uids = array_filter(array_column($mapping_fans,'uid'));
+			pdo_delete('mc_mapping_fans', array('uniacid' => $uniacid, 'openid' => $openids));
+		}
+		if (!empty($uids)) {
+			pdo_delete('mc_members', array('uniacid' => $uniacid, 'uid' => $uids));
+		}
+	}
+	return true;
 }

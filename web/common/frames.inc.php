@@ -6,15 +6,15 @@
 defined('IN_IA') or exit('Access Denied');
 global $_W;
 
-$we7_system_menu = array();
-$we7_system_menu['welcome'] = array(
+$w7_system_menu = array();
+$w7_system_menu['welcome'] = array(
 	'title' => '首页',
 	'icon' => 'wi wi-home',
 	'url' => url('home/welcome/system', array('page' => 'home')),
 	'section' => array(),
 );
 
-$we7_system_menu['account_manage'] = array(
+$w7_system_menu['account_manage'] = array(
 	'title' => '平台管理',
 	'icon' => 'wi wi-platform-manage',
 	'dimension' => 2,
@@ -69,7 +69,7 @@ $we7_system_menu['account_manage'] = array(
 	),
 );
 
-$we7_system_menu['module_manage'] = array(
+$w7_system_menu['module_manage'] = array(
 	'title' => '应用管理',
 	'icon' => 'wi wi-module-manage',
 	'dimension' => 2,
@@ -119,7 +119,7 @@ $we7_system_menu['module_manage'] = array(
 	),
 );
 
-$we7_system_menu['user_manage'] = array(
+$w7_system_menu['user_manage'] = array(
 	'title' => '用户管理',
 	'icon' => 'wi wi-user-group',
 	'dimension' => 2,
@@ -165,7 +165,7 @@ $we7_system_menu['user_manage'] = array(
 	),
 );
 
-$we7_system_menu['permission'] = array(
+$w7_system_menu['permission'] = array(
 	'title' => '权限组',
 	'icon' => 'wi wi-userjurisdiction',
 	'dimension' => 2,
@@ -198,7 +198,7 @@ $we7_system_menu['permission'] = array(
 	),
 );
 
-$we7_system_menu['system'] = array(
+$w7_system_menu['system'] = array(
 	'title' => '系统功能',
 	'icon' => 'wi wi-setting',
 	'dimension' => 3,
@@ -275,7 +275,7 @@ $we7_system_menu['system'] = array(
 	),
 );
 
-$we7_system_menu['site'] = array(
+$w7_system_menu['site'] = array(
 	'title' => '站点设置',
 	'icon' => 'wi wi-system-site',
 	'dimension' => 3,
@@ -419,7 +419,7 @@ $we7_system_menu['site'] = array(
 	'founder' => true,
 );
 
-$we7_system_menu['myself'] = array(
+$w7_system_menu['myself'] = array(
 	'title' => '我的账户',
 	'icon' => 'wi wi-bell',
 	'dimension' => 2,
@@ -427,7 +427,7 @@ $we7_system_menu['myself'] = array(
 	'section' => array(),
 );
 
-$we7_system_menu['message'] = array(
+$w7_system_menu['message'] = array(
 	'title' => '消息管理',
 	'icon' => 'wi wi-xiaoxi',
 	'dimension' => 2,
@@ -457,7 +457,7 @@ $we7_system_menu['message'] = array(
 	),
 );
 
-$we7_system_menu['account'] = array(
+$w7_system_menu['account'] = array(
 	'title' => '公众号',
 	'icon' => 'wi wi-white-collar',
 	'dimension' => 3,
@@ -478,37 +478,37 @@ $we7_system_menu['account'] = array(
 					'sub_permission' => array(
 						'platform_reply_keyword' => array(
 							'title' => '关键字自动回复',
-							'url' => url('platform/reply', array('m' => 'keyword')),
+							'url' => url('platform/reply', array('module_name' => 'keyword')),
 							'permission_name' => 'platform_reply_keyword',
 							'active' => 'keyword',
 						),
 						'platform_reply_special' => array(
 							'title' => '非关键字自动回复',
-							'url' => url('platform/reply', array('m' => 'special')),
+							'url' => url('platform/reply', array('module_name' => 'special')),
 							'permission_name' => 'platform_reply_special',
 							'active' => 'special',
 						),
 						'platform_reply_welcome' => array(
 							'title' => '首次访问自动回复',
-							'url' => url('platform/reply', array('m' => 'welcome')),
+							'url' => url('platform/reply', array('module_name' => 'welcome')),
 							'permission_name' => 'platform_reply_welcome',
 							'active' => 'welcome',
 						),
 						'platform_reply_default' => array(
 							'title' => '默认回复',
-							'url' => url('platform/reply', array('m' => 'default')),
+							'url' => url('platform/reply', array('module_name' => 'default')),
 							'permission_name' => 'platform_reply_default',
 							'active' => 'default',
 						),
 						'platform_reply_service' => array(
 							'title' => '常用服务',
-							'url' => url('platform/reply', array('m' => 'service')),
+							'url' => url('platform/reply', array('module_name' => 'service')),
 							'permission_name' => 'platform_reply_service',
 							'active' => 'service',
 						),
 						'platform_reply_userapi' => array(
 							'title' => '自定义接口回复',
-							'url' => url('platform/reply', array('m' => 'userapi')),
+							'url' => url('platform/reply', array('module_name' => 'userapi')),
 							'permission_name' => 'platform_reply_userapi',
 							'active' => 'userapi',
 							'is_display' => array(
@@ -936,7 +936,7 @@ $we7_system_menu['account'] = array(
 	),
 );
 
-$we7_system_menu['wxapp'] = array(
+$w7_system_menu['wxapp'] = array(
 	'title' => '微信小程序',
 	'icon' => 'wi wi-small-routine',
 	'dimension' => 3,
@@ -1204,14 +1204,14 @@ $we7_system_menu['wxapp'] = array(
 	),
 );
 
-$we7_system_menu['webapp'] = array(
+$w7_system_menu['webapp'] = array(
 	'title' => 'PC',
 	'icon' => 'wi wi-pc',
 	'url' => url('webapp/home/display'),
 	'section' => array(),
 );
 
-$we7_system_menu['phoneapp'] = array(
+$w7_system_menu['phoneapp'] = array(
 	'title' => 'APP',
 	'icon' => 'wi wi-white-collar',
 	'url' => url('phoneapp/display/home'),
@@ -1249,7 +1249,7 @@ $we7_system_menu['phoneapp'] = array(
 	),
 );
 
-$we7_system_menu['aliapp'] = array(
+$w7_system_menu['aliapp'] = array(
 	'title' => '支付宝小程序',
 	'icon' => 'wi wi-aliapp',
 	'url' => url('miniapp/display/home'),
@@ -1262,7 +1262,7 @@ $we7_system_menu['aliapp'] = array(
 	),
 );
 
-$we7_system_menu['baiduapp'] = array(
+$w7_system_menu['baiduapp'] = array(
 	'title' => '百度小程序',
 	'icon' => 'wi wi-baiduapp',
 	'url' => url('miniapp/display/home'),
@@ -1275,8 +1275,8 @@ $we7_system_menu['baiduapp'] = array(
 	),
 );
 
-$we7_system_menu['toutiaoapp'] = array(
-	'title' => '头条小程序',
+$w7_system_menu['toutiaoapp'] = array(
+	'title' => '字节跳动小程序',
 	'icon' => 'wi wi-toutiaoapp',
 	'url' => url('miniapp/display/home'),
 	'section' => array(
@@ -1290,7 +1290,7 @@ $we7_system_menu['toutiaoapp'] = array(
 
 
 
-$we7_system_menu['appmarket'] = array(
+$w7_system_menu['appmarket'] = array(
 	'title' => '市场',
 	'icon' => 'wi wi-shichang',
 	'url' => 'http://s.w7.cc',
@@ -1301,7 +1301,7 @@ $we7_system_menu['appmarket'] = array(
 
 
 
-$we7_system_menu['workorder'] = array(
+$w7_system_menu['workorder'] = array(
 	'title' => '工单',
 	'icon' => 'wi wi-gongdan',
 	'dimension' => 2,
@@ -1322,18 +1322,18 @@ $we7_system_menu['workorder'] = array(
 	'founder' => true,
 );
 
-$we7_system_menu['help'] = array(
+$w7_system_menu['help'] = array(
 	'title' => '帮助',
 	'icon' => 'wi wi-bangzhu',
 	'url' => url('help/display'),
 	'section' => array(),
 );
 
-$we7_system_menu['custom_help'] = array(
+$w7_system_menu['custom_help'] = array(
 	'title' => '本站帮助',
 	'icon' => 'wi wi-bangzhu',
 	'url' => url('help/display/custom'),
 	'section' => array(),
 );
 
-return $we7_system_menu;
+return $w7_system_menu;

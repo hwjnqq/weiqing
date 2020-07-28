@@ -117,7 +117,9 @@ if ('del' == $do) {
 		foreach ($users as $user_info) {
 			$extra_limit_info = $users_extra_limit_table->getExtraLimitByUid($user_info['uid']);
 			if (empty($extra_limit_info)) {
-				$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
+				$data = array('groupid' => '', 'endtime' => 1);
+				$result = pdo_update('users', $data, array('uid' => $uid));
+				user_related_update($uid, $data);
 			} else {
 				$group_info_timelimit = $group_info['timelimit'];
 				if (0 == $group_info_timelimit) {
@@ -125,7 +127,9 @@ if ('del' == $do) {
 				} else {
 					$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_info['endtime']);
 				}
-				$result = user_update(array('uid' => $user_info['uid'], 'groupid' => '', 'endtime' => $end_time));
+				$data = array('groupid' => '', 'endtime' => $end_time);
+				$result = pdo_update('users', $data, array('uid' => $user_info['uid']));
+				user_related_update($user_info['uid'], $data);
 			}
 		}
 	}

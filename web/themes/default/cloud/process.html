@@ -27,7 +27,7 @@
 					} else if (config.type == 'webtheme') {
 						targetUrl = './index.php?c=cloud&a=process&step=schemas&w=' + config.appname + '&is_upgrade=' + config.is_upgrade;
 					} else {
-						targetUrl = './index.php?c=cloud&a=process&step=schemas&m=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type + '&application_type=' + config.application_type +  '&has_new_support={$has_new_support}';
+						targetUrl = './index.php?c=cloud&a=process&step=schemas&module_name=' + config.appname + '&is_upgrade=' + config.is_upgrade + '&batch=1&support=' + config.account_type + '&application_type=' + config.application_type +  '&has_new_support={$has_new_support}';
 					}
 					util.message('文件同步完成，正在处理数据同步......', targetUrl, 'success');
 				}
@@ -135,63 +135,63 @@
 							location.href = '{url "system/module/upgrade" array("m" => $m, "flag" => 1)}';
 						{/if}
 						return;
-					}
-					
-					var is_confirm = "{php echo $_GPC['is_confirm']}";
-					if(is_confirm == 1) {
-						if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
-							location.href = '{url "cloud/upgrade"}';
+						}
+
+						var is_confirm = "{php echo $_GPC['is_confirm']}";
+						if(is_confirm == 1) {
+							if(confirm('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除')) {
+								location.href = '{url "cloud/upgrade"}';
+							} else {
+								location.href = '{url "cloud/upgrade"}';
+							}
 						} else {
-							location.href = '{url "cloud/upgrade"}';
+							if (showtips && packet.tips.length != 0) {
+								$('#new-agreement').modal('show');
+								return true;
+							}
+							util.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "cloud/upgrade"}');
 						}
-					} else {
-						if (showtips && packet.tips.length != 0) {
-							$('#new-agreement').modal('show');
-							return true;
-						}
-						util.message('已经成功执行升级操作! '+"\n"+' 由于数据库更新, 可能会产生多余的字段. 你可以按照需要删除.', '{url "cloud/upgrade"}');
+						return;
 					}
-					return;
 				}
-			}
-			$scope.script = script.fname;
-			$scope.message = script.message;
-			$scope.pragress = i + '/' + total;
-			$scope.pragressPer = Math.floor((i / total) * 100);
-			$scope.topPragress = $scope.pragressPer < 50 ? $scope.pragressPer * 3.6 - 135 : 45;
-			$scope.bottomPragress = $scope.pragressPer > 50 ? ($scope.pragressPer - 50) * 3.6 - 135 : -135;
-			var params = {fname: script.fname, tipversion: packet.tips.length != 0 ? packet.tips[0].version : ''};
-			$http.post(location.href, params).success(function(dat){
-				i++;
-				if (dat == 'showtips') {
-					$scope.proc(0);
-					return;
-				}
-				if(dat != 'success') {
-					$scope.fails.push(script.fname)
+				$scope.script = script.fname;
+				$scope.message = script.message;
+				$scope.pragress = i + '/' + total;
+				$scope.pragressPer = Math.floor((i / total) * 100);
+				$scope.topPragress = $scope.pragressPer < 50 ? $scope.pragressPer * 3.6 - 135 : 45;
+				$scope.bottomPragress = $scope.pragressPer > 50 ? ($scope.pragressPer - 50) * 3.6 - 135 : -135;
+				var params = {fname: script.fname, tipversion: packet.tips.length != 0 ? packet.tips[0].version : ''};
+				$http.post(location.href, params).success(function(dat){
+					i++;
+					if (dat == 'showtips') {
+						$scope.proc(0);
+						return;
+					}
+					if(dat != 'success') {
+						$scope.fails.push(script.fname)
+						error();
+						return;
+					}
+					$scope.proc();
+				}).error(function(){
+					i++;
+					$scope.fails.push(script.fname);
 					error();
-					return;
-				}
-				$scope.proc();
-			}).error(function(){
-				i++;
-				$scope.fails.push(script.fname);
-				error();
-			});
-		}
-		$scope.agree = function(ifagree) {
-			if (ifagree) {
-				location.href = './index.php?c=cloud&a=process';
-			} else {
-				$scope.proc(0);
+				});
 			}
-		}
-		$scope.proc();
-	});
+			$scope.agree = function(ifagree) {
+				if (ifagree) {
+					location.href = './index.php?c=cloud&a=process';
+				} else {
+					$scope.proc(0);
+				}
+			}
+			$scope.proc();
+		});
 //-->
 </script>
 {if $step == 'files'}
-{if !empty($_GPC['m'])}
+{if !empty($_GPC['module_name'])}
 <ul class="we7-step">
 	<li class="active"><span class="content">1 安装应用</span></li>
 	<li ><span class="content">2 分配应用权限</span> </li>
@@ -201,11 +201,11 @@
 <div class="clearfix js-processor" ng-controller="FileProcessorCtrl" ng-cloak>
 	<div class="upgrade-pragress we7-margin-bottom">
 		<div class="wrapper top">
-            <div class="circleProgress topcircle" ng-style="{transform: 'rotate('+ topPragress +'deg)'}"></div>
-        </div>
-        <div class="wrapper bottom">
-            <div class="circleProgress bottomcircle" ng-style="{transform: 'rotate('+ bottomPragress +'deg)'}"></div>
-        </div>
+			<div class="circleProgress topcircle" ng-style="{transform: 'rotate('+ topPragress +'deg)'}"></div>
+		</div>
+		<div class="wrapper bottom">
+			<div class="circleProgress bottomcircle" ng-style="{transform: 'rotate('+ bottomPragress +'deg)'}"></div>
+		</div>
 		<div class="circle">
 			<img src="./resource/images/upgrade.png" alt="">
 			<div class="pragress">
@@ -238,7 +238,7 @@
 			files : {php echo $packet['files'] ? json_encode($packet['files']) : '[]'},
 			application_type: '{$application_type}',
 			type : '{$type}',
-			appname : '{$m}',
+			appname : '{$module_name}',
 			is_upgrade : '{$is_upgrade}',
 			account_type : "{$_GPC['support']}",
 			tasknum : "{$packet['task']}",
@@ -254,15 +254,15 @@
 		<!-- 安装 -->
 		{if !empty($packet['install'])}
 			<script>
-				location.href = '{url "module/manage-system/install" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"], "application_type" => $_GPC["application_type"])}';
+				location.href = '{url "module/manage-system/install" array("module_name" => $module_name, "flag" => 1, "support" => $_GPC["support"], "application_type" => $_GPC["application_type"])}';
 			</script>
 		{/if}
 		<!-- 升级 -->
 		<script>
 			{if $_GPC['batch']}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "module_name" => $module_name, "is_upgrade" => $is_upgrade, "batch" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
 			{else}
-				location.href = '{url "cloud/process" array("step" => "scripts", "m" => $m, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
+				location.href = '{url "cloud/process" array("step" => "scripts", "module_name" => $module_name, "is_upgrade" => $is_upgrade, "support" => $_GPC["support"], "has_new_support" => $has_new_support, "application_type" => $_GPC["application_type"])}';
 			{/if}
 		</script>
 	{/if}
@@ -312,7 +312,7 @@
 		<!-- 如果是更新模块,跳转到system/module/upgrade -->
 		{if $is_upgrade == 1}
 			<script>
-				location.href = '{url "module/manage-system/upgrade" array("module_name" => $m, "flag" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
+				location.href = '{url "module/manage-system/upgrade" array("module_name" => $module_name, "flag" => 1, "support" => $_GPC["support"], "has_new_support" => $has_new_support)}';
 			</script>
 		{else}
 			<script>

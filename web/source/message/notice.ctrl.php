@@ -129,7 +129,7 @@ if ('setting' == $do) {
 	$type = intval($_GPC['type']);
 	if (!empty($type)) {
 		$notice_setting[$type] = empty($notice_setting[$type]) || MESSAGE_ENABLE == $notice_setting[$type] ? MESSAGE_DISABLE : MESSAGE_ENABLE;
-		user_update(array('uid' => $_W['uid'], 'notice_setting' => $notice_setting));
+		pdo_update('users', array('notice_setting' => iserializer($notice_setting)), array('uid' => $_W['uid']));
 		iajax(0, '更新成功', url('message/notice/setting'));
 	}
 }

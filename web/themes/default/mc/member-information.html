@@ -97,44 +97,52 @@
 				</td>
 			</tr>
 		</table>
-		<table class="table we7-table table-hover table-form">
-			<col width="140px">
-			<col />
-			<col width="100px">
-			<col />
-			<col />
-			<col />
-			<tr>
-				<th colspan="6">
-					<div class="btn-group we7-btn-group">
-						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit1'))}" class="btn {if $type == 'credit1'}active{/if}">{$creditnames['credit1']['title']}记录</a>
-						<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit2'))}" class="btn {if $type == 'credit2'}active{/if}">{$creditnames['credit2']['title']}记录</a>
-					</div>
-				</th>
-			</tr>
-			<tr>
-				<th>账户类型</th>
-				<th class="text-center">操作员</th>
-				<th class="text-center">{$creditnames[$type]['title']}增减</th>
-				<th class="text-center">模块</th>
-				<th class="text-center">操作时间</th>
-				<th class="text-center">备注</th>
-			</tr>
-			{if !empty($records)}
-				{loop $records $record}
+
+		<div class="member-credits-box">
+			<div class="box-header">
+				<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit1'))}" class=" {if $type == 'credit1'}active{/if}">{$creditnames['credit1']['title']}记录</a>
+				<a href="{php echo url('mc/member/member_credits', array('uid' => $uid, 'type' => 'credit2'))}" class=" {if $type == 'credit2'}active{/if}">{$creditnames['credit2']['title']}记录</a>
+				<a href="{php echo url('mc/member/export', array('uid' => $uid, 'type' => $type))}" target="_blank" class="pull-right color-default">导出记录</a>
+			</div>
+			<table class="table we7-table table-hover table-form">
+				<col width="140px">
+				<col />
+				<col />
+				<col />
+				<col />
+				<col />
 				<tr>
-					<td class="text-center">{if $record['credittype'] == 'credit2'}{$creditnames['credit2']['title']}{else}{$creditnames['credit1']['title']}{/if}</td>
-					<td class="text-center">{$record['username']}</td>
-					<td class="text-center">{$record['num']}</td>
-					<td class="text-center">{$record['system']}</td>
-					<td class="text-center">{php echo date("Y-m-d H:i:s", $record['createtime'])}</td>
-					<td class="text-center">{$record['remark']}</td>
+					<th>账户类型</th>
+					<th class="text-center">操作员</th>
+					<th class="text-center">{$creditnames[$type]['title']}增减</th>
+					<th class="text-center">模块</th>
+					<th class="text-center">操作时间</th>
+					<th class="text-center">备注</th>
 				</tr>
-				{/loop}
-			{/if}
-		</table>
-		<div class="text-right">
-			{$pager}
+				{if !empty($records)}
+					{loop $records $record}
+					<tr>
+						<td class="text-center">{if $record['credittype'] == 'credit2'}{$creditnames['credit2']['title']}{else}{$creditnames['credit1']['title']}{/if}</td>
+						<td class="text-center">{$record['username']}</td>
+						<td class="text-center">{$record['num']}</td>
+						<td class="text-center">{$record['system']}</td>
+						<td class="text-center">{php echo date("Y-m-d H:i:s", $record['createtime'])}</td>
+						<td class="text-center">{$record['remark']}</td>
+					</tr>
+					{/loop}
+				{else}
+				<tr>
+					<th colspan="6">
+						<div class="we7-empty-block">
+							暂无数据
+						</div>
+					</th>
+				</tr>
+				{/if}
+			</table>
+			<div class="text-right">
+				{$pager}
+			</div>
 		</div>
 		<!--end积分、余额-->
 		{/if}

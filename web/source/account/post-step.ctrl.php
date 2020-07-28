@@ -62,7 +62,7 @@ if (1 == $step) {
 			'token' => $account['token'],
 			'encodingaeskey' => $account['encodingaeskey'],
 		);
-	    iajax(0, $result);
+		iajax(0, $result);
 	}
 }
 template('account/post-step');

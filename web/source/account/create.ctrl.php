@@ -375,6 +375,15 @@ if ('save_account' == $do) {
 		}
 	}
 
+	/*开通上级权限start*/
+	if ($_W['uid']) {
+		$founder_uid = pdo_getcolumn('users_founder_own_users', array('uid'=>$_W['uid']), 'founder_uid');
+		if(!empty($founder_uid)){
+			uni_account_user_role_insert($uniacid, $founder_uid, ACCOUNT_MANAGE_NAME_VICE_FOUNDER);
+		}
+	}
+	/*开通上级权限end*/
+
 	if (!empty($next_url)) {
 		$result = array('next_url' => $next_url, 'uniacid' => $uniacid);
 		iajax(0, $result, $next_url);

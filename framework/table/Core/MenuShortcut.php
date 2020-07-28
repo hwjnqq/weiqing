@@ -37,6 +37,10 @@ class MenuShortcut extends \We7Table {
 	public function getUserWelcomeShortcut($uid, $uniacid, $modulename) {
 		return $this->where(array('uid' => $uid, 'uniacid' => $uniacid, 'modulename' => $modulename, 'position' => 'home_welcome_system_common'))->get();
 	}
+	public function getUserPluginModuleShortcut($uid, $uniacid, $main_module) {
+		$position = 'module_' . $main_module . '_menu_plugin_shortcut';
+		return $this->where(array('uid' => $uid, 'uniacid' => $uniacid, 'modulename' => $main_module, 'position' => $position))->get();
+	}
 
 	public function saveUserWelcomeShortcut($uid, $uniacid = 0, $modulename = '') {
 		$user_welcome_short_info = $this->getUserWelcomeShortcut($uid, $uniacid, $modulename);

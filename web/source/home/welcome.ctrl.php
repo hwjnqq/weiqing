@@ -26,8 +26,8 @@ if ('get_not_installed_modules' == $do) {
 	$not_installed_modules = module_uninstall_list();
 	iajax(0, $not_installed_modules);
 }
-
-if ('ext' == $do && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
+$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
+if ('ext' == $do && 'store' != $module_name && !$_GPC['system_welcome']) {
 	if (!empty($_GPC['version_id'])) {
 		$version_info = miniapp_version($_GPC['version_id']);
 	}
@@ -105,27 +105,30 @@ if ('get_module_statistics' == $do) {
 
 if ('ext' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
-	$modulename = $_GPC['m'];
-	if (!empty($modulename)) {
-		$_W['current_module'] = module_fetch($modulename);
+	if (!empty($module_name)) {
+		$_W['current_module'] = module_fetch($module_name);
+		$module_cloud_ban = module_cloud_ban($_W['current_module']['name'], $_W['current_module']['application_type']);
+		if ($module_cloud_ban) {
+			itoast($module_cloud_ban);
+		}
 	}
 
-	define('IN_MODULE', $modulename);
+	define('IN_MODULE', $module_name);
 	if ($_GPC['system_welcome']) {
 		define('SYSTEM_WELCOME_MODULE', true);
 		$frames = buildframes('system_welcome');
 	} else {
 		//模块插件不进系统给定的模块欢迎页（非开发者module.php中的模块欢迎页）
-		if ('store' != $modulename && empty($_W['current_module']['main_module']) && STATUS_ON != module_get_direct_enter_status($modulename) || STATUS_ON == $_GPC['tohome']) {
-			itoast('', url('module/welcome', array('m' => $modulename, 'uniacid' => $uniacid)));
+		if ('store' != $module_name && empty($_W['current_module']['main_module']) && STATUS_ON != module_get_direct_enter_status($module_name) || STATUS_ON == $_GPC['tohome']) {
+			itoast('', url('module/welcome', array('module_name' => $module_name, 'uniacid' => $uniacid)));
 		}
 		//统一进模块欢迎页,后面的代码暂时保留(先不要删)
-		$site = WeUtility::createModule($modulename);
+		$site = WeUtility::createModule($module_name);
 		if (!is_error($site)) {
 			$method = 'welcomeDisplay';
 			if (method_exists($site, $method)) {
 				define('FRAME', 'module_welcome');
-				$entries = module_entries($modulename, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
+				$entries = module_entries($module_name, array('menu', 'home', 'profile', 'shortcut', 'cover', 'mine'));
 				$site->$method($entries);
 				exit;
 			}
@@ -148,25 +151,24 @@ if ('ext' == $do) {
 }
 
 if ('account_ext' == $do) {
-	$modulename = $_GPC['m'];
-	if (!empty($modulename)) {
-		$module_info  = $_W['current_module']= module_fetch($modulename);
+	if (!empty($module_name)) {
+		$module_info  = $_W['current_module']= module_fetch($module_name);
 	}
 	if (empty($module_info)) {
 		itoast('抱歉，你操作的模块不能被访问！');
 	}
-	$link_uniacid = table('uni_link_uniacid')->getMainUniacid($_W['uniacid'], $modulename, intval($_GPC['version_id']));
+	$link_uniacid = table('uni_link_uniacid')->getMainUniacid($_W['uniacid'], $module_name, intval($_GPC['version_id']));
 	$redirect_uniacid = empty($link_uniacid) ? $_W['uniacid'] : $link_uniacid;
 	switch_save_account_display($redirect_uniacid);
 
-	$site = WeUtility::createModule($modulename);
+	$site = WeUtility::createModule($module_name);
 	if (!is_error($site)) {
 		$method = 'welcomeDisplay';
 		if (method_exists($site, $method)) {
 			//不能直接近模块。必须这样处理，否则会影响模块
-			itoast('', url('module/welcome/welcome_display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
+			itoast('', url('module/welcome/welcome_display', array('module_name' => $module_name, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
 		} else {
-			itoast('', url('module/welcome/display', array('m' => $modulename, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
+			itoast('', url('module/welcome/display', array('module_name' => $module_name, 'uniacid' => $redirect_uniacid, 'version_id' => intval($_GPC['version_id']))));
 		}
 	} else {
 		itoast('模块不存在', url('home/welcome'), 'error');
@@ -429,14 +431,12 @@ if ('add_welcome_shortcut' == $do) {
 if ('remove_welcome_shortcut' == $do) {
 	$core_menu_shortcut_table = table('core_menu_shortcut');
 	$uniacid = intval($_GPC['uniacid']);
-	$module_name = safe_gpc_string($_GPC['module_name']);
 	$module_name = empty($module_name) ? '' : $module_name;
 	pdo_delete('core_menu_shortcut', array('uid' => $_W['uid'], 'uniacid' => $uniacid, 'modulename' => $module_name, 'position' => 'home_welcome_system_common'));
 }
 
 if ('set_default' == $do) {
 	$uniacid = intval($_GPC['uniacid']);
-	$module_name = safe_gpc_string($_GPC['module_name']);
 	switch_save_module($uniacid, $module_name);
 	iajax(0, '', '');
 }

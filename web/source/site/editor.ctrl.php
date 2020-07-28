@@ -122,7 +122,7 @@ if ($do == 'uc') {
 			if (is_serialized($nav['css'])) {
 				$nav['css'] = iunserializer($nav['css']);
 			}
-			if (empty($nav['css']['icon']['icon'])) {
+			if (!empty($nav['css']) && empty($nav['css']['icon']['icon'])) {
 				$nav['css']['icon']['icon'] = 'fa fa-external-link';
 			}
 		}

@@ -161,6 +161,7 @@ class WeiXinPay extends pay {
 	 * 接口
 	 * */
 	public function buildUnifiedOrder($params) {
+		global $_W;
 		//检测必填参数
 		if (empty($params['out_trade_no'])) {
 			return error(-1, '缺少统一支付接口必填参数out_trade_no:商户订单号');
@@ -188,7 +189,7 @@ class WeiXinPay extends pay {
 		}
 		$params['appid'] = $this->wxpay['appid'];
 		$params['mch_id'] = $this->wxpay['mch_id'];
-		$params['spbill_create_ip'] = CLIENT_IP;
+		$params['spbill_create_ip'] = $_W['clientip'];
 		$params['nonce_str'] = random(32);
 		$params['sign'] = $this->bulidSign($params);
 
@@ -204,6 +205,7 @@ class WeiXinPay extends pay {
 	 * 微信刷卡支付下单接口
 	 * */
 	public function buildMicroOrder($params) {
+		global $_W;
 		//检测必填参数
 		if (empty($params['out_trade_no'])) {
 			return error(-1, '缺少刷卡支付接口必填参数out_trade_no:商户订单号');
@@ -222,7 +224,7 @@ class WeiXinPay extends pay {
 
 		$params['appid'] = $this->wxpay['appid'];
 		$params['mch_id'] = $this->wxpay['mch_id'];
-		$params['spbill_create_ip'] = CLIENT_IP;
+		$params['spbill_create_ip'] = $_W['clientip'];
 		$params['nonce_str'] = random(32);
 		if (!empty($this->wxpay['sub_mch_id'])) {
 			$params['sub_mch_id'] = $this->wxpay['sub_mch_id'];

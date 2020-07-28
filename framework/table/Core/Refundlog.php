@@ -8,34 +8,22 @@ class Refundlog extends \We7Table {
 	protected $tableName = 'core_refundlog';
 	protected $primaryKey = 'id';
 	protected $field = array(
-		'pid',
-		'title',
-		'group_name',
-		'name',
-		'icon',
-		'url',
-		'append_title',
-		'append_url',
-		'displayorder',
-		'type',
-		'is_display',
-		'is_system',
-		'permission_name',
+		'uniacid',
+		'refund_uniontid',
+		'reason',
+		'uniontid',
+		'fee',
+		'status',
+		'is_wish',
 	);
 	protected $default = array(
-		'pid' => '0',
-		'title' => '',
-		'group_name' => '',
-		'name' => '',
-		'icon' => '',
-		'url' => '',
-		'append_title' => '',
-		'append_url' => '',
-		'displayorder' => '0',
-		'type' => 'url',
-		'is_display' => '1',
-		'is_system' => '0',
-		'permission_name' => '',
+		'uniacid' => '0',
+		'refund_uniontid' => '',
+		'reason' => '',
+		'uniontid' => '',
+		'fee' => '',
+		'status' => 0,
+		'is_wish' => 0,
 	);
 
 	public function getByUniontid($uniontid) {

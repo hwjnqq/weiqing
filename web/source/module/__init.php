@@ -30,7 +30,7 @@ if (in_array($action, array('display', 'link'))) {
 	define('FRAME', 'module');
 }
 if (in_array($action, array('link', 'link-account', 'manage-account', 'permission', 'plugin', 'shortcut', 'welcome'))) {
-	define('IN_MODULE', trim($_GPC['m']));
+	define('IN_MODULE', $_GPC['module_name'] ?: $_GPC['m']);
 }
 $account_all_type = uni_account_type();
 $account_all_type_sign = array_keys(uni_account_type_sign());

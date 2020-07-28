@@ -145,7 +145,7 @@ if ('if_un' == $do) {
 	$module_name = safe_gpc_string($_GPC['m']);
 	$module_support_type = module_support_type();
 	$module_support_type['theme_support'] = array();
-	$support_type = in_array($_GPC['support'] . '_support', array_keys($module_support_type)) ? $_GPC['type'] . '_support' : '';
+	$support_type = in_array($_GPC['support'] . '_support', array_keys($module_support_type)) ? ($_GPC['support'] . '_support') : '';
 	if (empty($module_name) || (empty($support_type))) {
 		exit('参数错误！');
 	}

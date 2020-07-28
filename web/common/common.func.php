@@ -29,7 +29,7 @@ function current_operate_is_controller() {
 	if (in_array(FRAME, array('welcome', 'module_manage', 'user_manage', 'permission', 'system', 'site'))) {
 		$result = 1;
 	}
-	if (in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store') {
+	if (in_array(FRAME, array('account', 'wxapp')) && (($_GPC['m'] || $_GPC['module_name']) != 'store')) {
 		$result = 0;
 	}
 	isetcookie('__iscontroller', $result);
@@ -189,8 +189,9 @@ function checklogin($url = '') {
 }
 
 function get_position_by_ip($ip = '') {
-	$ip = $ip ? $ip : CLIENT_IP;
-	$url = 'http://ip.taobao.com/service/getIpInfo.php?ip=' . $ip;
+	global $_W;
+	$ip = $ip ? $ip : $_W['clientip'];
+	$url = 'http://ip.taobao.com/outGetIpInfo?ip='. $ip .'&accessKey=alibaba-inc';
 	$ip_content = file_get_contents($url);
 	$ip_content = json_decode($ip_content, true);
 	if (empty($ip_content) || $ip_content['code'] != 0) {
@@ -212,9 +213,8 @@ function get_position_by_ip($ip = '') {
 //新版buildframes
 function buildframes($framename = '') {
 	global $_W, $_GPC;
-	load()->model('system');
 
-	if (!empty($GLOBALS['frames']) && !empty($_GPC['m'])) {
+	if (!empty($GLOBALS['frames']) && (!empty($_GPC['m']) || !empty($_GPC['module_name']))) {
 		$frames = array();
 		$globals_frames = (array) $GLOBALS['frames'];
 		foreach ($globals_frames as $key => $row) {
@@ -317,7 +317,7 @@ function buildframes($framename = '') {
 							$frames[FRAME]['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 								'title' => $module['title'],
 								'icon' => $module['logo'],
-								'url' => url('home/welcome/account_ext', array('m' => $module['name'])),
+								'url' => url('home/welcome/account_ext', array('module_name' => $module['name'])),
 								'is_display' => 1,
 							);
 						}
@@ -337,7 +337,7 @@ function buildframes($framename = '') {
 							$frames[FRAME]['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 								'title' => $module['title'],
 								'icon' => $module['logo'],
-								'url' => url('home/welcome/account_ext', array('m' => $module['name'])),
+								'url' => url('home/welcome/account_ext', array('module_name' => $module['name'])),
 								'is_display' => 1,
 							);
 						}
@@ -356,7 +356,7 @@ function buildframes($framename = '') {
 					$frames[FRAME]['section']['platform_module']['menu']['platform_' . $module['name']] = array(
 						'title' => $module['title'],
 						'icon' => $module['logo'],
-						'url' => url('home/welcome/account_ext', array('m' => $module['name'])),
+						'url' => url('home/welcome/account_ext', array('module_name' => $module['name'])),
 						'is_display' => 1,
 					);
 					++$i;
@@ -374,7 +374,7 @@ function buildframes($framename = '') {
 		}
 	}
 	//进入模块界面后权限
-	$modulename = trim($_GPC['m']);
+	$modulename = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 	$eid = intval($_GPC['eid']);
 	$version_id = intval($_GPC['version_id']);
 	if ((!empty($modulename) || !empty($eid)) && !in_array($modulename, module_system())) {
@@ -443,14 +443,14 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_welcome'] = array(
 				'title' => '模块首页',
 				'icon' => 'wi wi-home',
-				'url' => url('module/welcome', array('m' => $modulename, 'uniacid' => intval($_GPC['uniacid']))),
+				'url' => url('module/welcome', array('module_name' => $modulename, 'uniacid' => intval($_GPC['uniacid']))),
 				'is_display' => empty($module['main_module']) ? true : false,
 				'module_welcome_display' => true,
 			);
 		}
 		if ($module['isrulefields'] || !empty($entries['cover']) || !empty($entries['mine'])) {
 			if (!empty($module['isrulefields']) && !empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))) {
-				$url = url('platform/reply', array('m' => $modulename, 'version_id' => $version_id));
+				$url = url('platform/reply', array('module_name' => $modulename, 'version_id' => $version_id));
 			}
 			if (empty($url) && !empty($entries['cover'])) {
 				$url = url('platform/cover', array('eid' => $entries['cover'][0]['eid'], 'version_id' => $version_id));
@@ -466,7 +466,7 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_settings'] = array(
 				'title' => '参数设置',
 				'icon' => 'wi wi-parameter-setting',
-				'url' => url('module/manage-account/setting', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('module/manage-account/setting', array('module_name' => $modulename, 'version_id' => $version_id)),
 				'is_display' => 1,
 			);
 		}
@@ -476,7 +476,7 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_permissions'] = array(
 				'title' => '操作员权限',
 				'icon' => 'wi wi-custommenu',
-				'url' => url('module/permission', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('module/permission', array('module_name' => $modulename, 'version_id' => $version_id)),
 				'is_display' => 1,
 			);
 		}
@@ -484,7 +484,7 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_home'] = array(
 				'title' => '微站首页导航',
 				'icon' => 'wi wi-crontab',
-				'url' => url('site/nav/home', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/home', array('module_name' => $modulename, 'version_id' => $version_id)),
 				'is_display' => 1,
 			);
 		}
@@ -492,7 +492,7 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_profile'] = array(
 				'title' => '个人中心导航',
 				'icon' => 'wi wi-user',
-				'url' => url('site/nav/profile', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/profile', array('module_name' => $modulename, 'version_id' => $version_id)),
 				'is_display' => 1,
 			);
 		}
@@ -500,7 +500,7 @@ function buildframes($framename = '') {
 			$frames['account']['section']['platform_module_common']['menu']['platform_module_shortcut'] = array(
 				'title' => '快捷菜单',
 				'icon' => 'wi wi-plane',
-				'url' => url('site/nav/shortcut', array('m' => $modulename, 'version_id' => $version_id)),
+				'url' => url('site/nav/shortcut', array('module_name' => $modulename, 'version_id' => $version_id)),
 				'is_display' => 1,
 			);
 		}
@@ -551,7 +551,7 @@ function buildframes($framename = '') {
 						'main_module' => $plugin_module_info['main_module'],
 						'title' => $plugin_module_info['title'],
 						'icon' => $plugin_module_info['logo'],
-						'url' => url('home/welcome/ext', array('m' => $plugin_module_info['name'], 'uniacid' => $_W['uniacid'], 'version_id' => $version_id)),
+						'url' => url('home/welcome/ext', array('module_name' => $plugin_module_info['name'], 'uniacid' => $_W['uniacid'], 'version_id' => $version_id)),
 						'is_display' => 1,
 					);
 					++$i;
@@ -559,9 +559,9 @@ function buildframes($framename = '') {
 			}
 
 			if ($module['main_module']) {
-				$platform_module_plugin_more_url = url('module/plugin', array('m' => $module['main_module'], 'uniacid' => $_W['uniacid']));
+				$platform_module_plugin_more_url = url('module/plugin', array('module_name' => $module['main_module'], 'uniacid' => $_W['uniacid']));
 			} else {
-				$platform_module_plugin_more_url = url('module/plugin', array('m' => $module['name'], 'uniacid' => $_W['uniacid']));
+				$platform_module_plugin_more_url = url('module/plugin', array('module_name' => $module['name'], 'uniacid' => $_W['uniacid']));
 			}
 
 			if (!empty($plugin_list)) {
@@ -639,7 +639,7 @@ function buildframes($framename = '') {
 					$frames['wxapp']['section']['platform_module']['menu']['module_menu' . $module['mid']] = array(
 						'icon' => $module['logo'],
 						'title' => $module['title'],
-						'url' => url('home/welcome/account_ext', array('m' => $module['name'], 'version_id' => $version_id)),
+						'url' => url('home/welcome/account_ext', array('module_name' => $module['name'], 'version_id' => $version_id)),
 						'is_display' => 1,
 					);
 				}

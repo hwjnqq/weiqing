@@ -530,7 +530,6 @@ function cache_build_proxy_wechatpay_account() {
 			$payment = (array)$account['setting']['payment'];
 			if (!empty($account['key']) && !empty($account['secret']) && in_array($account['level'], array (4)) &&
 				is_array($payment) && !empty($payment) && intval($payment['wechat']['switch']) == 1) {
-
 				if ((!is_bool ($payment['wechat']['switch']) && $payment['wechat']['switch'] != 4) || (is_bool ($payment['wechat']['switch']) && !empty($payment['wechat']['switch']))) {
 					$borrow[$account['uniacid']] = $account['name'];
 				}

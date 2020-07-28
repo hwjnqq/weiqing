@@ -228,11 +228,15 @@ if ('edit_account_dateline' == $do) {
 	$total_timelimit = $group_info['timelimit'] + $extra_limit_info['timelimit'];
 	$user_end_time_check = $user['endtime'] == strtotime($total_timelimit . ' days', $user['joindate']);
 	if (!$user_end_time_check && 0 != $group_info['timelimit']) {
-		user_update(array('uid' => $uid, 'endtime' => strtotime($total_timelimit . ' days', $user['joindate'])));
+		$user_update = array('endtime' => strtotime($total_timelimit . ' days', $user['joindate']));
+		pdo_update('users', $user_update, array('uid' => $uid));
+		user_related_update($uid, $user_update);
 	}
 
 	if (!empty($group_info) && 0 == $group_info['timelimit']) {
-		user_update(array('uid' => $uid, 'endtime' => USER_ENDTIME_GROUP_UNLIMIT_TYPE));
+		$user_update = array('endtime' => USER_ENDTIME_GROUP_UNLIMIT_TYPE);
+		pdo_update('users', $user_update, array('uid' => $uid));
+		user_related_update($uid, $user_update);
 	}
 	if (USER_ENDTIME_GROUP_EMPTY_TYPE == $endtime || USER_ENDTIME_GROUP_UNLIMIT_TYPE == $endtime) {
 		$total_timelimit = '永久';
@@ -316,9 +320,10 @@ if ('edit_user_group' == $do) {
 		iajax(-1, '未做更改！');
 	}
 
-	$data['uid'] = $uid;
 	$data['groupid'] = safe_gpc_int($_GPC['groupid']);
-	$update_res = user_update($data);
+	$update_res = pdo_update('users', $data, array('uid' => $uid));
+	user_related_update($uid, $data);
+
 	cache_clean(cache_system_key('user_modules'));
 	cache_clean(cache_system_key('unimodules'));
 
@@ -368,7 +373,8 @@ if ('edit_user_extra_limit' == $do) {
 			if (USER_ENDTIME_GROUP_EMPTY_TYPE != $user['endtime'] && USER_ENDTIME_GROUP_UNLIMIT_TYPE != $user['endtime']) {
 				$user_endtime = USER_ENDTIME_GROUP_DELETE_TYPE == $user['endtime'] ? $user['joindate'] : $user['endtime'];
 				$end_time = strtotime($time_limit . ' days', $user_endtime);
-				user_update(array('endtime' => $end_time, 'uid' => $uid));
+				pdo_update('users', array('endtime' => $end_time), array('uid' => $uid));
+				user_related_update($uid, array('endtime' => $end_time));
 			}
 			iajax(0, '修改成功', url('user/edit/edit_account_dateline', array('uid' => $uid)));
 		} else {
@@ -489,7 +495,9 @@ if ('delete_user_group' == $do) {
 	$extra_limit_info = $users_extra_limit_table->getExtraLimitByUid($uid);
 
 	if (empty($extra_limit_info)) {
-		$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => 1));
+		$data = array('groupid' => '', 'endtime' => 1);
+		$result = pdo_update('users', $data, array('uid' => $uid));
+		user_related_update($uid, $data);
 	} else {
 		$group_info_timelimit = $group_info['timelimit'];
 		if (0 == $group_info_timelimit) {
@@ -497,8 +505,9 @@ if ('delete_user_group' == $do) {
 		} else {
 			$end_time = strtotime('-' . $group_info_timelimit . ' days', $user_end_time);
 		}
-
-		$result = user_update(array('uid' => $uid, 'groupid' => '', 'endtime' => $end_time));
+		$data = array('groupid' => '', 'endtime' => $end_time);
+		$result = pdo_update('users', $data, array('uid' => $uid));
+		user_related_update($uid, $data);
 	}
 
 	if ($result) {

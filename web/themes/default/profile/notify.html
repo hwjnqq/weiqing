@@ -95,14 +95,14 @@
 							<div class="form-group">
 								<label class="control-label col-sm-2">发送帐号用户名</label>
 								<div class="form-controls col-sm-10">
-									<input type="text" name="username" value="{{setting.username}}" class="form-control">
+									<input type="text" name="username" ng-model="setting.username" class="form-control">
 									<span class="help-block">指定发送邮件的用户名，例如：test@163.com </span>
 								</div>
 							</div>
 							<div class="form-group">
 								<label class="control-label col-sm-2">smtp客户端授权密码</label>
 								<div class="form-controls col-sm-10">
-									<input type="password" name="password" value="{{setting.password}}" class="form-control">
+									<input type="password" name="password" ng-model="setting.password" class="form-control">
 									<span class="help-block">
 										指定发送邮件的密码，QQ邮箱此处为授权码，
 										<a href="http://service.mail.qq.com/cgi-bin/help?subtype=1&amp;&amp;id=28&amp;&amp;no=1001256" target="_Blank">查看授权码获取方法</a>

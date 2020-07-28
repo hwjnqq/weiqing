@@ -42,7 +42,7 @@ if (!empty($welcome_bind) && empty($site_url_query) && !$_W['ispost'] && !$_W['i
 
 if (empty($_W['isfounder']) && !empty($_W['user']) && ($_W['user']['status'] == USER_STATUS_CHECK || $_W['user']['status'] == USER_STATUS_BAN)) {
 	isetcookie('__session', '', -10000);
-	message('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), 'info');
+	itoast('您的账号正在审核或是已经被系统禁止，请联系网站管理员解决！', url('user/login'), 'info');
 }
 $acl = require IA_ROOT . '/web/common/permission.inc.php';
 
@@ -69,7 +69,7 @@ if (($_W['setting']['copyright']['status'] == 1) && empty($_W['isfounder']) && '
 	if ($_W['isajax']) {
 		iajax(-1, '站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason']);
 	}
-	message('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], $_W['siteroot'], 'info');
+	itoast('站点已关闭，关闭原因：' . $_W['setting']['copyright']['reason'], $_W['siteroot'], 'info');
 }
 
 $controllers = array();
@@ -96,6 +96,9 @@ if (defined('FRAME') && $need_account_info) {
 		$_W['uniaccount'] = $_W['account'] = uni_fetch($_W['uniacid']);
 		if (is_error($_W['account'])) {
 			itoast('', $_W['siteroot'] . 'web/home.php');
+		}
+		if (!empty($_W['uniaccount']['endtime']) && TIMESTAMP > $_W['uniaccount']['endtime']  && !in_array($_W['uniaccount']['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE))) {
+			itoast('抱歉，您的平台账号服务已过期，请及时联系管理员');
 		}
 		$_W['acid'] = $_W['account']['acid'];
 		$_W['weid'] = $_W['uniacid'];
@@ -141,7 +144,7 @@ if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['highest_role']) {
 	if (ACCOUNT_MANAGE_NAME_UNBIND_USER == $_W['highest_role']) {
 		itoast('', url('user/third-bind'));
 	}
-	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['m'] && !$_GPC['system_welcome']) {
+	if (empty($_W['uniacid']) && in_array(FRAME, array('account', 'wxapp')) && 'store' != $_GPC['module_name'] && !$_GPC['system_welcome']) {
 		itoast('', url('account/display/platform'), 'info');
 	}
 
@@ -153,7 +156,7 @@ if (ACCOUNT_MANAGE_NAME_FOUNDER != $_W['highest_role']) {
 	}
 	if (empty($acl[$controller][$checked_role]) ||
 		(!in_array($controller . '*', $acl[$controller][$checked_role]) && !in_array($action, $acl[$controller][$checked_role]))) {
-		message('不能访问, 需要相应的权限才能访问！');
+		empty($_W['isajax']) ? itoast('不能访问, 需要相应的权限才能访问！') : iajax('-1', '不能访问, 需要相应的权限才能访问!');
 	}
 	unset($checked_role);
 }

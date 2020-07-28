@@ -19,8 +19,8 @@ function cache_redis() {
 	if (!extension_loaded('redis')) {
 		return error(1, 'Class Redis is not found');
 	}
+	$config = $_W['config']['setting']['redis'];
 	if (empty($redisobj)) {
-		$config = $_W['config']['setting']['redis'];
 		$redisobj = new Redis();
 		try {
 			if ($config['pconnect']) {
@@ -35,7 +35,9 @@ function cache_redis() {
 			return error(-1, 'redis连接失败，错误信息：' . $e->getMessage());
 		}
 	}
-
+	if (defined('IN_MODULE') && !empty($config['db']) && is_array($config['db']) && in_array(IN_MODULE, array_keys($config['db']))) {
+		$redisobj->select($config['db'][IN_MODULE]);
+	}
 	return $redisobj;
 }
 
@@ -177,7 +179,7 @@ function cache_clean($key = '') {
 
 		return true;
 	}
-	if ($redis->flushAll()) {
+	if ($redis->flushDB()) {
 		unset($GLOBALS['_W']['cache']);
 
 		return true;

@@ -213,18 +213,14 @@ if ('base' == $do) {
 				'url' => $url,
 			);
 		} else {
+			$authurl_type = $account['type'] == 4 ? ACCOUNT_PLATFORM_API_LOGIN_WXAPP : ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT;
 			$authurl = array(
 				'errno' => 0,
-				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'), ACCOUNT_PLATFORM_API_LOGIN_ACCOUNT),
+				'url' => sprintf(ACCOUNT_PLATFORM_API_LOGIN, $account_platform->appid, $preauthcode, urlencode($GLOBALS['_W']['siteroot'] . 'index.php?c=account&a=auth&do=forward'), $authurl_type),
 			);
 		}
 	}
 	$account['start'] = date('Y-m-d', $account['starttime']);
-	if ($_W['uid'] == $account['create_uid'] || $_W['isadmin']) {
-		$account['createtime'] = $account['createtime'] > 0 ? date('Y-m-d', $account['createtime']) : '';
-	} else {
-		$account['createtime'] = '';
-	}
 	$account['end'] = in_array($account['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE)) ? '永久' : date('Y-m-d', $account['endtime']);
 	$account['endtype'] = (in_array($account['endtime'], array(USER_ENDTIME_GROUP_EMPTY_TYPE, USER_ENDTIME_GROUP_UNLIMIT_TYPE)) || 	$account['endtime'] == 0) ? 1 : 2;
 	$uni_setting = (array) uni_setting_load(array('statistics', 'attachment_limit', 'attachment_size'), $uniacid);
@@ -523,7 +519,7 @@ if ('operators' == $do) {
 			}
 			$clerk_userinfo = user_single($clerk['uid']);
 			$list[$k]['username'] = $clerk_userinfo['username'];
-			$list[$k]['permission_setting_url'] = url('module/display/switch', array('module_name' => $clerk['type'], 'uniacid' => $clerk['uniacid'], 'redirect' => urlencode(url('module/permission/post', array('uid' => $clerk['uid'], 'm' => $clerk['type'], 'uniacid' => $clerk['uniacid'])))), true);
+			$list[$k]['permission_setting_url'] = url('module/display/switch', array('module_name' => $clerk['type'], 'uniacid' => $clerk['uniacid'], 'redirect' => urlencode(url('module/permission/post', array('uid' => $clerk['uid'], 'module_name' => $clerk['type'], 'uniacid' => $clerk['uniacid'])))), true);
 		}
 	}
 	$pager = pagination($total, $page, $page_size);

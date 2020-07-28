@@ -100,7 +100,7 @@ if ('post' == $do) {
 			foreach ($_GPC['group'] as $value) {
 				if (!is_numeric($value)) {
 					if ($_W['isw7_request']) {
-					    iajax(-1, '参数错误！');
+						iajax(-1, '参数错误！');
 					}
 					itoast('参数错误！');
 				}

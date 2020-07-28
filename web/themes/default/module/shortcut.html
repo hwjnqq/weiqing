@@ -1,7 +1,7 @@
 {template 'common/header'}
 <div id="js-module-shortcut" ng-controller="userModuleShortcutCtrl">
 <div class="clearfix we7-margin-bottom">
-	<a href="./index.php?c=module&a=shortcut&do=post&m={$module_name}&uniacid={$uniacid}" class="btn btn-primary pull-right">添加快捷入口</a>
+	<a href="./index.php?c=module&a=shortcut&do=post&module_name={$module_name}&uniacid={$uniacid}" class="btn btn-primary pull-right">添加快捷入口</a>
 </div>
 <table class="tbble we7-table">
 	<tr>
@@ -35,8 +35,8 @@
 		'lists' : {php echo !empty($list['lists']) ? json_encode($list['lists']) : 'null'},
 		'attachurl' : "{$_W['attachurl']}",
 		'links' : {
-			'post_url' : "{php echo url('module/shortcut/post', array('uniacid' => $uniacid, 'm' => $module_name))}",
-			'delete_url' : "{php echo url('module/shortcut/delete', array('uniacid' => $uniacid, 'm' => $module_name))}",
+			'post_url' : "{php echo url('module/shortcut/post', array('uniacid' => $uniacid, 'module_name' => $module_name))}",
+			'delete_url' : "{php echo url('module/shortcut/delete', array('uniacid' => $uniacid, 'module_name' => $module_name))}",
 		}
 	});
 	angular.bootstrap($('#js-module-shortcut'), ['moduleApp']);

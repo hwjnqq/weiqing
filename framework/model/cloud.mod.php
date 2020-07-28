@@ -53,7 +53,7 @@ function _cloud_build_params($must_authorization_host = true) {
 	}
 	$clients = cloud_client_define();
 	$string = '';
-	foreach($clients as $cli) {
+	foreach ($clients as $cli) {
 		$string .= md5_file(IA_ROOT . $cli);
 	}
 	$pars['client'] = md5($string);
@@ -157,6 +157,7 @@ function cloud_request($url, $post = '', $extra = array(), $timeout = 60) {
 }
 
 function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
+	global $_W;
 	$cache_key = cache_system_key('cloud_api', array('method' => md5($method . implode('', $data))));
 	$cache = cache_load($cache_key);
 	if (!empty($cache) && !$extra['nocache']) {
@@ -173,6 +174,10 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 	if (starts_with($_SERVER['HTTP_USER_AGENT'], 'we7')) {
 		$extra['CURLOPT_USERAGENT'] = $_SERVER['HTTP_USER_AGENT'];
 	}
+	if ($_W['config']['setting']['useragent'] && starts_with($_W['config']['setting']['useragent'], 'we7')) {
+		$extra['CURLOPT_USERAGENT'] = $_W['config']['setting']['useragent'];
+	}
+	$extra['X-We7-Cache'] = cache_random();
 	$response = ihttp_request(sprintf($api_url, $method), $data, $extra, $timeout);
 	$file = IA_ROOT . '/data/' . (!empty($data['file']) ? $data['file'] : $data['method']);
 	$file = $file . cache_random();
@@ -186,7 +191,7 @@ function cloud_api($method, $data = array(), $extra = array(), $timeout = 60) {
 function cloud_prepare() {
 	global $_W;
 	setting_load();
-	if(empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
+	if (empty($_W['setting']['site']['key']) || empty($_W['setting']['site']['token'])) {
 		return error('-1', '站点注册信息丢失, 请通过"重置站点ID和通信密钥"重新获取 !');
 	}
 	return true;
@@ -201,7 +206,7 @@ function cloud_build($nocache = false) {
 		return $ret;
 	}
 
-	if($ret['state'] == 'warning') {
+	if ($ret['state'] == 'warning') {
 		$ret['files'] = cloud_client_define();
 		unset($ret['schemas']);
 		unset($ret['scripts']);
@@ -212,10 +217,10 @@ function cloud_build($nocache = false) {
 		}
 
 		$files = $files_allowed = array();
-		if(!empty($ret['files'])) {
-			foreach($ret['files'] as $file) {
+		if (!empty($ret['files'])) {
+			foreach ($ret['files'] as $file) {
 				$entry = IA_ROOT . $file['path'];
-				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
+				if (!is_file($entry) || md5_file($entry) != $file['checksum']) {
 					$files_allowed[] = $file['path'];
 				}
 
@@ -223,7 +228,7 @@ function cloud_build($nocache = false) {
 				if (!is_file($entry)) {
 					$entry = IA_ROOT . $file['path'];
 				}
-				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
+				if (!is_file($entry) || md5_file($entry) != $file['checksum']) {
 					$files[] = $file['path'];
 				}
 			}
@@ -244,18 +249,18 @@ function cloud_build($nocache = false) {
 			}
 		}
 		$schemas = array();
-		if(!empty($ret['schemas'])) {
+		if (!empty($ret['schemas'])) {
 			load()->func('db');
-			foreach($ret['schemas'] as $remote) {
+			foreach ($ret['schemas'] as $remote) {
 				$name = substr($remote['tablename'], 4);
 				$local = db_table_schema(pdo(), $name);
 				unset($remote['increment']);
 				unset($local['increment']);
-				if(empty($local)) {
+				if (empty($local)) {
 					$schemas[] = $remote;
 				} else {
 					$sqls = db_table_fix_sql($local, $remote);
-					if(!empty($sqls)) {
+					if (!empty($sqls)) {
 						$schemas[] = $remote;
 					}
 				}
@@ -273,7 +278,7 @@ function cloud_build($nocache = false) {
 		}
 	}
 	$ret['upgrade'] = false;
-	if(!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
+	if (!empty($ret['files']) || !empty($ret['schemas']) || !empty($ret['scripts'])) {
 		$ret['upgrade'] = true;
 	}
 
@@ -285,20 +290,20 @@ function cloud_schema() {
 	$pars['file'] = 'application.schema';
 	$ret = cloud_api('site/schema/index', $pars);
 	
-	if(!is_error($ret)) {
+	if (!is_error($ret)) {
 		$schemas = array();
-		if(!empty($ret['schemas'])) {
+		if (!empty($ret['schemas'])) {
 			load()->func('db');
-			foreach($ret['schemas'] as $remote) {
+			foreach ($ret['schemas'] as $remote) {
 				$name = substr($remote['tablename'], 4);
 				$local = db_table_schema(pdo(), $name);
 				unset($remote['increment']);
 				unset($local['increment']);
-				if(empty($local)) {
+				if (empty($local)) {
 					$schemas[] = $remote;
 				} else {
 					$diffs = db_schema_compare($local, $remote);
-					if(!empty($diffs)) {
+					if (!empty($diffs)) {
 						$schemas[] = $remote;
 					}
 				}
@@ -324,28 +329,28 @@ function cloud_download($path, $type = '') {
 		$extra = array();
 	}
 	$dat = ihttp_request('http://api.w7.cc/util/shipping/index', $pars, $extra);
-	if(is_error($dat)) {
+	if (is_error($dat)) {
 		return error(-1, '网络存在错误， 请稍后重试。' . $dat['message']);
 	}
-	if($dat['content'] == 'success') {
+	if ($dat['content'] == 'success') {
 		return true;
 	}
 	$content = @json_decode($dat['content'], true);
 	if (isset($content['error'])) {
 		return error(1, $content['error']);
 	}
-	if(is_error($content)) {
+	if (is_error($content)) {
 		return $content;
 	} else {
 		$ret = iunserializer($dat['content']);
 		$gz = function_exists('gzcompress') && function_exists('gzuncompress');
 		$file = base64_decode($ret['file']);
-		if($gz) {
+		if ($gz) {
 			$file = gzuncompress($file);
 		}
 		$_W['setting']['site']['token'] = authcode(cache_load(cache_system_key('cloud_transtoken')), 'DECODE');
 		$string = (md5($file) . $ret['path'] . $_W['setting']['site']['token']);
-		if(!empty($_W['setting']['site']['token']) && md5($string) === $ret['sign']) {
+		if (!empty($_W['setting']['site']['token']) && md5($string) === $ret['sign']) {
 			$error_file_list = array();
 			if (!cloud_file_permission_pass($error_file_list)) {
 				return error(-1, '请修复下列文件读写权限 : ' . implode('; ', $error_file_list));
@@ -477,7 +482,7 @@ function cloud_m_query($module = array(), $page = 1) {
 		$support_names = array('app', 'wxapp', 'webapp', 'system_welcome', 'android', 'ios', 'aliapp', 'baiduapp', 'toutiaoapp');
 		$record_module = array();
 		foreach ($ret['data'] as $modulename => &$info) {
-			if ($info['is_record']) {
+			if (!empty($info['is_record'])) {
 				$record_module[] = $info['name'];
 			}
 			if (empty($info['site_branch'])) {
@@ -585,21 +590,21 @@ function cloud_t_build($module_name) {
 	$theme = table('modules')->getTemplateByName(trim($module_name));
 	$pars['method'] = 'theme.build';
 	$pars['theme'] = $module_name;
-	if(!empty($theme)) {
+	if (!empty($theme)) {
 		$pars['themeversion'] = $theme['version'];
 	}
 	$ret = cloud_api('theme/build', $pars);
-	if(!is_error($ret)) {
+	if (!is_error($ret)) {
 		$dir = IA_ROOT . '/app/themes/' . $module_name;
 		$files = array();
-		if(!empty($ret['files'])) {
-			foreach($ret['files'] as $file) {
+		if (!empty($ret['files'])) {
+			foreach ($ret['files'] as $file) {
 				if ($file['path'] == '/map.json') {
 					continue;
 				}
 				$entry = $dir . $file['path'];
-				if(!is_file($entry) || md5_file($entry) != $file['checksum']) {
-					$files[] = '/'. $module_name . $file['path'];
+				if (!is_file($entry) || md5_file($entry) != $file['checksum']) {
+					$files[] = '/' . $module_name . $file['path'];
 				}
 			}
 		}
@@ -611,7 +616,7 @@ function cloud_t_build($module_name) {
 		}
 		$ret['type'] = 'theme';
 		//如果是安装模块,根据这个标志不处理script
-		if(empty($theme)) {
+		if (empty($theme)) {
 			$ret['install'] = 1;
 		}
 	}
@@ -650,7 +655,7 @@ function cloud_t_upgradeinfo($module_name) {
  */
 function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '', $use_system_balance = false) {
 	global $_W;
-	if(!preg_match('/^1\d{10}$/', $mobile) || empty($content)) {
+	if (!preg_match('/^1\d{10}$/', $mobile) || empty($content)) {
 		return error(1, '发送短信失败, 原因: 手机号错误或内容为空.');
 	}
 	$uniacid = empty($use_system_balance) ? $_W['uniacid'] : 0;
@@ -663,7 +668,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$setting_sms_sign = !empty($setting_sms_sign['site_sms_sign']) ? $setting_sms_sign['site_sms_sign'] : array();
 		$sign = !empty($setting_sms_sign['system_sms_sign']) ? $setting_sms_sign['system_sms_sign'] : '';
 	} else {
-		$row = pdo_get('uni_settings' , array('uniacid' => $uniacid), array('notify'));
+		$row = pdo_get('uni_settings', array('uniacid' => $uniacid), array('notify'));
 		$row['notify'] = @iunserializer($row['notify']);
 
 		$config = $row['notify']['sms'];
@@ -673,7 +678,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 		$account_name = empty($_W['account']['type_name']) ? '' : $_W['account']['type_name'];
 		$account_name .= empty($_W['account']['name']) ? '' : " [{$_W['account']['name']}] ";
 	}
-	if(empty($sign) || $sign == 'null') {
+	if (empty($sign) || $sign == 'null') {
 		$sign = '微擎';
 	}
 	if ($balance < 1) {
@@ -695,7 +700,7 @@ function cloud_sms_send($mobile, $content, $postdata = array(), $custom_sign = '
 
 	$response = cloud_request('https://api.w7.cc/sms/send/index', $pars);
 	if (is_error($response)) {
-		return error($response['errno'], '短信发送失败, 原因:'.$response['message']);
+		return error($response['errno'], '短信发送失败, 原因:' . $response['message']);
 	}
 
 	$result = json_decode($response['content'], true);
@@ -737,10 +742,23 @@ function cloud_sms_info() {
 	return cloud_api('sms/info');
 }
 
-function cloud_sms_sign($page = 1) {
-	return cloud_api('sms/sign', array(
+function cloud_sms_sign($page = 1, $start_time = 0, $end_time = 0, $status_audit = 0, $status_order = 0) {
+	$data = array(
 		'page' => max(1, intval($page))
-	));
+	);
+	if ($start_time) {
+		$data['start_time'] = $start_time;
+	}
+	if ($end_time) {
+		$data['end_time'] = $end_time;
+	}
+	if ($status_audit) {
+		$data['status_audit'] = $status_audit;
+	}
+	if ($status_order) {
+		$data['status_order'] = $status_order;
+	}
+	return cloud_api('sms/sign', $data);
 }
 
 function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10, $status = -1) {
@@ -754,22 +772,38 @@ function cloud_sms_log($mobile = 0, $time = array(), $page = 1, $page_size = 10,
 	));
 }
 
-function cloud_sms_trade($page = 1, $time = array()) {
-	$time = !empty($time) ? $time : array(strtotime('-1 year'), time());
-	return cloud_api('sms/trade', array(
-		'page' => max(1, $page),
-		'time' => $time
-	));
+function cloud_sms_trade($page = 1, $start_time = 0, $end_time = 0, $status_order = 0) {
+	$data = array(
+		'page' => max(1, intval($page))
+	);
+	if ($start_time) {
+		$data['start_time'] = $start_time;
+	}
+	if ($end_time) {
+		$data['end_time'] = $end_time;
+	}
+	if ($status_order) {
+		$data['status_order'] = $status_order;
+	}
+	if (empty($data['start_time']) && empty($data['end_time'])) {
+		$data['start_time'] = strtotime('-1 year');
+		$data['end_time'] = time();
+	}
+	$data['time'] = array($data['start_time'], $data['end_time']);
+	return cloud_api('sms/trade', $data);
 }
 
-function cloud_sms_count_remained(){
+function cloud_sms_remove($sign_id) {
+	return cloud_api('sms/sign-remove', array('sign_id' => intval($sign_id)));
+}
+function cloud_sms_count_remained() {
 	$cache_key = cache_system_key('cloud_api', array('method' => md5('cloud_sms_count_remained')));
 	$cache = cache_load($cache_key);
 	if (!empty($cache) && $cache['expire'] > TIMESTAMP) {
 		return $cache['cloud_sms_count_remained'];
 	}
 	$sms_info = cloud_sms_info();
-	if (is_error($sms_info)){
+	if (is_error($sms_info)) {
 		return $sms_info;
 	}
 	$sms_count = $sms_info['sms_count'];
@@ -778,7 +812,7 @@ function cloud_sms_count_remained(){
 	$setting_sms_blance = setting_load('system_sms_balance');
 	$system_sms_balance = !empty($setting_sms_blance['system_sms_balance']) ? $setting_sms_blance['system_sms_balance'] : 0;
 	$sms_count -= $system_sms_balance;
-	if (empty($sms_accounts)){
+	if (empty($sms_accounts)) {
 		return $sms_count;
 	}
 	foreach ($sms_accounts as $sms_account) {
@@ -799,7 +833,7 @@ function cloud_sms_count_remained(){
  */
 function cloud_extra_account() {
 	$data = array();
-	$data['accounts'] = pdo_fetchall("SELECT name, account, original FROM ".tablename('account_wechats') . " GROUP BY account");
+	$data['accounts'] = pdo_fetchall("SELECT name, account, original FROM " . tablename('account_wechats') . " GROUP BY account");
 	return serialize($data);
 }
 
@@ -813,7 +847,7 @@ function cloud_extra_module() {
 	$installed = table('modules')->getInstalled();
 	$recycle = table('modules_recycle')->where('type', 2)->getall('name');
 	$result = array();
-	foreach($installed as $install_module) {
+	foreach ($installed as $install_module) {
 		if ($install_module['cloud_record']) {
 			continue;
 		}
@@ -834,7 +868,7 @@ function cloud_extra_module() {
 		}
 	}
 	$result = array_slice($result, 0, 100, true);
-	foreach($recycle as $recycle_module) {
+	foreach ($recycle as $recycle_module) {
 		if (empty($result[$recycle_module['name']])) {
 			$result[$recycle_module['name']] = array(
 				'name' => $recycle_module['name'],
@@ -972,7 +1006,7 @@ function cloud_reset_siteinfo() {
  * @param array $data 站点数据
  * @return string 跳转地址
  */
-function cloud_auth_url($forward, $data = array()){
+function cloud_auth_url($forward, $data = array()) {
 	global $_W;
 	if (!empty($_W['setting']['site']['url']) && !strexists($_W['siteroot'], $_W['setting']['site']['url'])) {
 		$url = $_W['setting']['site']['url'];
@@ -988,7 +1022,7 @@ function cloud_auth_url($forward, $data = array()){
 	$auth['forward'] = $forward;
 	$auth['family'] = IMS_FAMILY;
 
-	if(!empty($_W['setting']['site']['key']) && !empty($_W['setting']['site']['token'])) {
+	if (!empty($_W['setting']['site']['key']) && !empty($_W['setting']['site']['token'])) {
 		$auth['key'] = $_W['setting']['site']['key'];
 		$auth['password'] = md5($_W['setting']['site']['key'] . $_W['setting']['site']['token']);
 	}
@@ -1027,7 +1061,7 @@ function cloud_module_setting_prepare($module, $binding) {
  * @param string $url
  * @return array attachment
  */
-function cloud_resource_to_local($uniacid, $type, $url){
+function cloud_resource_to_local($uniacid, $type, $url) {
 	global $_W;
 
 	load()->func('file');
@@ -1044,13 +1078,13 @@ function cloud_resource_to_local($uniacid, $type, $url){
 	$extension = $pathinfo['extension'];
 
 	if ($uniacid == 0) {
-		$setting['folder'] = "{$type}s/global/".date('Y/m/');
+		$setting['folder'] = "{$type}s/global/" . date('Y/m/');
 	} else {
-		$setting['folder'] = "{$type}s/{$uniacid}/".date('Y/m/');
+		$setting['folder'] = "{$type}s/{$uniacid}/" . date('Y/m/');
 	}
 
 	$originname = pathinfo($url, PATHINFO_BASENAME);
-	$filename = file_random_name(ATTACHMENT_ROOT .'/'. $setting['folder'], $extension);
+	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $extension);
 	$pathname = $setting['folder'] . $filename;
 	$fullname = ATTACHMENT_ROOT . $pathname;
 
@@ -1096,7 +1130,7 @@ function cloud_bakup_files($files) {
 		return false;
 	}
 	$map = json_encode($files);
-	$hash  = md5($map.$_W['config']['setting']['authkey']);
+	$hash  = md5($map . $_W['config']['setting']['authkey']);
 	if ($handle = opendir(IA_ROOT . '/data/patch/backup/' . date('Ymd'))) {
 		while (false !== ($patchpath = readdir($handle))) {
 			if ($patchpath != '.' && $patchpath != '..') {
@@ -1273,7 +1307,7 @@ function cloud_path_is_writable($dir) {
 		@mkdir($dir, 0755);
 	}
 	if (is_dir($dir)) {
-		if($fp = fopen("$dir/test.txt", 'w')) {
+		if ($fp = fopen("$dir/test.txt", 'w')) {
 			fclose($fp);
 			unlink("$dir/test.txt");
 			$writeable = true;
@@ -1340,7 +1374,7 @@ function cloud_w7_request_token($js_secret, $nocache = false) {
 	$js_token = authcode($js_secret, 'ENCODE', $_W['setting']['site']['key']);
 	$data = array('js_token' => $js_token);
 	$ret = cloud_api('site/accesstoken/with-js-token', $data);
-	if (is_error($ret)) {   
+	if (is_error($ret)) {
 		return $ret;
 	}
 	cache_write($cache_key, $ret['access_token'], $ret['expire_time']);

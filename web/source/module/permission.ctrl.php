@@ -8,7 +8,7 @@ defined('IN_IA') or exit('Access Denied');
 $dos = array('display', 'post', 'delete');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-$module_name = trim($_GPC['m']);
+$module_name = trim($_GPC['module_name']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];
 
@@ -104,7 +104,7 @@ if ('post' == $do) {
 
 			if (!empty($user)) {
 				if (2 != $user['status']) {
-					itoast('用户未通过审核或不存在', url('module/permission', array('m' => $module_name)), 'error');
+					itoast('用户未通过审核或不存在', url('module/permission', array('module_name' => $module_name)), 'error');
 				}
 				$role = permission_account_user_role($user['uid'], $_W['uniacid']);
 				if (in_array($role, array(
@@ -115,15 +115,15 @@ if ('post' == $do) {
 					ACCOUNT_MANAGE_NAME_OPERATOR,
 				))) {
 					$role_title = user_role_title($role);
-					itoast("该用户已是平台$role_title, 不可操作!", url('module/permission/post', array('m' => $module_name)), 'error');
+					itoast("该用户已是平台$role_title, 不可操作!", url('module/permission/post', array('module_name' => $module_name)), 'error');
 				}
 			} else {
-				itoast('用户不存在', url('module/permission', array('m' => $module_name)), 'error');
+				itoast('用户不存在', url('module/permission', array('module_name' => $module_name)), 'error');
 			}
 			$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
 			$exists = pdo_get('users_permission', $data);
 			if (is_array($exists) && !empty($exists)) {
-				itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
+				itoast('操作员已经存在！', url('module/permission', array('module_name' => $module_name)), 'error');
 			}
 			$uid = $user['uid'];
 		}
@@ -155,7 +155,7 @@ if ('post' == $do) {
 				$data = array('uniacid' => $_W['uniacid'], 'uid' => $user['uid'], 'type' => $module_name);
 				$exists = pdo_get('users_permission', $data);
 				if (is_array($exists) && !empty($exists)) {
-					itoast('操作员已经存在！', url('module/permission', array('m' => $module_name)), 'error');
+					itoast('操作员已经存在！', url('module/permission', array('module_name' => $module_name)), 'error');
 				}
 				$data['permission'] = 'all';
 				pdo_insert('users_permission', $data);
@@ -174,7 +174,7 @@ if ('post' == $do) {
 		} else {
 			pdo_update('uni_account_users', array('role' => 'clerk'), array('uniacid' => $_W['uniacid'], 'uid' => $uid));
 		}
-		itoast('操作成功', url('module/permission', array('m' => $module_name)), 'success');
+		itoast('操作成功', url('module/permission', array('module_name' => $module_name)), 'success');
 	}
 }
 

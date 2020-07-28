@@ -83,7 +83,7 @@
 	angular.module('moduleApp').value('config', {
 		modulename: "{$module['name']}",
 		token: "{$_W['token']}",
-		apiUrl: "{php echo url('module/manage-account/setting_params', array('m' => $modulename))}"
+		apiUrl: "{php echo url('module/manage-account/setting_params', array('module_name' => $module_name))}"
 	});
 	angular.bootstrap($('.module-account-setting'), ['moduleApp']);
 </script>

@@ -263,7 +263,7 @@ define(['underscore', 'jquery.wookmark', 'jquery.jplayer'], function(_){
 
 		'buildHtml' : function() {
 			var dialog = {};
-			dialog['mainDialog'] = '<div id="material-Modal" class="uploader-modal modal fade" tabindex="-1" role="dialog" aria-hidden="true">\n' +
+			dialog['mainDialog'] = '<div id="material-Modal" class="uploader-modal modal fade" role="dialog" aria-hidden="true">\n' +
 				'	<div class="modal-dialog modal-lg">\n' +
 				'		<div class="modal-content ">\n' +
 				'			<div class="modal-header">\n' +

@@ -6,10 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 define('IN_GW', true);
 
-load()->model('user');
 load()->model('message');
-load()->classs('oauth2/oauth2client');
-load()->model('setting');
 load()->model('utility');
 
 if (!empty($_W['uid']) && 'bind' != $_GPC['handle_type']) {
@@ -128,7 +125,7 @@ function _login($forward = '') {
 			}
 			$login_log = array(
 				'uid' => $_W['uid'],
-				'ip' => CLIENT_IP,
+				'ip' => $_W['clientip'],
 				'city' => $local['data']['city'],
 				'login_at' => TIMESTAMP
 			);
@@ -152,11 +149,7 @@ function _login($forward = '') {
 		$session = authcode(json_encode($cookie), 'encode');
 		$autosignout = (int)$_W['setting']['copyright']['autosignout'] > 0 ? (int)$_W['setting']['copyright']['autosignout'] * 60 : 0;
 		isetcookie('__session', $session, !empty($_GPC['rember']) ? 7 * 86400 : $autosignout, true);
-		$status = array();
-		$status['uid'] = $record['uid'];
-		$status['lastvisit'] = TIMESTAMP;
-		$status['lastip'] = CLIENT_IP;
-		user_update($status);
+		pdo_update('users', array('lastvisit' => TIMESTAMP, 'lastip' => $_W['clientip']), array('uid' => $record['uid']));
 
 		if (empty($forward)) {
 			$forward = user_login_forward($_GPC['forward']);
@@ -181,11 +174,11 @@ function _login($forward = '') {
 			$user_expire = setting_load('user_expire');
 			$user_expire = !empty($user_expire['user_expire']) ? $user_expire['user_expire'] : array();
 			$notice = !empty($user_expire['notice']) ? $user_expire['notice'] : '您的账号已到期，请前往商城购买续费';
-			$redirect = !empty($user_expire['status_store_redirect']) && 1 == $user_expire['status_store_redirect'] ? url('home/welcome/ext', array('m' => 'store')) : '';
+			$redirect = !empty($user_expire['status_store_redirect']) && 1 == $user_expire['status_store_redirect'] ? url('home/welcome/ext', array('module_name' => 'store')) : '';
 			$extend_buttons = array();
 			if (!empty($user_expire['status_store_button']) && 1 == $user_expire['status_store_button']) {
 				$extend_buttons['status_store_button'] = array(
-					'url' => url('home/welcome/ext', array('m' => 'store')),
+					'url' => url('home/welcome/ext', array('module_name' => 'store')),
 					'class' => 'btn btn-primary',
 					'title' => '去商城续费',
 				);
@@ -213,7 +206,7 @@ function _login($forward = '') {
 		itoast("欢迎回来，{$record['username']}", $forward, 'success');
 	} else {
 		if (empty($failed)) {
-			pdo_insert('users_failed_login', array('ip' => CLIENT_IP, 'username' => trim($_GPC['username']), 'count' => '1', 'lastupdate' => TIMESTAMP));
+			pdo_insert('users_failed_login', array('ip' => $_W['clientip'], 'username' => trim($_GPC['username']), 'count' => '1', 'lastupdate' => TIMESTAMP));
 		} else {
 			pdo_update('users_failed_login', array('count' => $failed['count'] + 1, 'lastupdate' => TIMESTAMP), array('id' => $failed['id']));
 		}

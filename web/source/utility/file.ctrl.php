@@ -29,8 +29,8 @@ $type = $_GPC['upload_type'];
 $type = in_array($type, array('image', 'audio', 'video')) ? $type : 'image';
 $option = array();
 $option = array_elements(array('uploadtype', 'dest_dir'), $_POST);
-
 $option['width'] = intval($option['width']);
+$module_name = empty($_GPC['module_name']) ? '' : safe_gpc_string(trim($_GPC['module_name']));
 
 $dest_dir = $_GPC['dest_dir'];
 if (preg_match('/^[a-zA-Z0-9_\/]{0,50}$/', $dest_dir)) {
@@ -52,9 +52,16 @@ $uniacid = intval($_W['uniacid']);
 
 if (isset($_GPC['uniacid'])) {
 	$requniacid = intval($_GPC['uniacid']);
+	if (!empty($module_name)) {
+		$modules = module_fetch($module_name);
+		if (!empty($modules) && (MODULE_SUPPORT_SYSTEMWELCOME == $modules['welcome_support'])) {
+			$requniacid = 0;
+		}
+	}
 	attachment_reset_uniacid($requniacid);
 	$uniacid = intval($_W['uniacid']);
 }
+
 if ($uniacid == 0 && !empty($_W['isfounder'])) {
 	$setting['folder'] = "{$type}s/global/";
 	if (!empty($dest_dir)) {
@@ -131,8 +138,8 @@ if ('upload' == $do) {
 	$size = intval($_FILES['file']['size']);
 	$originname = $_FILES['file']['name'];
 	$filename = file_random_name(ATTACHMENT_ROOT . '/' . $setting['folder'], $ext);
-
-	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, true);
+	$zip_percentage = empty($_W['setting']['upload']['image']['zip_percentage']) ? false : true;
+	$file = file_upload($_FILES['file'], $type, $setting['folder'] . $filename, $zip_percentage);
 
 	if (is_error($file)) {
 		$result['message'] = $file['message'];
@@ -169,7 +176,6 @@ if ('fetch' == $do || 'upload' == $do) {
 		}
 	}
 	$group_id = safe_gpc_int($_GPC['group_id']);
-	$module_name = safe_gpc_string($_GPC['module_name']);
 	$module_info = table('modules')->getByName($module_name);
 	if (in_array($type, array('image', 'thumb')) && $group_id <= 0 && !empty($module_info)) {
 		$group_exist = table('core_attachment_group')
@@ -344,7 +350,7 @@ $limit['perm'] = array(
 		'ext' => array('mp4'),
 		'size' => 10240 * 1024,
 		'max' => 1000,
-		'errmsg' => '永久视频只支持mp4格式,大小不超过为20M',
+		'errmsg' => '永久视频只支持mp4格式,大小不超过为10M',
 	),
 	'thumb' => array(
 		'ext' => array('jpg'),
@@ -637,7 +643,7 @@ if ('image' == $do) {
 	$groupid = safe_gpc_int($_GPC['group_id']);
 	$keyword = safe_gpc_string($_GPC['keyword']);
 	$order = safe_gpc_string($_GPC['order']);
-	$page_size = 10;
+	$page_size = 18;
 	$page = max(1, $page);
 	if ($islocal) {
 		$attachment_table = table('core_attachment');
@@ -792,18 +798,22 @@ $is_local_image = ($islocal ? true : false);
 if ('group_list' == $do) {
 	$query = table('core_attachment_group')->where('type', $is_local_image ? 0 : 1);
 	$query->searchWithUniacidOrUid($uniacid, $_W['uid']);
-	$list = $query->getall();
+	$list = attachment_recursion_group($query->getall());
 	iajax(0, $list);
 }
 
 if ('add_group' == $do) {
 	$table = table('core_attachment_group');
-	$table->fill(array(
+	$fields = array(
 		'uid' => $_W['uid'],
 		'uniacid' => $uniacid,
 		'name' => safe_gpc_string($_GPC['name']),
 		'type' => $is_local_image ? 0 : 1,
-	));
+	);
+	if (!empty($_GPC['pid'])) {
+		$fields['pid'] = safe_gpc_int($_GPC['pid']);
+	}
+	$table->fill($fields);
 	$result = $table->save();
 	if (is_error($result)) {
 		iajax($result['errno'], $result['message']);

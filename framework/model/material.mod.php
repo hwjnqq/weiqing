@@ -229,7 +229,7 @@ function material_build_reply($attach_id) {
 					'title' => $material['title'],
 					'description' => $material['digest'],
 					'picurl' => $material['thumb_url'],
-					'url' => !empty($material['content_source_url']) ? $material['content_source_url'] : $material['url'],
+					'url' => !empty($material['url']) ? $material['url'] : $material['content_source_url'],
 				);
 			}
 		}
@@ -518,15 +518,15 @@ function material_delete($material_id, $location){
 		} elseif ($_W['uid'] != $material['uid']) {
 			return error('-1', '您没有权限删除该文件');
 		}
-		if (!empty($_W['setting']['remote']['type'])) {
-			$result = file_remote_delete($material['attachment']);
-			//图片未上传到远程附件时, 删除本地图片
-			if (file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $material['attachment'])) {
-				$result = file_delete($material['attachment']);
-			}
-		} else {
+	}
+	if (!empty($_W['setting']['remote']['type'])) {
+		$result = file_remote_delete($material['attachment']);
+		//图片未上传到远程附件时, 删除本地图片
+		if (file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $material['attachment'])) {
 			$result = file_delete($material['attachment']);
 		}
+	} else {
+		$result = file_delete($material['attachment']);
 	}
 	if (is_error($result)) {
 		return error('-3', '删除文件操作发生错误');
@@ -676,7 +676,7 @@ function material_to_local($resourceid, $uniacid, $uid, $type = 'image') {
 	if(is_error($material)) {
 		return $material;
 	}
-	return material_network_image_to_local($material['url'], $uniacid, $uid);
+	return material_network_image_to_local($material['attachment'], $uniacid, $uid);
 }
 
 /**

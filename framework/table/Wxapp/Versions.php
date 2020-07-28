@@ -87,7 +87,6 @@ class Versions extends \We7Table {
 		$data['quickmenu'] = iunserializer($data['quickmenu']);
 		$data['last_modules'] = iunserializer($data['last_modules']);
 		$data['tominiprogram'] = iunserializer($data['tominiprogram']);
-		$data['default_appjson'] = iunserializer($data['default_appjson']);
 		return $data;
 	}
 }

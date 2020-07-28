@@ -59,7 +59,7 @@ function uni_account_type_sign($type_sign = '') {
 			'level' => array(),
 			'icon' => 'wi wi-toutiaoapp',
 			'createurl' => url('account/create', array('sign' => 'toutiaoapp')),
-			'title' => '头条小程序',
+			'title' => '字节跳动小程序',
 		),
 	);
 	if (!empty($type_sign)) {
@@ -188,7 +188,7 @@ function uni_account_type($type = 0) {
 			'store_type_renew' => STORE_TYPE_BAIDUAPP_RENEW,
 		),
 		ACCOUNT_TYPE_TOUTIAOAPP_NORMAL => array(
-			'title' => '头条小程序',
+			'title' => '字节跳动小程序',
 			'type_sign' => TOUTIAOAPP_TYPE_SIGN,
 			'table_name' => 'account_toutiaoapp',
 			'support_version' => 1,
@@ -212,7 +212,7 @@ function uni_account_type($type = 0) {
  */
 function uni_need_account_info() {
 	global $controller, $action, $do, $_GPC;
-	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp')) && $_GPC['m'] != 'store' && !$_GPC['system_welcome']) {
+	if (defined('FRAME') && in_array(FRAME, array('account', 'wxapp')) && $_GPC['module_name'] != 'store' && !$_GPC['system_welcome']) {
 		return true;
 	}
 	if ($controller == 'miniapp') {
@@ -445,13 +445,6 @@ function uni_modules_by_uniacid($uniacid) {
 			//公众号owner的权限
 			$user_modules = user_modules($owner_uid);
 			if (!empty($user_modules)) {
-				//用户拥有模块权限，不支持当前平台账号类型的unset掉
-				foreach ($user_modules as $module_key => $module_value) {
-					if ($module_value[$uni_account_type['module_support_name']] != $uni_account_type['module_support_value']) {
-						unset($user_modules[$module_key]);
-						continue;
-					}
-				}
 				$group_modules = array_unique(array_merge($group_modules, array_keys($user_modules)));
 				$group_modules = array_intersect(array_keys($enabled_modules), $group_modules);
 			}
@@ -470,6 +463,9 @@ function uni_modules_by_uniacid($uniacid) {
 				continue;
 			}
 			$module_info = module_fetch($name);
+			if ($module_info[$uni_account_type['module_support_name']] != $uni_account_type['module_support_value']) {
+				continue;
+			}
 			if (empty($module_info)) {
 				$module_cloud_info = pdo_get('modules_cloud', array('name' => $name));
 				$store_goods_info = pdo_get('site_store_goods', array('module' => $name));

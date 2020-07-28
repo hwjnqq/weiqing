@@ -185,7 +185,7 @@ if ($do == 'list') {
 				);
 			} elseif ($_GPC['action'] == 'click') {
 				$touid = intval($_GPC['u']);
-				$formuid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : CLIENT_IP;
+				$formuid = !empty($_W['member']['uid']) ? $_W['member']['uid'] : $_W['clientip'];
 				$handsel = array(
 					'module' => 'article',
 					'sign' => md5(iserializer(array(

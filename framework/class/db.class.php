@@ -26,8 +26,10 @@ class DB {
 		$this->name = $name;
 		//unset掉敏感信息，一些非敏感信息保留
 		unset($_W['config']['db']);
-		$_W['config']['db']['tablepre'] = $this->cfg['tablepre'];
-		$_W['config']['db']['slave_status'] = $this->cfg['slave_status'];
+		$_W['config']['db'] = array(
+			'tablepre' => $this->cfg['master']['tablepre'] ?: $this->cfg['tablepre'],
+			'slave_status' => $this->cfg['slave_status']
+		);
 		$this->connect($name);
 	}
 
@@ -497,12 +499,15 @@ class DB {
 	 * @return boolean
 	 */
 	public function fieldexists($tablename, $fieldname) {
+		if (!$this->tableexists($tablename)) {
+			return false;
+		}
 		$fields = $this->fetchall("SHOW COLUMNS FROM" . $this->tablename($tablename));
 		if (empty($fields)) {
 			return false;
 		}
 		foreach ($fields as $field) {
-			if ($fieldname == $field['Field']) {
+			if ($fieldname === $field['Field']) {
 				return true;
 			}
 		}
@@ -557,6 +562,9 @@ class DB {
 	 * @return boolean
 	 */
 	public function indexexists($tablename, $indexname) {
+		if (!$this->tableexists($tablename)) {
+			return false;
+		}
 		if (!empty($indexname)) {
 			$indexs = $this->fetchall('SHOW INDEX FROM ' . $this->tablename($tablename), array(), '');
 			if (!empty($indexs) && is_array($indexs)) {
@@ -636,6 +644,10 @@ class DB {
 	 */
 	public function tableexists($table) {
 		if (!empty($table)) {
+			$real_table = preg_match('/[a-zA-Z0-9_]{'.strlen($table).'}/', $table);
+			if (1 !== $real_table) {
+				return false;
+			}
 			$data = $this->fetch("SHOW TABLES LIKE '{$this->tablepre}{$table}'", array());
 			if (!empty($data)) {
 				$data = array_values($data);

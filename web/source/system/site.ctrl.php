@@ -21,13 +21,13 @@ if ('basic' == $do) {
 	$template_ch_name = $login_ch_name = array();
 	
 	if (!empty($settings['autosignout'])) {
-		if ($settings['autosignout'] >= 60){
+		if ($settings['autosignout'] >= 60) {
 			$hour = floor($settings['autosignout']/60);
 			$min = $settings['autosignout']%60;
-			$res = $hour.'小时';
-			$min != 0  &&  $res .= $min.'分钟';
-		}else{
-			$res = $settings['autosignout'].'分钟';
+			$res = $hour . '小时';
+			$min != 0  &&  $res .= $min . '分钟';
+		} else {
+			$res = $settings['autosignout'] . '分钟';
 		}
 
 		$settings['autosignout_notice'] = "系统无操作，{$res}后自动退出";
@@ -52,7 +52,6 @@ if ('basic' == $do) {
 		);
 		iajax(0, $message);
 	}
-
 }
 
 if ('save_setting' == $do) {
@@ -91,7 +90,7 @@ if ('save_setting' == $do) {
 		case 'autosignout':
 			$limit_time = 1*24*60;
 			if ($limit_time < safe_gpc_int($_GPC['value']) || safe_gpc_int($_GPC['value'] < 1)) {
-				iajax(-1, '自动退出时间请在1-'. $limit_time .'分钟内设置！', url('system/site'));
+				iajax(-1, '自动退出时间请在1-' . $limit_time . '分钟内设置！', url('system/site'));
 			}
 			$settings[$key] = safe_gpc_int($_GPC['value']);
 			break;
@@ -162,7 +161,9 @@ if ($do == 'edit_icp') {
 	$policeicp_location = safe_gpc_string($_GPC['policeicp_location']);
 	$policeicp_code = safe_gpc_string($_GPC['policeicp_code']);
 	$electronic_license = safe_gpc_html(htmlspecialchars_decode($_GPC['electronic_license']));
-	if (empty($icp)) iajax(-1, '请至少填写一条icp信息！');
+	if (empty($icp)) {
+		iajax(-1, '请至少填写一条icp信息！');
+	}
 	if (starts_with($domain, 'http')) {
 		iajax(-1, '域名格式为w7.cc,无http://或以https://开头');
 	}

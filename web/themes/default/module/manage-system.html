@@ -84,7 +84,7 @@
 				<th class="text-left bg-light-gray">来源</th>
 				<th class="text-right bg-light-gray">操作</th>
 			</tr>
-			<tr ng-repeat="module in moduleList">
+			<tr ng-repeat="(key, module) in moduleList"  ng-if="key >= (pageindex - 1) * pagesize && key < pageindex * pagesize">
 				<td class="text-left module-img table-action-td">
 					<img ng-click="initModuleLogo()"  ng-if="module.main_module == '' && module.logo" ng-src="{{ module.logo }}" class="img-responsive module-img icon"/>
 					<img ng-click="initModuleLogo()" ng-show="module.main_module == '' && !module.logo" src="./resource/images/init_module_logo.png" class="img-responsive module-img icon"/>
@@ -179,7 +179,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="select-all" ng-hide="search.moduleName || (search.letter && search.letter != '全部') || search.newVersion || search.newBranch || search.serviceExpire">
+		<div class="select-all" ng-hide="!moduleList.length || (moduleList.length / pagesize <= 1)">
 			<div class="we7-form text-right js-pager">
 				{$pager}
 			</div>

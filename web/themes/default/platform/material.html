@@ -21,7 +21,7 @@
 						</div>
 					</form>
 					{if $_W['account']['level'] > 2}
-					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步{$_W['account']['type_name']}</a>
+					<a href="javascript:;" ng-click="sync('{$type}')" class="btn btn-default">同步微信</a>
 					{/if}
 					<a href="javascript:;" data-toggle="modal" data-target="#new_type" class="btn btn-primary we7-margin-left">新建图文消息</a>
 				</div>
@@ -74,7 +74,7 @@
 			</div>
 			<div class="btn-group-sub we7-margin-top" style="top:15px;">
 				<a href="{php echo url('platform/material', array('type' => $type))}" class="btn {if $server != MATERIAL_WEXIN && $server != MATERIAL_LOCAL} active {/if}">全部</a>
-				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
+				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
 				<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 			</div>
 			<div class="material-appmsg-list">
@@ -99,7 +99,7 @@
 							<h4 class="appmsg-title">
 								<a href="" target="blank">{$material['items']['0']['title']}</a>
 							</h4>
-							<div class="appmsg-thumb" style="background-image:url({$material['items']['0']['thumb_url']})">
+							<div class="appmsg-thumb" style="background-image:url('{php echo tomedia($material['items']['0']['thumb_url'])}')">
 							</div>
 							<p class="appmsg-desc">{$material['items']['0']['digest']}</p>
 							{if $material['model'] == 'local'}
@@ -170,16 +170,16 @@
 			<div class="material-list-head clearfix">
 				<div class="action">
 					{if $_W['account']['level'] > 2}
-					<a href="javascript:;" class="btn btn-default" ng-click="sync('{$type}')">同步{$_W['account']['type_name']}</a>
+					<a href="javascript:;" class="btn btn-default" ng-click="sync('{$type}')">同步微信</a>
 					{/if}
 					{if $server == MATERIAL_WEXIN}
-					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, true)">上传{$_W['account']['type_name']}图片</a>
+					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, true)">上传微信图片</a>
 					{else}
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('image', true, false)">上传服务器图片</a>
 					{/if}
 				</div>
 				<div class="btn-group-sub">
-					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">{$_W['account']['type_name']}</a>
+					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_WEXIN))}" class="btn {if $server == MATERIAL_WEXIN} active {/if}">微信</a>
 					<a href="{php echo url('platform/material', array('type' => $type, 'server' => MATERIAL_LOCAL))}" class="btn {if $server == MATERIAL_LOCAL} active {/if}">服务器</a>
 				</div>
 			</div>
@@ -227,10 +227,10 @@
 			<div class="material-list-head clearfix">
 				<div class="action">
 					{if $_W['account']['level'] > 2 && $_W['account']['isconnect'] = 1}
-					<a href="javascript:;" class="btn btn-default" ng-click="sync('voice')">同步{$_W['account']['type_name']}</a>
+					<a href="javascript:;" class="btn btn-default" ng-click="sync('voice')">同步微信</a>
 					{/if}
 					{if $server == MATERIAL_WEXIN}
-					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, true)">上传{$_W['account']['type_name']}语音</a>
+					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, true)">上传微信语音</a>
 					{else}
 					<a href="javascript:;" class="btn btn-primary we7-margin-left" ng-click="upload('voice', true, false)">上传服务器语音</a>
 					{/if}

@@ -326,7 +326,10 @@ function file_upload($file, $type = 'image', $name = '', $compress = false) {
 
 			return $check_result;
 		}
-		file_change_uni_attchsize($save_path);
+		$uni_remote_setting = uni_setting_load('remote');
+		if (empty($uni_remote_setting['remote']) && empty($_W['setting']['remote']['type'])) {
+			file_change_uni_attchsize($save_path);
+		}
 	}
 
 	$result['success'] = true;
@@ -451,34 +454,21 @@ function file_remote_upload($filename, $auto_delete_local = true) {
 			return true;
 		}
 	} elseif ($_W['setting']['remote']['type'] == ATTACH_COS) {
-		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			load()->library('cos');
-			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
-			$uploadRet = qcloudcos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
-		} else {
-			load()->library('cosv3');
-			$uploadRet = \Qcloud_cos\Cosapi::upload($_W['setting']['remote']['cos']['bucket'], ATTACHMENT_ROOT . $filename, '/' . $filename, '', 3 * 1024 * 1024, 0);
-		}
-		if (0 != $uploadRet['code']) {
-			switch ($uploadRet['code']) {
-				case -62:
-					$message = '输入的appid有误';
-					break;
-				case -79:
-					$message = '输入的SecretID有误';
-					break;
-				case -97:
-					$message = '输入的SecretKEY有误';
-					break;
-				case -166:
-					$message = '输入的bucket有误';
-					break;
+		load()->library('cosv5');
+		try {
+			$bucket = $_W['setting']['remote']['cos']['bucket'] . '-' . $_W['setting']['remote']['cos']['appid'];
+			$cosClient = new Qcloud\Cos\Client(
+				array(
+					'region' => $_W['setting']['remote']['cos']['local'],
+					'credentials'=> array(
+						'secretId'  => $_W['setting']['remote']['cos']['secretid'],
+						'secretKey' => $_W['setting']['remote']['cos']['secretkey'])));
+			$cosClient->Upload($bucket, $filename, fopen(ATTACHMENT_ROOT . $filename, 'rb'));
+			if ($auto_delete_local) {
+				file_delete($filename);
 			}
-
-			return error(-1, $message);
-		}
-		if ($auto_delete_local) {
-			file_delete($filename);
+		} catch (\Exception $e) {
+			return error(1, $e->getMessage());
 		}
 	}
 	return true;
@@ -556,8 +546,11 @@ function file_delete($file) {
 		return false;
 	}
 
-	if (file_exists(ATTACHMENT_ROOT . '/' . $file) && file_is_uni_attach(ATTACHMENT_ROOT . '/' . $file)) {
-		file_change_uni_attchsize(ATTACHMENT_ROOT . '/' . $file, false);
+	$uni_remote_setting = uni_setting_load('remote');
+	if (empty($uni_remote_setting['remote']) && empty($_W['setting']['remote']['type'])) {
+		if (file_exists(ATTACHMENT_ROOT . '/' . $file) && file_is_uni_attach(ATTACHMENT_ROOT . '/' . $file)) {
+			file_change_uni_attchsize(ATTACHMENT_ROOT . '/' . $file, false);
+		}
 	}
 	if (file_exists($file)) {
 		@unlink($file);
@@ -621,23 +614,24 @@ function file_remote_delete($file) {
 			return true;
 		}
 	} elseif ($_W['setting']['remote']['type'] == '4') {
-		$bucketName = $_W['setting']['remote']['cos']['bucket'];
-		$path = '/' . $file;
-		if (!empty($_W['setting']['remote']['cos']['local'])) {
-			load()->library('cos');
-			qcloudcos\Cosapi::setRegion($_W['setting']['remote']['cos']['local']);
-			$result = qcloudcos\Cosapi::delFile($bucketName, $path);
-		} else {
-			load()->library('cosv3');
-			$result = Qcloud_cos\Cosapi::delFile($bucketName, $path);
-		}
-		if (!empty($result['code'])) {
-			return error(-1, '删除cos远程文件失败');
-		} else {
-			return true;
+		load()->library('cosv5');
+		try {
+			$key = $file;
+			$bucket = $_W['setting']['remote']['cos']['bucket'] . '-' . $_W['setting']['remote']['cos']['appid'];
+			$cosClient = new Qcloud\Cos\Client(
+				array(
+					'region' => $_W['setting']['remote']['cos']['local'],
+					'credentials'=> array(
+						'secretId'  => $_W['setting']['remote']['cos']['secretid'],
+						'secretKey' => $_W['setting']['remote']['cos']['secretkey'])));
+			$cosClient->deleteObjects(array(
+				'Bucket' => $bucket,
+				'Objects' => array(array('Key' => $key))
+			));
+		} catch (\Exception $e) {
+			return error(1, '删除cos远程文件失败');
 		}
 	}
-
 	return true;
 }
 

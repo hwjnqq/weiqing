@@ -1,8 +1,8 @@
 {template 'common/header'}
 <ul class="we7-page-tab">
-	{if !empty($module['isrulefields']) &&!empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}<li><a href="{url 'platform/reply' array('m' => $module['name'], 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
+	{if !empty($module['isrulefields']) &&!empty($_W['account']) && in_array($_W['account']['type'], array(ACCOUNT_TYPE_OFFCIAL_NORMAL, ACCOUNT_TYPE_OFFCIAL_AUTH))}<li><a href="{url 'platform/reply' array('module_name' => $module['name'], 'version_id' => intval($_GPC['version_id']))}">关键字链接入口 </a></li>{/if}
 	{if !empty($frames['section']['platform_module_common']['menu']['platform_module_cover'])}
-	<li class="active"><a href="{url 'platform/cover' array('m' => $module['name'], 'eid' => $entry_id, 'version_id' => intval($_GPC['version_id']))}">封面链接入口</a></li>
+	<li class="active"><a href="{url 'platform/cover' array('module_name' => $module['name'], 'eid' => $entry_id, 'version_id' => intval($_GPC['version_id']))}">封面链接入口</a></li>
 	{/if}
 </ul>
 <div id="js-keyword-display">
@@ -21,7 +21,7 @@
 			</tr>
 			{loop $entries['cover'] $menu}
 			<tr>
-				<td data-url="{$_W['siteroot']}app/{$menu['url']}" data-size="100" class="js-url-qrcode"> 
+				<td data-url="{$menu['url']}" data-size="100" class="js-url-qrcode">
 					<div class="qrcode-block"><canvas></canvas></div>
 				</td>
 				<td class="text-left">{$menu['title']}</td>
@@ -32,7 +32,7 @@
 				</td>
 				<td>
 					<div class="link-group" style="position:relative;">
-						<a href="{url 'platform/cover/post' array('m' => $modulename, 'eid' => $menu['eid'])}" class="color-default">编辑</a>
+						<a href="{url 'platform/cover/post' array('module_name' => $module_name, 'eid' => $menu['eid'])}" class="color-default">编辑</a>
 						<a href="javascript:;" data-url="{$menu['url']}" style="margin-right:0px;" class="color-default js-clip">复制链接</a>
 					</div>
 				</td>
@@ -268,7 +268,7 @@
 			replydata: {php echo json_encode($reply['rule'])},
 			uniacid: {php echo json_encode($_W['uniacid'])},
 			links: {
-				postUrl: "{php echo url('platform/reply/post', array('m' => $_GPC['m']));}",
+				postUrl: "{php echo url('platform/reply/post', array('module_name' => $_GPC['module_name']));}",
 			},
 		});
 		angular.bootstrap($('#js-keyword-display'), ['replyFormApp']);

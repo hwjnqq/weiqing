@@ -8,12 +8,14 @@ class AttachmentGroup extends \We7Table {
 	protected $tableName = 'attachment_group';
 	protected $primaryKey = 'id';
 	protected $field = array(
+		'pid',
 		'name',
 		'uniacid',
 		'uid',
 		'type',
 	);
 	protected $default = array(
+		'pid' => '0',
 		'name' => '',
 		'uniacid' => '0',
 		'uid' => '0',

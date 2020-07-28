@@ -9,13 +9,13 @@ class OauthFans extends \We7Table {
 	protected $primaryKey = 'id';
 	protected $field = array(
 		'oauth_openid',
-		'acid',
+		'uniacid',
 		'uid',
 		'openid',
 	);
 	protected $default = array(
 		'oauth_openid' => '',
-		'acid' => '',
+		'uniacid' => '',
 		'uid' => '',
 		'openid' => '',
 	);
@@ -24,7 +24,7 @@ class OauthFans extends \We7Table {
 		return $this->query->where('oauth_openid', $oauth_openid);
 	}
 
-	public function searchWithAcid($acid) {
-		return $this->query->where('acid', $acid);
+	public function searchWithUniacid($uniacid) {
+		return $this->query->where('uniacid', $uniacid);
 	}
 }

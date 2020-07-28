@@ -223,8 +223,7 @@ class Loader {
 		'phpmailer' => 'phpmailer/PHPMailerAutoload',
 		'oss' => 'alioss/autoload',
 		'qiniu' => 'qiniu/autoload',
-		'cos' => 'cosv4.2/include',
-		'cosv3' => 'cos/include',
+		'cosv5' => 'cosv5/index',
 		'sentry' => 'sentry/Raven/Autoloader',
 	);
 	private $loadTypeMap = array(

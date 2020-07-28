@@ -52,7 +52,7 @@ class System extends OAuth2Client {
 	}
 
 	public function register() {
-		global $_GPC;
+		global $_W, $_GPC;
 		load()->model('user');
 		$member = array();
 		$profile = array();

@@ -11,45 +11,45 @@ $dos = array('module', 'post');
 $do = in_array($do, $dos) ? $do : 'module';
 
 $system_modules = module_system();
-if (!in_array($_GPC['m'], $system_modules) && 'post' == $do) {
+$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
+if (!in_array($module_name, $system_modules) && 'post' == $do) {
 	permission_check_account_user('', true, 'cover');
 }
 define('IN_MODULE', true);
 
 if ('module' == $do) {
-	$modulename = $_GPC['m'];
 	$entry_id = intval($_GPC['eid']);
 	$cover_keywords = array();
-	if (empty($modulename)) {
+	if (empty($module_name)) {
 		$entry = module_entry($entry_id);
-		$modulename = $entry['module'];
+		$module_name = $entry['module'];
 	}
-	$module = $_W['current_module'] = module_fetch($modulename);
+	$module = $_W['current_module'] = module_fetch($module_name);
 
 	if (empty($module)) {
 		itoast('模块不存在或是未安装', '', 'error');
 	}
 	if (!empty($module['isrulefields'])) {
-		$url = url('platform/reply', array('m' => $module['name'], 'eid' => $entry_id));
+		$url = url('platform/reply', array('module_name' => $module['name'], 'eid' => $entry_id));
 	}
 	if (empty($url)) {
-		$url = url('platform/cover', array('m' => $module['name'], 'eid' => $entry_id));
+		$url = url('platform/cover', array('module_name' => $module['name'], 'eid' => $entry_id));
 	}
 
 	define('ACTIVE_FRAME_URL', $url);
-	$entries = module_entries($modulename);
+	$entries = module_entries($module_name);
 	$sql = 'SELECT b.`do`, a.`type`, a.`content` FROM ' . tablename('rule_keyword') . ' as a LEFT JOIN ' . tablename('cover_reply') . ' as b ON a.rid = b.rid WHERE b.uniacid = :uniacid AND b.module = :module';
 	$params = array(':uniacid' => $_W['uniacid'], ':module' => $module['name']);
 	$replies = pdo_fetchall($sql, $params);
 	foreach ($replies as $replay) {
 		$cover_keywords[$replay['do']][] = $replay;
 	}
-	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $modulename);
+	$module_permission = permission_account_user_menu($_W['uid'], $_W['uniacid'], $module_name);
 
 	foreach ($entries['cover'] as $key => &$cover) {
 		$module_url = module_entry($cover['eid']);
 		$cover['url'] = !empty($module_url['url_show']) ? $module_url['url_show'] : '';
-		$permission_name = $modulename . '_cover_' . trim($cover['do']);
+		$permission_name = $module_name . '_cover_' . trim($cover['do']);
 		if ('all' != $module_permission[0] && !in_array($permission_name, $module_permission)) {
 			unset($entries['cover'][$key]);
 		}
@@ -128,17 +128,17 @@ if ('module' == $do) {
 			} else {
 				pdo_update('cover_reply', $entry, array('id' => $reply['id'], 'uniacid' => $_W['uniacid']));
 			}
-			itoast('封面保存成功！', url('platform/cover', array('m' => $entry['module'])), 'success');
+			itoast('封面保存成功！', url('platform/cover', array('module_name' => $entry['module'])), 'success');
 		} else {
 			itoast('封面保存失败, 请联系网站管理员！', '', 'error');
 		}
 	}
 
 	if (!empty($module['isrulefields'])) {
-		$url = url('platform/reply', array('m' => $module['name']));
+		$url = url('platform/reply', array('module_name' => $module['name']));
 	}
 	if (empty($url)) {
-		$url = url('platform/cover', array('m' => $module['name']));
+		$url = url('platform/cover', array('module_name' => $module['name']));
 	}
 	define('ACTIVE_FRAME_URL', $url);
 

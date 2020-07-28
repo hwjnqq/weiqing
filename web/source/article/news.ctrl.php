@@ -99,7 +99,7 @@ if ('post' == $do) {
 			'is_display' => intval($_GPC['is_display']),
 			'is_show_home' => intval($_GPC['is_show_home']),
 		);
-		if (!empty($_GPC['thumb']) && file_is_image($_GPC['thumb'])) {
+		if (!empty($_GPC['thumb']) && file_is_image(tomedia($_GPC['thumb']))) {
 			$data['thumb'] = $_GPC['thumb'];
 		} elseif (!empty($_GPC['autolitpic'])) {
 			$match = array();

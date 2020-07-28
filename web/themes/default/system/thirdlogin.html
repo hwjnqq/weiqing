@@ -75,7 +75,7 @@
 				</div>
 			</div>
 			<div class="form-file">
-				<div class="form-label">网站回调域</div>
+				<div class="form-label">网站回调域名</div>
 				<div class="form-value">{$_W['siteroot']}web/index.php</div>
 				<div class="form-edit">
 					<div class="link-group"><a href="javascript:;" id="copy-1" clipboard supported="supported" text="siteroot+'web/index.php'" on-copied="success('1')">点击复制</a></div>
@@ -107,6 +107,13 @@
 				<div class="form-value" ng-if="!thirdlogin.wechat.appsecret">在微信开放平台注册创建网站应用后可以获取到AppSecret</div>
 				<div class="form-edit">
 					<we7-modal-form type="'text'" label="'AppSecret'" value="thirdlogin.wechat.appsecret" on-confirm="saveSetting(formValue, 'wechatappsecret')"></we7-modal-form>
+				</div>
+			</div>
+			<div class="form-file">
+				<div class="form-label">网站回调域名</div>
+				<div class="form-value">{$siteroot_parse_array['host']}</div>
+				<div class="form-edit">
+					<div class="link-group"><a href="javascript:;" id="copy-2" clipboard supported="supported" text="url.host" on-copied="success('2')">点击复制</a></div>
 				</div>
 			</div>
 		</div>

@@ -33,21 +33,26 @@ if ('display' == $do) {
 	if (in_array($type, array('display', 'check', 'recycle'))) {
 		switch ($type) {
 			case 'check':
-				$users_table->searchWithStatus(USER_STATUS_CHECK);
+				$status = USER_STATUS_CHECK;
+				$users_table->searchWithStatus($status);
 				$users_table->userOrderBy('joindate', 'DESC');
 				break;
 			case 'recycle':
-				$users_table->searchWithStatus(USER_STATUS_BAN);
+				$status = USER_STATUS_BAN;
+				$users_table->searchWithStatus($status);
 				break;
 			default:
-				$users_table->searchWithStatus(USER_STATUS_NORMAL);
+				$status = USER_STATUS_NORMAL;
+				$users_table->searchWithStatus($status);
 				$users_table->searchWithFounder(array(ACCOUNT_MANAGE_GROUP_GENERAL, ACCOUNT_MANAGE_GROUP_FOUNDER));
 				break;
 		}
 
 		$search = safe_gpc_string($_GPC['search']);
 		if (!empty($search)) {
-			$search_uids = table('users_profile')->where('mobile LIKE', "%{$search}%")->getall('uid');
+			$sql = 'SELECT up.uid FROM ' . tablename('users_profile') . ' AS up LEFT JOIN ' . tablename('users') . ' AS u ON up.uid = u.uid WHERE concat(up.nickname, up.mobile) LIKE :search AND u.status = :status';
+			$params = array(':search' => '%' . trim($search) . '%', ':status' => $status);
+			$search_uids = pdo_fetchall($sql, $params);
 			$users_table->searchWithNameOrMobile($search, false, is_array($search_uids) ? array_keys($search_uids) : array());
 		}
 

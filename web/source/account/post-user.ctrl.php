@@ -65,8 +65,8 @@ if ('edit' == $do) {
 		}
 	}
 	if ($_W['isajax']) {
-	    iajax(0, array(
-	    	'founder_info' => $founder_info,
+		iajax(0, array(
+			'founder_info' => $founder_info,
 			'vice_founder' => empty($vice_founder) ? '' : $vice_founder,
 			'owner' => empty($owner) ? '' : $owner,
 			'manager' => empty($manager) ? '' : $manager,

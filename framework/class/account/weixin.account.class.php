@@ -377,7 +377,7 @@ class WeixinAccount extends WeAccount {
 		}
 		foreach ($data_array['button'] as $button) {
 			$temp = array();
-			$temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', create_function('$matches', 'return utf8_bytes(hexdec($matches[1]));'), $button['name']);
+			$temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', function($matches) {return utf8_bytes(hexdec($matches[1]));}, $button['name']);
 			$temp['name'] = urlencode($temp['name']);
 			if (empty($button['sub_button'])) {
 				$temp['type'] = $button['type'];
@@ -403,7 +403,7 @@ class WeixinAccount extends WeAccount {
 			} else {
 				foreach ($button['sub_button'] as $sub_button) {
 					$sub_temp = array();
-					$sub_temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', create_function('$matches', 'return utf8_bytes(hexdec($matches[1]));'), $sub_button['name']);
+					$sub_temp['name'] = preg_replace_callback('/\:\:([0-9a-zA-Z_-]+)\:\:/', function($matches) {return utf8_bytes(hexdec($matches[1]));}, $sub_button['name']);
 					$sub_temp['name'] = urlencode($sub_temp['name']);
 					$sub_temp['type'] = $sub_button['type'];
 					if ('view' == $sub_button['type']) {

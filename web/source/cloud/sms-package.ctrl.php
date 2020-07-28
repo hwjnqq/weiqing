@@ -10,28 +10,23 @@ $dos = array('smsTrade', 'diaplay');
 $do = in_array($do, $dos) ? $do : 'diaplay';
 
 if ('smsTrade' == $do) {
-	$params = safe_gpc_array($_GPC['params']);
-	$params['page'] = empty($params['page']) ? 1 : intval($params['page']);
-	if (!empty($params['time'][1])) {
-		$params['time'][1] += 86400;
-	} else {
-		$params['time'] = array();
-	}
-	$data = cloud_sms_trade($params['page'], $params['time']);
+	$data = cloud_sms_trade(intval($_GPC['page']), intval($_GPC['start_time']), intval($_GPC['end_time']), intval($_GPC['status_order']));
 
 	if (isset($data['data'][0]['createtime']) && is_numeric($data['data'][0]['createtime'])) {
 		foreach ($data['data'] as &$item) {
 			$item['createtime'] = date('Y-m-d H:i:s', $item['createtime']);
 		}
 	}
-
+	$data['page'] = $data['current_page'];
+	$data['page_size'] = $data['per_page'];
+	
 	$sms_info = cloud_sms_info();
 	if (is_error($sms_info)) {
 		iajax(-1, $sms_info['message']);
 	}
 	$message = array(
 		'sms_info' => $sms_info,
-		'list' => $data['data']
+		'list' => $data
 	);
 
 	iajax(0, $message);

@@ -15,7 +15,7 @@ load()->model('cache');
 $dos = array('display', 'welcome_display', 'get_module_info', 'get_module_replies', 'get_module_accounts', 'get_module_covers', 'change_enter_status');
 $do = !empty($_GPC['do']) ? safe_gpc_string($_GPC['do']) : 'display';
 
-$module_name = safe_gpc_string($_GPC['m']);
+$module_name = safe_gpc_string($_GPC['module_name']) ?: safe_gpc_string($_GPC['m']);
 $uniacid = $_W['uniacid'];
 $uni_modules = uni_modules();
 if(!in_array($module_name, array_keys($uni_modules))) {

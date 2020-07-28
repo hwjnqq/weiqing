@@ -43,6 +43,9 @@
 	angular.bootstrap($('#js-profile-sync'), ['profileApp']);
 </script>
 {else}
+<div class="alert alert-info">
+	<p><i class="fa fa-exclamation-circle"></i> 粉丝昵称中若带有特殊字符（包含但不限于:表情、中英文标点符号、换行符等）将会被替换为下划线"_"，多个替换多次。</p>
+</div>
 <div id="main" ng-controller="DisplayCtrl" ng-cloak>
 <div class="we7-page-search we7-padding-bottom clearfix">
 	<div class="pull-right">

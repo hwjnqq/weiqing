@@ -51,7 +51,7 @@ if (empty($_W['session_id'])) {
 session_id($_W['session_id']);
 
 load()->classs('wesession');
-WeSession::start($_W['uniacid'], CLIENT_IP);
+WeSession::start($_W['uniacid'], $_W['clientip']);
 //兼容0.6的i和j的处理方式
 if (!empty($_GPC['j'])) {
 	$acid = intval($_GPC['j']);
@@ -117,7 +117,7 @@ if (empty($unisetting['oauth']) && $_W['account']->typeSign == 'account' && $_W[
 	$unisetting['oauth'] = (array)$global_oauth['oauth'];
 }
 if (!empty($unisetting['oauth']['account'])) {
-	$oauth = account_fetch($unisetting['oauth']['account']);
+	$oauth = uni_fetch($unisetting['oauth']['account']);
 	if (!empty($oauth) && $_W['account']['level'] <= $oauth['level']) {
 		$_W['oauth_account'] = $_W['account']['oauth'] = array(
 			'key' => $oauth['key'],
@@ -170,9 +170,6 @@ if (!empty($_W['account']['oauth']) && $_W['account']['oauth']['support_oauthinf
 	}
 
 }
-$_W['account']['groupid'] = $_W['uniaccount']['groupid'];
-$_W['account']['qrcode'] = tomedia('qrcode_'.$_W['acid'].'.jpg').'?time='.$_W['timestamp'];
-$_W['account']['avatar'] = tomedia('headimg_'.$_W['acid'].'.jpg').'?time='.$_W['timestamp'];
 
 if ($_W['platform'] == 'account' && $_W['account']->supportJssdk && $controller != 'utility') {
 	if (!empty($unisetting['jsauth_acid'])) {

@@ -6,7 +6,7 @@
 defined('IN_IA') or exit('Access Denied');
 
 /**
- * 说明（以$we7_file_permission数组下第一个元素account为例）：
+ * 说明（以$w7_file_permission数组下第一个元素account为例）：
  * account  代表  设定/web/source/account文件夹下的权限（即代码中的 $controller 或 $_GPC['c']）
  * account数组下的元素：
  *	'default'	   代表  进入此controller后在没有指定$action（即$_GPC['a']）的情况下，默认进入的文件
@@ -18,8 +18,8 @@ defined('IN_IA') or exit('Access Denied');
  *	'clerk'		 代表  店员拥有的权限
  * 权限中带星号'*'指拥有该文件夹下所有权限.
  */
-$we7_file_permission = array();
-$we7_file_permission = array(
+$w7_file_permission = array();
+$w7_file_permission = array(
 	'account' => array(
 		'default' => '',
 		'direct' => array(
@@ -610,4 +610,4 @@ $we7_file_permission = array(
 	),
 );
 
-return $we7_file_permission;
+return $w7_file_permission;

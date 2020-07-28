@@ -159,6 +159,16 @@ if (intval($_W['account']['level']) == ACCOUNT_SERVICE_VERIFY) {
 	}
 }
 if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
+	$mc_oauth_fan = mc_oauth_fans($oauth['openid'], $_W['uniacid']);
+	if (empty($mc_oauth_fan)) {
+		$data = array(
+			'uniacid' => $_W['uniacid'],
+			'oauth_openid' => $oauth['openid'],
+			'uid' => intval($_SESSION['uid']),
+			'openid' => $_SESSION['openid']
+		);
+		table('mc_oauth_fans')->fill($data)->save();
+	}
 	//如果包含Unionid，则直接查原始openid
 	if (!empty($oauth['unionid'])) {
 		$fan = table('mc_mapping_fans')
@@ -174,16 +184,6 @@ if (intval($_W['account']['level']) != ACCOUNT_SERVICE_VERIFY) {
 			}
 		}
 	} else {
-		$mc_oauth_fan = mc_oauth_fans($oauth['openid'], $_W['acid']);
-		if (empty($mc_oauth_fan) && (!empty($_SESSION['openid']) || !empty($_SESSION['uid']))) {
-			$data = array(
-				'acid' => $_W['acid'],
-				'oauth_openid' => $oauth['openid'],
-				'uid' => intval($_SESSION['uid']),
-				'openid' => $_SESSION['openid']
-			);
-			table('mc_oauth_fans')->fill($data)->save();
-		}
 		if (!empty($mc_oauth_fan)) {
 			if (empty($_SESSION['uid']) && !empty($mc_oauth_fan['uid'])) {
 				$_SESSION['uid'] = intval($mc_oauth_fan['uid']);

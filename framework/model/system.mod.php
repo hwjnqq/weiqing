@@ -5,9 +5,9 @@
 defined('IN_IA') or exit('Access Denied');
 
 function system_menu() {
-	global $we7_system_menu;
+	global $w7_system_menu;
 	require_once IA_ROOT . '/web/common/frames.inc.php';
-	return $we7_system_menu;
+	return $w7_system_menu;
 }
 
 function system_shortcut_menu() {

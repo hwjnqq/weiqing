@@ -255,7 +255,7 @@ if ('post' == $do) {
 	}
 	if ($result) {
 		pdo_update('users_profile', array('edittime' => TIMESTAMP), array('uid' => $uid));
-		iajax(0, '修改成功！', '');
+		$type == 'password' ? iajax(0, '修改成功,请重新登录!', url('user/login')) : iajax(0, '修改成功！', '');
 	} else {
 		iajax(-1, '修改失败，请稍候重试！', '');
 	}

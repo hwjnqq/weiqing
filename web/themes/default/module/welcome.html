@@ -4,7 +4,7 @@
 	<div class="panel we7-panel module-go-panele" ng-if="module_info.welcome_display">
 		<div class="panel-heading we7-padding clearfix">
 			<h4 class="pull-left">应用后台管理</h4>
-			<a href="{php echo url('module/welcome/welcome_display', array('m' => $module_name))}" class="btn btn-primary pull-right" target="_blank">
+			<a href="{php echo url('module/welcome/welcome_display', array('module_name' => $module_name))}" class="btn btn-primary pull-right" target="_blank">
 				 进入后台
 			</a>
 			<div class="switch-box pull-right we7-margin-right">
@@ -80,7 +80,7 @@
 	<div class="panel we7-panel">
 		<div class="panel-heading">
 			<h4>功能快捷入口</h4>
-			<a ng-if="account_info.current_user_role != 'clerk'" href="{php echo url('module/shortcut', array('m' => $module_name, 'uniacid' => $uniacid))}" class="more" >管理快捷入口</a>
+			<a ng-if="account_info.current_user_role != 'clerk'" href="{php echo url('module/shortcut', array('module_name' => $module_name, 'uniacid' => $uniacid))}" class="more" >管理快捷入口</a>
 		</div>
 		<div class="panel-body "> 
 			<div class="quick-list" ng-if="!(shortcuts | we7IsEmpty)">
@@ -181,8 +181,8 @@
 	<div class="panel we7-panel" ng-if="account_info.current_user_role != 'clerk'">
 		<div class="panel-heading">
 			<h4>应用操作员</h4>
-			<a href="{php echo url('module/permission', array('m' => $module_name))}" class="more" ng-if="user_permissions"> 查看更多</a>
-			<a href="{php echo url('module/permission/post', array('m' => $module_name))}" target="_blank" class="more" ng-if="user_permissions"> 添加操作员</a>
+			<a href="{php echo url('module/permission', array('module_name' => $module_name))}" class="more" ng-if="user_permissions"> 查看更多</a>
+			<a href="{php echo url('module/permission/post', array('module_name' => $module_name))}" target="_blank" class="more" ng-if="user_permissions"> 添加操作员</a>
 		</div>
 		<div class="panel-body">
 			<div class="permission-box-list" ng-if="!(user_permissions | we7IsEmpty)">
@@ -326,13 +326,13 @@
 		'links' : {
 			'cover_url' : "{php echo url('platform/cover')}",
 			'reply_url' : "{php echo url('platform/reply')}",
-			'shortcut' : "{php echo url('module/shortcut/display', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'get_module_info_url' : "{php echo url('module/welcome/get_module_info', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'get_module_replies_url' : "{php echo url('module/welcome/get_module_replies', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'get_module_accounts_url' : "{php echo url('module/welcome/get_module_accounts', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'get_module_covers_url' : "{php echo url('module/welcome/get_module_covers', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'module_permission_url' : "{php echo url('module/permission/display', array('m' => $module_name, 'uniacid' => $uniacid))}",
-			'change_direct_enter_status': "{php echo url('module/welcome/change_enter_status', array('m' => $module_name, 'uniacid' => $uniacid))}",
+			'shortcut' : "{php echo url('module/shortcut/display', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'get_module_info_url' : "{php echo url('module/welcome/get_module_info', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'get_module_replies_url' : "{php echo url('module/welcome/get_module_replies', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'get_module_accounts_url' : "{php echo url('module/welcome/get_module_accounts', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'get_module_covers_url' : "{php echo url('module/welcome/get_module_covers', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'module_permission_url' : "{php echo url('module/permission/display', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
+			'change_direct_enter_status': "{php echo url('module/welcome/change_enter_status', array('module_name' => $module_name, 'uniacid' => $uniacid))}",
 		}
 	});
 	angular.bootstrap($('#js-module-welcome'), ['moduleApp']);

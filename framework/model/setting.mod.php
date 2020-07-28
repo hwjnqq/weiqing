@@ -48,10 +48,7 @@ function setting_load($key = '') {
 		}
 		cache_write($cachekey, $settings);
 	}
-	if (!isset($_W['setting']) || !is_array($_W['setting'])) {
-		$_W['setting'] = array();
-	}
-	$_W['setting'] = array_merge($settings, $_W['setting']);
+	$_W['setting'] = array_merge($settings, (array)$_W['setting']);
 	if (!empty($key)) {
 		return array($key => $settings[$key]);
 	} else {

@@ -37,14 +37,7 @@ if ('upload_remote' == $do) {
 	}
 }
 
-if ('display' == $do) {
-	$safe_path = safe_gpc_path(IA_ROOT . '/attachment/images/' . $_W['uniacid']);
-	if (!empty($safe_path)) {
-		$local_attachment = file_dir_exist_image($safe_path);
-	} else {
-		$local_attachment = array();
-	}
-}
+if ('display' == $do) {}
 
 if ('save' == $do || 'test_setting' == $do) {
 	$type_sign = array(ATTACH_FTP => 'ftp', ATTACH_OSS => 'alioss', ATTACH_QINIU => 'qiniu', ATTACH_COS => 'cos');

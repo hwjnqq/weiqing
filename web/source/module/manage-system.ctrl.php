@@ -402,12 +402,12 @@ if ('install' == $do) {
 			if (empty($has_new_support)) {
 				itoast('模块已经安装或是唯一标识已存在！', '', 'error');
 			} else {
-				header('location: ' . url('cloud/process', array('support' => $module_support_name, 'm' => $module_name, 'is_upgrade' => 1, 'has_new_support' => 1, 'application_type' => $application_type)));
+				header('location: ' . url('cloud/process', array('support' => $module_support_name, 'module_name' => $module_name, 'is_upgrade' => 1, 'has_new_support' => 1, 'application_type' => $application_type)));
 				exit;
 			}
 		}
 		if (empty($_GPC['flag'])) {
-			header('location: ' . url('cloud/process', array('support' => $module_support_name, 'm' => $module_name, 'application_type' => $application_type)));
+			header('location: ' . url('cloud/process', array('support' => $module_support_name, 'module_name' => $module_name, 'application_type' => $application_type)));
 			exit;
 		} else {
 			define('ONLINE_MODULE', true);

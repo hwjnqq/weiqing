@@ -10,7 +10,7 @@ load()->model('module');
 $dos = array('display', 'rank', 'module_shortcut');
 $do = !empty($_GPC['do']) ? $_GPC['do'] : 'display';
 
-$module_name = trim($_GPC['m']);
+$module_name = trim($_GPC['module_name']);
 $uniacid = intval($_GPC['uniacid']);
 $modulelist = uni_modules();
 $module = $_W['current_module'] = $modulelist[$module_name];

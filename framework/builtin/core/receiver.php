@@ -79,7 +79,13 @@ class CoreModuleReceiver extends WeModuleReceiver {
 				'name' => $row['name'],
 				'createtime' => TIMESTAMP,
 			);
-			table('qrcode_stat')->fill($insert)->save();
+			//开启后只记录首次扫描
+			if ($_W['setting']['qr_status']['status'] == 1) {
+				$qrLog = table('qrcode_stat')->where(array('uniacid' => $_W['uniacid'], 'qid' => $row['id'], 'openid' => $this->message['from']))->get();
+				if (empty($qrLog)) table('qrcode_stat')->fill($insert)->save();
+			} else {
+				table('qrcode_stat')->fill($insert)->save();
+			}
 
 		} elseif ('user_get_card' == $this->message['event']) {
 			$sceneid = $this->message['outerid'];

@@ -113,7 +113,7 @@
 					<label class="control-label col-sm-1">验证码:</label>
 					<div class="col-sm-11">
 						<div class="input-group">
-							<input name="code" type="text" class="form-control" placeholder="请输入验证码" ng-blur="checkCode()" ng-model="code">
+							<input name="code" type="text" class="form-control" placeholder="请输入验证码" ng-model="code">
 							<a href="javascript:;" class="input-group-btn imgverify" ng-click="changeVerify()"><img ng-src="{{image}}" style="height: 32px;"/></a>
 						</div>
 						<span ng-class="{true:'color-red',false:'sr-only'}[codeErr]" class="help-block" ng-bind="codeMsg"></span>

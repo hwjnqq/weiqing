@@ -44,10 +44,10 @@ if ($do == 'display') {
 	}
 	$list = table('site_article')
 		->searchWithPage($pindex, $psize)
-		->getBySnake('*', $where, array('displayorder' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
+		->getBySnake('*', $where, array('displayorder' => 'DESC','createtime' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
 		->getall();
 	$total = table('site_article')
-		->getBySnake('*', $where, array('displayorder' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
+		->getBySnake('*', $where, array('displayorder' => 'DESC','createtime' => 'DESC', 'edittime' => 'DESC', 'id' => 'DESC'))
 		->count();
 	$pager = pagination($total, $pindex, $psize);
 
@@ -251,7 +251,7 @@ if ($do == 'display') {
 	if (checksubmit('submit')) {
 		foreach ($_GPC['rid'] as $key => $id) {
 			$id = intval($id);
-			$row = table('site_article')->getById();
+			$row = table('site_article')->getById($id);
 			if (empty($row)) {
 				itoast('抱歉，文章不存在或是已经被删除！', '', '');
 			}

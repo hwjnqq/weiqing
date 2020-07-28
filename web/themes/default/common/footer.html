@@ -29,7 +29,9 @@
 			</a>
 			{/if}
 			{if !empty($icp['electronic_license'])}
-			<div>{php echo $icp['electronic_license']}</div>
+			<div>
+				<a href="<?php echo $icp['electronic_license']?>" target="_blank"><img src="https://zzlz.gsxt.gov.cn/images/lz4.png"  height="15px"> 电子执照</a>
+			</div>
 			{/if}
 		{/if}
 		{/loop}

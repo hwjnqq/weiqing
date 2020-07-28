@@ -62,7 +62,7 @@ if ('more_comments' == $do) {
 	$pageindex = max(1, intval($_GPC['page']));
 	$pagesize = 15;
 	$comment_table = table('article_comment');
-	$comment_table->orderby('id', 'DESC');
+	$comment_table->orderby($order, 'DESC');
 	$comment_table->searchWithPage($pageindex, $pagesize);
 	$comments = $comment_table->getCommentsByArticleid(intval($_GPC['id']));
 	$total = $comment_table->getLastQueryTotal();

@@ -277,7 +277,7 @@ function tablename($table) {
 	if (empty($GLOBALS['_W']['config']['db']['master'])) {
 		return "`{$GLOBALS['_W']['config']['db']['tablepre']}{$table}`";
 	}
-
+	
 	return "`{$GLOBALS['_W']['config']['db']['master']['tablepre']}{$table}`";
 }
 
@@ -769,7 +769,7 @@ function tomedia($src, $local_path = false, $is_cahce = false) {
 	if ($local_path || empty($_W['setting']['remote']['type']) && (empty($_W['uniacid']) || !empty($_W['uniacid']) && empty($uni_remote_setting['remote']['type'])) || file_exists(IA_ROOT . '/' . $_W['config']['upload']['attachdir'] . '/' . $src)) {
 		$src = $_W['siteroot'] . $_W['config']['upload']['attachdir'] . '/' . $src;
 	} else {
-		if ($uni_remote_setting['remote']['type']) {
+		if (!empty($uni_remote_setting['remote']['type'])) {
 			if (ATTACH_FTP == $uni_remote_setting['remote']['type']) {
 				$src = $uni_remote_setting['remote']['ftp']['url'] . '/' . $src;
 			} elseif (ATTACH_OSS == $uni_remote_setting['remote']['type']) {
@@ -1544,12 +1544,12 @@ function strip_emoji($nickname) {
 	$regexDingbats = '/[\x{2700}-\x{27BF}]/u';
 	$clean_text = preg_replace($regexDingbats, '_', $clean_text);
 
-	$clean_text = str_replace("'", '', $clean_text);
-	$clean_text = str_replace('"', '', $clean_text);
-	$clean_text = str_replace('“', '', $clean_text);
-	$clean_text = str_replace('゛', '', $clean_text);
+	$clean_text = str_replace("'", '_', $clean_text);
+	$clean_text = str_replace('"', '_', $clean_text);
+	$clean_text = str_replace('“', '_', $clean_text);
+	$clean_text = str_replace('゛', '_', $clean_text);
 	$search = array(' ', '　', "\n", "\r", "\t");
-	$replace = array('', '', '', '', '');
+	$replace = array('_', '_', '_', '_', '_');
 
 	return str_replace($search, $replace, $clean_text);
 }

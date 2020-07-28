@@ -12,7 +12,7 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_PHONEAPP_MODULE => array('title' => 'APP应用', 'type' => STORE_TYPE_PHONEAPP_MODULE, 'sign' => PHONEAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_ALIAPP_MODULE => array('title' => '支付宝小程序应用', 'type' => STORE_TYPE_ALIAPP_MODULE, 'sign' => ALIAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_BAIDUAPP_MODULE => array('title' => '百度小程序应用', 'type' => STORE_TYPE_BAIDUAPP_MODULE, 'sign' => BAIDUAPP_TYPE_SIGN, 'group' => 'module'),
-		STORE_TYPE_TOUTIAOAPP_MODULE => array('title' => '头条小程序应用', 'type' => STORE_TYPE_TOUTIAOAPP_MODULE, 'sign' => TOUTIAOAPP_TYPE_SIGN, 'group' => 'module'),
+		STORE_TYPE_TOUTIAOAPP_MODULE => array('title' => '字节跳动小程序应用', 'type' => STORE_TYPE_TOUTIAOAPP_MODULE, 'sign' => TOUTIAOAPP_TYPE_SIGN, 'group' => 'module'),
 		STORE_TYPE_API => array('title' => '应用访问流量API', 'type' => STORE_TYPE_API, 'group' => ''),
 		STORE_TYPE_PACKAGE => array('title' => '应用权限组', 'type' => STORE_TYPE_PACKAGE, 'group' => ''),
 		STORE_TYPE_USER_PACKAGE => array('title' => '用户权限组', 'type' => STORE_TYPE_USER_PACKAGE, 'group' => ''),
@@ -24,7 +24,7 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_PHONEAPP => array('title' => 'APP平台', 'type' => STORE_TYPE_PHONEAPP, 'group' => 'account_num'),
 		STORE_TYPE_ALIAPP => array('title' => '支付宝小程序平台', 'type' => STORE_TYPE_ALIAPP, 'group' => 'account_num'),
 		STORE_TYPE_BAIDUAPP => array('title' => '百度小程序平台', 'type' => STORE_TYPE_BAIDUAPP, 'group' => 'account_num'),
-		STORE_TYPE_TOUTIAOAPP => array('title' => '头条小程序平台', 'type' => STORE_TYPE_TOUTIAOAPP, 'group' => 'account_num'),
+		STORE_TYPE_TOUTIAOAPP => array('title' => '字节跳动小程序平台', 'type' => STORE_TYPE_TOUTIAOAPP, 'group' => 'account_num'),
 
 		STORE_TYPE_ACCOUNT_RENEW => array('title' => '公众号', 'type' => STORE_TYPE_ACCOUNT_RENEW, 'num_sign' => 'account_num', 'group' => 'renew'),
 		STORE_TYPE_WXAPP_RENEW => array('title' => '微信小程序', 'type' => STORE_TYPE_WXAPP_RENEW, 'num_sign' => 'wxapp_num', 'group' => 'renew'),
@@ -32,7 +32,7 @@ function store_goods_type_info($group = '') {
 		STORE_TYPE_PHONEAPP_RENEW => array('title' => 'APP', 'type' => STORE_TYPE_PHONEAPP_RENEW, 'num_sign' => 'phoneapp_num', 'group' => 'renew'),
 		STORE_TYPE_ALIAPP_RENEW => array('title' => '支付宝小程序', 'type' => STORE_TYPE_ALIAPP_RENEW, 'num_sign' => 'aliapp_num', 'group' => 'renew'),
 		STORE_TYPE_BAIDUAPP_RENEW => array('title' => '百度小程序', 'type' => STORE_TYPE_BAIDUAPP_RENEW, 'num_sign' => 'baiduapp_num', 'group' => 'renew'),
-		STORE_TYPE_TOUTIAOAPP_RENEW => array('title' => '头条小程序', 'type' => STORE_TYPE_TOUTIAOAPP_RENEW, 'num_sign' => 'toutiaoapp_num', 'group' => 'renew'),
+		STORE_TYPE_TOUTIAOAPP_RENEW => array('title' => '字节跳动小程序', 'type' => STORE_TYPE_TOUTIAOAPP_RENEW, 'num_sign' => 'toutiaoapp_num', 'group' => 'renew'),
 
 		STORE_TYPE_USER_RENEW => array('title' => '账号有效期', 'type' => STORE_TYPE_USER_RENEW, 'num_sign' => 'account_num', 'group' => 'user_renew')
 	);
